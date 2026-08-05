@@ -121,20 +121,19 @@ st.sidebar.header(t["sidebar_header"])
 with st.sidebar.form(key='horoscope_form'):
     user_name = st.text_input(t["name_input"], value="TestUser")
 
-    # 現在の日付と時刻を初期値として取得
     now_date = datetime.date.today()
     now_time = datetime.datetime.now().time()
 
     birth_date = st.date_input(
         t["birth_date"], 
-        value=now_date,  # 現在の日にちに連動
+        value=now_date, 
         min_value=datetime.date(1900, 1, 1),
         max_value=datetime.date(2100, 12, 31)
     )
 
     birth_time = st.time_input(
         t["birth_time"], 
-        value=now_time   # 現在の時刻に連動
+        value=now_time
     )
     
     DEFAULT_HOUR = birth_time.hour
@@ -247,15 +246,25 @@ def calculate_aspects(bodies, mode="日本語", view_type="ペア別"):
     return "\n".join(lines)
 
 def detect_patterns(bodies, mode="日本語"):
-    patterns, aspect_pairs = [], []
+    patterns = []
+    
+    # 全天体間の正確な差とアスペクトを抽出
+    aspect_pairs = []
     n = len(bodies)
     for i in range(n):
         for j in range(i + 1, n):
-            diff = min(abs(bodies[i]["abs_pos"] - bodies[j]["abs_pos"]), 360 - abs(bodies[i]["abs_pos"] - bodies[j]["abs_pos"]))
-            if diff <= 6.0: aspect_pairs.append((bodies[i]["key"], bodies[j]["key"], "Conjunction"))
-            if abs(diff - 180) <= 6.0: aspect_pairs.append((bodies[i]["key"], bodies[j]["key"], "Opposition"))
-            if abs(diff - 90) <= 5.0: aspect_pairs.append((bodies[i]["key"], bodies[j]["key"], "Square"))
+            pos1, pos2 = bodies[i]["abs_pos"], bodies[j]["abs_pos"]
+            k1, k2 = bodies[i]["key"], bodies[j]["key"]
+            diff = min(abs(pos1 - pos2), 360 - abs(pos1 - pos2))
+            
+            if diff <= 6.0: aspect_pairs.append((k1, k2, "Conjunction", diff))
+            if abs(diff - 180) <= 6.0: aspect_pairs.append((k1, k2, "Opposition", abs(diff - 180)))
+            if abs(diff - 120) <= 6.0: aspect_pairs.append((k1, k2, "Trine", abs(diff - 120)))
+            if abs(diff - 90) <= 5.0: aspect_pairs.append((k1, k2, "Square", abs(diff - 90)))
+            if abs(diff - 60) <= 5.0: aspect_pairs.append((k1, k2, "Sextile", abs(diff - 60)))
+            if abs(diff - 150) <= 3.0: aspect_pairs.append((k1, k2, "Quincunx", abs(diff - 150)))
 
+    # --- 1. ステリウム (Stellium) ---
     sign_counts = {}
     for b in bodies:
         s_idx = int(b["abs_pos"] // 30)
@@ -273,24 +282,102 @@ def detect_patterns(bodies, mode="日本語"):
             else:
                 patterns.append(f"**Stellium in {s_loc}** : [{m_names}]")
 
-    opps = [(a, b) for a, b, t in aspect_pairs if t == "Opposition"]
-    squares = [(a, b) for a, b, t in aspect_pairs if t == "Square"]
+    # 辞書化用マップ作成
+    opps = [(a, b) for a, b, t, _ in aspect_pairs if t == "Opposition"]
+    squares = [(a, b) for a, b, t, _ in aspect_pairs if t == "Square"]
+    trines = [(a, b) for a, b, t, _ in aspect_pairs if t == "Trine"]
+    sextiles = [(a, b) for a, b, t, _ in aspect_pairs if t == "Sextile"]
+    quincunxes = [(a, b) for a, b, t, _ in aspect_pairs if t == "Quincunx"]
+
     sq_dict = {}
     for a, b in squares:
         sq_dict.setdefault(a, set()).add(b)
         sq_dict.setdefault(b, set()).add(a)
-        
+
+    tr_dict = {}
+    for a, b in trines:
+        tr_dict.setdefault(a, set()).add(b)
+        tr_dict.setdefault(b, set()).add(a)
+
+    sex_dict = {}
+    for a, b in sextiles:
+        sex_dict.setdefault(a, set()).add(b)
+        sex_dict.setdefault(b, set()).add(a)
+
+    qui_dict = {}
+    for a, b in quincunxes:
+        qui_dict.setdefault(a, set()).add(b)
+        qui_dict.setdefault(b, set()).add(a)
+
+    # --- 2. Tスクエア (T-Square) ---
     for op_a, op_b in opps:
         common_sq = sq_dict.get(op_a, set()).intersection(sq_dict.get(op_b, set()))
         for apex in common_sq:
-            p_apex = get_p_name_clean(apex, mode)
-            p_a = get_p_name_clean(op_a, mode)
-            p_b = get_p_name_clean(op_b, mode)
+            p_apex, p_a, p_b = get_p_name_clean(apex, mode), get_p_name_clean(op_a, mode), get_p_name_clean(op_b, mode)
             if mode == "日本語":
                 patterns.append(f"**Tスクエア [頂点: {p_apex}]** : {p_a} と {p_b} の対立を {p_apex} が結びます")
             else:
                 patterns.append(f"**T-Square [Apex: {p_apex}]** : {p_apex} bridges the opposition between {p_a} and {p_b}")
-            
+
+    # --- 3. グランドクロス (Grand Cross) ---
+    # オポジションが2組あり、かつ互いにスクエアで繋がっている4天体の組み合わせ
+    checked_gc = set()
+    for i in range(len(opps)):
+        for j in range(i + 1, len(opps)):
+            op1_a, op1_b = opps[i]
+            op2_a, op2_b = opps[j]
+            # 4つの天体がすべてスクエア関係にあるか確認
+            all_nodes = {op1_a, op1_b, op2_a, op2_b}
+            if len(all_nodes) == 4:
+                is_gc = True
+                for n1 in all_nodes:
+                    for n2 in all_nodes:
+                        if n1 != n2 and n1 != (op1_a if n2==op1_b else (op1_b if n2==op1_a else '')) and n1 != (op2_a if n2==op2_b else (op2_b if n2==op2_a else '')):
+                            # 厳密なスクエア判定
+                            pass
+                # シンプルに全ペアがスクエアか確認
+                pairs_to_check = [(op1_a, op2_a), (op1_a, op2_b), (op1_b, op2_a), (op1_b, op2_b)]
+                if all(any((min(a,b)==min(x,y) and max(a,b)==max(x,y)) for a,b,t,_ in aspect_pairs if t=="Square") for x,y in pairs_to_check):
+                    sorted_key = tuple(sorted(list(all_nodes)))
+                    if sorted_key not in checked_gc:
+                        checked_gc.add(sorted_key)
+                        names = ", ".join([get_p_name_clean(k, mode) for k in sorted_key])
+                        if mode == "日本語":
+                            patterns.append(f"**グランドクロス** : [{names}] が十字型の強力な葛藤と駆動力を形成します")
+                        else:
+                            patterns.append(f"**Grand Cross** : [{names}] forms a powerful cross of tension and drive")
+
+    # --- 4. グランドトライン (Grand Trine) ---
+    # 3つの天体が正三角形（トライン3つ）を形成
+    checked_gt = set()
+    for a, neighbors in tr_dict.items():
+        for b in neighbors:
+            common_tr = tr_dict.get(a, set()).intersection(tr_dict.get(b, set()))
+            for c in common_tr:
+                if a < b < c: # 重複防止
+                    sorted_key = (a, b, c)
+                    if sorted_key not in checked_gt:
+                        checked_gt.add(sorted_key)
+                        p_a, p_b, p_c = get_p_name_clean(a, mode), get_p_name_clean(b, mode), get_p_name_clean(c, mode)
+                        if mode == "日本語":
+                            patterns.append(f"**グランドトライン** : [{p_a}, {p_b}, {p_c}] が調和の正三角形を形成します")
+                        else:
+                            patterns.append(f"**Grand Trine** : [{p_a}, {p_b}, {p_c}] forms a harmonious grand trine")
+
+    # --- 5. ヨッド (Yod / 神の指) ---
+    # 2つの天体がセクスタイル（60°）を結び、その両方から別の1つの天体へクインカンクス（150°）が向かっている形（頂点の天体がキー）
+    for a, sex_neighbors in sex_dict.items():
+        for b in sex_neighbors:
+            # aとbはセクスタイル
+            common_qui = qui_dict.get(a, set()).intersection(qui_dict.get(b, set()))
+            for apex in common_qui:
+                p_apex = get_p_name_clean(apex, mode)
+                p_a, p_b = get_p_name_clean(a, mode), get_p_name_clean(b, mode)
+                if mode == "日本語":
+                    patterns.append(f"**ヨッド [頂点: {p_apex}]** : {p_a} と {p_b} のセクスタイルから、{p_apex} へ宿命的なエネルギーが集中します")
+                else:
+                    patterns.append(f"**Yod [Apex: {p_apex}]** : {p_apex} acts as the focal point receiving quincunxes from a sextile between {p_a} and {p_b}")
+
     return patterns
 
 # ==========================================
@@ -319,7 +406,6 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
 
     all_aspect_objs, p_lines = [], []
     
-    # 英語のハウス名から数字への対応表
     house_name_map = {
         "First_House": 1, "Second_House": 2, "Third_House": 3, "Fourth_House": 4,
         "Fifth_House": 5, "Sixth_House": 6, "Seventh_House": 7, "Eighth_House": 8,
@@ -336,7 +422,6 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
             pos = getattr(p, 'position', 0.0)
             h_raw = getattr(p, 'house', 'First_House')
 
-        # 対応表から数字を引く（見つからなければデフォルトで1）
         h_num = house_name_map.get(str(h_raw), 1)
 
         norm_sign = sign_normalize_map.get(str(sign), "Aries")
@@ -394,7 +479,6 @@ if submit_button:
     if data.get("error"):
         st.error(data["error"])
     else:
-        # --- 鑑定書ヘッダー ---
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 10px; background-color: rgba(212, 175, 55, 0.05); text-align: center; margin-bottom: 25px;">
             <h2 style="margin: 0; color: #B8860B;">✨ {user_name} {"さんのホロスコープ" if toggle_lang=="日本語" else "'s Horoscope"} ✨</h2>
@@ -402,14 +486,12 @@ if submit_button:
         </div>
         """, unsafe_allow_html=True)
 
-        # --- 主要アングル（ASC / MC） ---
         if data["angles"]:
             col_a1, col_a2 = st.columns(2)
             col_a1.info(data["angles"][0])
             col_a2.info(data["angles"][1])
         st.write("")
 
-        # --- 天体とハウスの2カラムレイアウト ---
         col1, col2 = st.columns(2)
         with col1:
             st.markdown(f"### {t['bodies_header']}")
@@ -423,14 +505,12 @@ if submit_button:
 
         st.divider()
 
-        # --- アスペクト ---
         st.markdown(f"### {t['aspects_header']}")
         with st.expander(t["aspects_expander"], expanded=True):
             st.markdown(data["aspects"])
 
         st.divider()
 
-        # --- 複合アスペクト ---
         st.markdown(f"### {t['patterns_header']}")
         if data["patterns"]:
             for pat in data["patterns"]:
