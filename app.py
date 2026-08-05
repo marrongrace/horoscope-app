@@ -400,7 +400,7 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
     # 各ハウスのカスプ（起点）の絶対位置を取得する（5度前ルール判定用）
     houses_list = [
         chart.first_house, chart.second_house, chart.third_house, chart.fourth_house,
-        .fifth_house, chart.sixth_house, chart.seventh_house, chart.eighth_house,
+        chart.fifth_house, chart.sixth_house, chart.seventh_house, chart.eighth_house,
         chart.ninth_house, chart.tenth_house, chart.eleventh_house, chart.twelfth_house
     ] if not is_unknown_time else []
 
@@ -433,18 +433,15 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
             p_lines.append(f"**{p_name}** : {s_name} `({pos:.2f}°)`")
         else:
             # 5度前ルールの判定ロジック
-            # 天体が属するハウス（0-indexedで h_num - 1）の「次のハウスのカスプ」との距離を計算する
             current_h_idx = h_num - 1
             next_h_idx = (current_h_idx + 1) % 12
             
             cusp_next = house_cusp_abs[next_h_idx]
-            # 360度を跨ぐ場合の考慮も含めた「次のカスプまでの距離（正の値）」
             dist_to_next_cusp = (cusp_next - abs_p_pos) % 360
             
             effective_h_num = h_num
             rule_applied_str = ""
             
-            # 次のハウスのカスプまで 0度以上 5度以内 である場合
             if 0.0 <= dist_to_next_cusp <= 5.0:
                 effective_h_num = next_h_idx + 1
                 next_h_label = format_house_name_clean(effective_h_num, mode)
