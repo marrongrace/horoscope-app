@@ -317,7 +317,6 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
 
     all_aspect_objs, p_lines = [], []
     for key, p in celestial_bodies:
-    for key, p in celestial_bodies:
         st.write(f"【デバッグ】{key} の中身:", p)
         # 辞書型またはオブジェクト型から安全に値を取り出す
         if isinstance(p, dict):
