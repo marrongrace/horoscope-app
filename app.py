@@ -247,8 +247,6 @@ def calculate_aspects(bodies, mode="日本語", view_type="ペア別"):
 
 def detect_patterns(bodies, mode="日本語"):
     patterns = []
-    
-    # 全天体間の正確な差とアスペクトを抽出
     aspect_pairs = []
     n = len(bodies)
     for i in range(n):
@@ -264,7 +262,7 @@ def detect_patterns(bodies, mode="日本語"):
             if abs(diff - 60) <= 5.0: aspect_pairs.append((k1, k2, "Sextile", abs(diff - 60)))
             if abs(diff - 150) <= 3.0: aspect_pairs.append((k1, k2, "Quincunx", abs(diff - 150)))
 
-    # --- 1. ステリウム (Stellium) ---
+    # ステリウム
     sign_counts = {}
     for b in bodies:
         s_idx = int(b["abs_pos"] // 30)
@@ -282,7 +280,6 @@ def detect_patterns(bodies, mode="日本語"):
             else:
                 patterns.append(f"**Stellium in {s_loc}** : [{m_names}]")
 
-    # 辞書化用マップ作成
     opps = [(a, b) for a, b, t, _ in aspect_pairs if t == "Opposition"]
     squares = [(a, b) for a, b, t, _ in aspect_pairs if t == "Square"]
     trines = [(a, b) for a, b, t, _ in aspect_pairs if t == "Trine"]
@@ -309,7 +306,7 @@ def detect_patterns(bodies, mode="日本語"):
         qui_dict.setdefault(a, set()).add(b)
         qui_dict.setdefault(b, set()).add(a)
 
-    # --- 2. Tスクエア (T-Square) ---
+    # Tスクエア
     for op_a, op_b in opps:
         common_sq = sq_dict.get(op_a, set()).intersection(sq_dict.get(op_b, set()))
         for apex in common_sq:
@@ -319,23 +316,14 @@ def detect_patterns(bodies, mode="日本語"):
             else:
                 patterns.append(f"**T-Square [Apex: {p_apex}]** : {p_apex} bridges the opposition between {p_a} and {p_b}")
 
-    # --- 3. グランドクロス (Grand Cross) ---
-    # オポジションが2組あり、かつ互いにスクエアで繋がっている4天体の組み合わせ
+    # グランドクロス
     checked_gc = set()
     for i in range(len(opps)):
         for j in range(i + 1, len(opps)):
             op1_a, op1_b = opps[i]
             op2_a, op2_b = opps[j]
-            # 4つの天体がすべてスクエア関係にあるか確認
             all_nodes = {op1_a, op1_b, op2_a, op2_b}
             if len(all_nodes) == 4:
-                is_gc = True
-                for n1 in all_nodes:
-                    for n2 in all_nodes:
-                        if n1 != n2 and n1 != (op1_a if n2==op1_b else (op1_b if n2==op1_a else '')) and n1 != (op2_a if n2==op2_b else (op2_b if n2==op2_a else '')):
-                            # 厳密なスクエア判定
-                            pass
-                # シンプルに全ペアがスクエアか確認
                 pairs_to_check = [(op1_a, op2_a), (op1_a, op2_b), (op1_b, op2_a), (op1_b, op2_b)]
                 if all(any((min(a,b)==min(x,y) and max(a,b)==max(x,y)) for a,b,t,_ in aspect_pairs if t=="Square") for x,y in pairs_to_check):
                     sorted_key = tuple(sorted(list(all_nodes)))
@@ -347,14 +335,13 @@ def detect_patterns(bodies, mode="日本語"):
                         else:
                             patterns.append(f"**Grand Cross** : [{names}] forms a powerful cross of tension and drive")
 
-    # --- 4. グランドトライン (Grand Trine) ---
-    # 3つの天体が正三角形（トライン3つ）を形成
+    # グランドトライン
     checked_gt = set()
     for a, neighbors in tr_dict.items():
         for b in neighbors:
             common_tr = tr_dict.get(a, set()).intersection(tr_dict.get(b, set()))
             for c in common_tr:
-                if a < b < c: # 重複防止
+                if a < b < c:
                     sorted_key = (a, b, c)
                     if sorted_key not in checked_gt:
                         checked_gt.add(sorted_key)
@@ -364,11 +351,9 @@ def detect_patterns(bodies, mode="日本語"):
                         else:
                             patterns.append(f"**Grand Trine** : [{p_a}, {p_b}, {p_c}] forms a harmonious grand trine")
 
-    # --- 5. ヨッド (Yod / 神の指) ---
-    # 2つの天体がセクスタイル（60°）を結び、その両方から別の1つの天体へクインカンクス（150°）が向かっている形（頂点の天体がキー）
+    # ヨッド
     for a, sex_neighbors in sex_dict.items():
         for b in sex_neighbors:
-            # aとbはセクスタイル
             common_qui = qui_dict.get(a, set()).intersection(qui_dict.get(b, set()))
             for apex in common_qui:
                 p_apex = get_p_name_clean(apex, mode)
@@ -412,6 +397,20 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
         "Ninth_House": 9, "Tenth_House": 10, "Eleventh_House": 11, "Twelfth_House": 12
     }
 
+    # 各ハウスのカスプ（起点）の絶対位置を取得する（5度前ルール判定用）
+    houses_list = [
+        chart.first_house, chart.second_house, chart.third_house, chart.fourth_house,
+        .fifth_house, chart.sixth_house, chart.seventh_house, chart.eighth_house,
+        chart.ninth_house, chart.tenth_house, chart.eleventh_house, chart.twelfth_house
+    ] if not is_unknown_time else []
+
+    house_cusp_abs = []
+    if not is_unknown_time:
+        for idx, h in enumerate(houses_list):
+            s_norm = sign_normalize_map.get(str(h.sign), "Aries")
+            s_idx = list(sign_data.keys()).index(s_norm) if s_norm in sign_data else 0
+            house_cusp_abs.append(s_idx * 30 + h.position)
+
     for key, p in celestial_bodies:
         if isinstance(p, dict):
             sign = p.get('sign', 'Aries')
@@ -423,16 +422,39 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
             h_raw = getattr(p, 'house', 'First_House')
 
         h_num = house_name_map.get(str(h_raw), 1)
-
         norm_sign = sign_normalize_map.get(str(sign), "Aries")
         s_idx = list(sign_data.keys()).index(norm_sign) if norm_sign in sign_data else 0
-        all_aspect_objs.append({"key": key, "abs_pos": s_idx * 30 + pos})
+        abs_p_pos = s_idx * 30 + pos
+        all_aspect_objs.append({"key": key, "abs_pos": abs_p_pos})
         
         p_name, s_name = get_p_name_clean(key, mode), get_s_name_clean(sign, mode)
-        if is_unknown_time: 
+        
+        if is_unknown_time:
             p_lines.append(f"**{p_name}** : {s_name} `({pos:.2f}°)`")
-        else: 
-            p_lines.append(f"**{p_name}** : {s_name} ({format_house_name_clean(h_num, mode)}) `({pos:.2f}°)`")
+        else:
+            # 5度前ルールの判定ロジック
+            # 天体が属するハウス（0-indexedで h_num - 1）の「次のハウスのカスプ」との距離を計算する
+            current_h_idx = h_num - 1
+            next_h_idx = (current_h_idx + 1) % 12
+            
+            cusp_next = house_cusp_abs[next_h_idx]
+            # 360度を跨ぐ場合の考慮も含めた「次のカスプまでの距離（正の値）」
+            dist_to_next_cusp = (cusp_next - abs_p_pos) % 360
+            
+            effective_h_num = h_num
+            rule_applied_str = ""
+            
+            # 次のハウスのカスプまで 0度以上 5度以内 である場合
+            if 0.0 <= dist_to_next_cusp <= 5.0:
+                effective_h_num = next_h_idx + 1
+                next_h_label = format_house_name_clean(effective_h_num, mode)
+                if mode == "日本語":
+                    rule_applied_str = f" (5度前ルール適用 ➡️ {next_h_label})"
+                else:
+                    rule_applied_str = f" (5-degree rule applied ➡️ {next_h_label})"
+
+            base_h_label = format_house_name_clean(h_num, mode)
+            p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}){rule_applied_str} `({pos:.2f}°)`")
 
     angles_list, h_lines = [], []
     if not is_unknown_time:
@@ -448,10 +470,8 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
                 f"**ASC (Ascendant)** : {asc_s} `({chart.first_house.position:.2f}°)`",
                 f"**MC (Midheaven)** : {mc_s} `({chart.tenth_house.position:.2f}°)`"
             ]
-        houses = [chart.first_house, chart.second_house, chart.third_house, chart.fourth_house, chart.fifth_house, chart.sixth_house,
-                  chart.seventh_house, chart.eighth_house, chart.ninth_house, chart.tenth_house, chart.eleventh_house, chart.twelfth_house]
-        for i, h in enumerate(houses, 1):
-            h_lines.append(f"**{format_house_name_clean(i, mode)}** : {get_s_name_clean(h.sign, mode)}")
+        for i, h in enumerate(houses_list, 1):
+            h_lines.append(f"**{format_house_name_clean(i, mode)}** : {get_s_name_clean(h.sign, mode)} `({h.position:.2f}°)`")
     else:
         h_lines.append("*(出生時間不明のためハウス除外)*" if mode == "日本語" else "*(Houses excluded due to unknown birth time)*")
 
