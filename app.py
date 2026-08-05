@@ -317,14 +317,28 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
 
     all_aspect_objs, p_lines = [], []
     for key, p in celestial_bodies:
+        # 辞書型またはオブジェクト型から安全に値を取り出す
         if isinstance(p, dict):
             sign = p.get('sign', 'Aries')
             pos = p.get('position', 0.0)
-            h_num = p.get('house', '1')
+            # house, house_number, あるいはそれに類するキーを探す
+            h_num = p.get('house') or p.get('house_number') or 1
         else:
             sign = getattr(p, 'sign', 'Aries')
             pos = getattr(p, 'position', 0.0)
-            h_num = getattr(p, 'house', getattr(p, 'house_number', '1'))
+            # kerykeionのオブジェクトが持つ可能性のあるハウスの属性を総当たりで確認
+            h_num = (
+                getattr(p, 'house', None) or 
+                getattr(p, 'house_number', None) or 
+                getattr(p, 'house_name', None) or 
+                1
+            )
+
+        # デバッグ用：もしうまく取れてない場合に備えて数値に変換しておく処理
+        try:
+            h_num = int(str(h_num).replace('st', '').replace('nd', '').replace('rd', '').replace('th', ''))
+        except:
+            h_num = 1
 
         norm_sign = sign_normalize_map.get(str(sign), "Aries")
         s_idx = list(sign_data.keys()).index(norm_sign) if norm_sign in sign_data else 0
