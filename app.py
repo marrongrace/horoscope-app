@@ -317,23 +317,45 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
 
     all_aspect_objs, p_lines = [], []
     for key, p in celestial_bodies:
-        st.write(f"【デバッグ】{key} の中身:", p)
-        # 辞書型またはオブジェクト型から安全に値を取り出す
+        # デバッグ表示は確認できたら消してもOKです
+        # st.write(f"【デバッグ】{key} の中身:", p)
+        
         if isinstance(p, dict):
             sign = p.get('sign', 'Aries')
             pos = p.get('position', 0.0)
-            # house, house_number, あるいはそれに類するキーを探す
-            h_num = p.get('house') or p.get('house_number') or 1
+            # 辞書から 'house' キー（例: "Tenth_House"）を取得
+            h_raw = p.get('house', 'First_House')
         else:
             sign = getattr(p, 'sign', 'Aries')
             pos = getattr(p, 'position', 0.0)
-            # kerykeionのオブジェクトが持つ可能性のあるハウスの属性を総当たりで確認
-            h_num = (
-                getattr(p, 'house', None) or 
-                getattr(p, 'house_number', None) or 
-                getattr(p, 'house_name', None) or 
-                1
-            )
+            h_raw = getattr(p, 'house', 'First_House')
+
+        # "Tenth_House" や "First_House" などの文字列から数字を抽出する処理
+        house_num_mapping = {
+            "First": 1, "Second": 2, "Third": 3, "Fourth": 4, 
+            "Fifth": 5, "Sixth": 6, "Seventh": 7, "Eighth": 8, 
+            "Ninth": 9, "Tenth": 10, "Eleventh": 11, "Twelfth": 12
+        }
+        
+        # h_raw（例: "Tenth_House"）の先頭パーツ（"Tenth"など）を取り出して数字に変換
+        h_num = 1
+        if isinstance(h_raw, str):
+            for k, v in house_num_mapping.items():
+                if k.lower() in h_raw.lower():
+                    h_num = v
+                    break
+        elif isinstance(h_raw, (int, float)):
+            h_num = int(h_raw)
+
+        norm_sign = sign_normalize_map.get(str(sign), "Aries")
+        s_idx = list(sign_data.keys()).index(norm_sign) if norm_sign in sign_data else 0
+        all_aspect_objs.append({"key": key, "abs_pos": s_idx * 30 + pos})
+        
+        p_name, s_name = get_p_name_clean(key, mode), get_s_name_clean(sign, mode)
+        if is_unknown_time: 
+            p_lines.append(f"**{p_name}** : {s_name} `({pos:.2f}°)`")
+        else: 
+            p_lines.append(f"**{p_name}** : {s_name} ({format_house_name_clean(h_num, mode)}) `({pos:.2f}°)`")
 
         # デバッグ用：もしうまく取れてない場合に備えて数値に変換しておく処理
         try:
