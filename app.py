@@ -411,6 +411,9 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
             s_idx = list(sign_data.keys()).index(s_norm) if s_norm in sign_data else 0
             house_cusp_abs.append(s_idx * 30 + h.position)
 
+    # 5度前ルールを適用する対象の天体リスト（主要10天体）
+    major_bodies_for_rule = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
+
     for key, p in celestial_bodies:
         if isinstance(p, dict):
             sign = p.get('sign', 'Aries')
@@ -432,25 +435,25 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
         if is_unknown_time:
             p_lines.append(f"**{p_name}** : {s_name} `({pos:.2f}°)`")
         else:
-            # 5度前ルールの判定ロジック
-            current_h_idx = h_num - 1
-            next_h_idx = (current_h_idx + 1) % 12
-            
-            cusp_next = house_cusp_abs[next_h_idx]
-            dist_to_next_cusp = (cusp_next - abs_p_pos) % 360
-            
-            effective_h_num = h_num
+            base_h_label = format_house_name_clean(h_num, mode)
             rule_applied_str = ""
             
-            if 0.0 <= dist_to_next_cusp <= 5.0:
-                effective_h_num = next_h_idx + 1
-                next_h_label = format_house_name_clean(effective_h_num, mode)
-                if mode == "日本語":
-                    rule_applied_str = f" (5度前ルール適用 ➡️ {next_h_label})"
-                else:
-                    rule_applied_str = f" (5-degree rule applied ➡️ {next_h_label})"
+            # 主要10天体の場合のみ5度前ルールを適用
+            if key in major_bodies_for_rule:
+                current_h_idx = h_num - 1
+                next_h_idx = (current_h_idx + 1) % 12
+                
+                cusp_next = house_cusp_abs[next_h_idx]
+                dist_to_next_cusp = (cusp_next - abs_p_pos) % 360
+                
+                if 0.0 <= dist_to_next_cusp <= 5.0:
+                    effective_h_num = next_h_idx + 1
+                    next_h_label = format_house_name_clean(effective_h_num, mode)
+                    if mode == "日本語":
+                        rule_applied_str = f" (5度前ルール適用 ➡️ {next_h_label})"
+                    else:
+                        rule_applied_str = f" (5-degree rule applied ➡️ {next_h_label})"
 
-            base_h_label = format_house_name_clean(h_num, mode)
             if rule_applied_str:
                 p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({pos:.2f}°)`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_applied_str.strip()}")
             else:
