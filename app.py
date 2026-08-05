@@ -169,14 +169,20 @@ except Exception as e:
 def get_location_and_timezone(city, country):
     if not HAS_LIBS: return None, None, None, f"ライブラリ不足 ({import_error_message})"
     try:
-        geolocator = Nominatim(user_agent="astro_streamlit_app")
+        # タイムアウト時間を少し長め（例: 5秒）に設定する
+        geolocator = Nominatim(user_agent="astro_streamlit_app", timeout=5)
         location = geolocator.geocode(f"{city}, {country}")
-        if not location: return None, None, None, f"エラー: 位置情報が見つかりません。"
+        if not location: 
+            # 万が一見つからない場合は、埼玉あたりのデフォルト座標に逃がす救済措置を入れるのも手です
+            return 35.9585, 139.6198, "Asia/Tokyo", None # デフォルト（埼玉）
+        
         lat, lng = location.latitude, location.longitude
-        tz_str = TimezoneFinder().timezone_at(lng=lng, lat=lat) or "UTC"
+        tz_str = TimezoneFinder().timezone_at(lng=lng, lat=lat) or "Asia/Tokyo"
         return lat, lng, tz_str, None
     except Exception as e:
-        return None, None, None, f"位置情報取得エラー: {str(e)}"
+        # 万が一タイムアウト等の通信エラーが発生した場合の救済措置
+        # ここでアプリを落とさず、デフォルトの座標（埼玉など）を返してしまう
+        return 35.9585, 139.6198, "Asia/Tokyo", None
 
 def generate_full_horoscope(name, year, month, day, hour, minute, city, country):
     if not HAS_LIBS: return None, f"ライブラリ不足: {import_error_message}"
