@@ -451,7 +451,10 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
                     rule_applied_str = f" (5-degree rule applied ➡️ {next_h_label})"
 
             base_h_label = format_house_name_clean(h_num, mode)
-            p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}){rule_applied_str} `({pos:.2f}°)`")
+            if rule_applied_str:
+                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({pos:.2f}°)`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_applied_str.strip()}")
+            else:
+                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({pos:.2f}°)`")
 
     angles_list, h_lines = [], []
     if not is_unknown_time:
@@ -513,7 +516,7 @@ if submit_button:
         with col1:
             st.markdown(f"### {t['bodies_header']}")
             for p in data["bodies"]:
-                st.markdown(f"- {p}")
+                st.markdown(f"- {p}", unsafe_allow_html=True)
                 
         with col2:
             st.markdown(f"### {t['houses_header']}")
