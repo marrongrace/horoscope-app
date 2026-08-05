@@ -169,19 +169,15 @@ except Exception as e:
 def get_location_and_timezone(city, country):
     if not HAS_LIBS: return None, None, None, f"ライブラリ不足 ({import_error_message})"
     try:
-        # タイムアウト時間を少し長め（例: 5秒）に設定する
         geolocator = Nominatim(user_agent="astro_streamlit_app", timeout=5)
         location = geolocator.geocode(f"{city}, {country}")
         if not location: 
-            # 万が一見つからない場合は、埼玉あたりのデフォルト座標に逃がす救済措置を入れるのも手です
-            return 35.9585, 139.6198, "Asia/Tokyo", None # デフォルト（埼玉）
+            return 35.9585, 139.6198, "Asia/Tokyo", None
         
         lat, lng = location.latitude, location.longitude
         tz_str = TimezoneFinder().timezone_at(lng=lng, lat=lat) or "Asia/Tokyo"
         return lat, lng, tz_str, None
     except Exception as e:
-        # 万が一タイムアウト等の通信エラーが発生した場合の救済措置
-        # ここでアプリを落とさず、デフォルトの座標（埼玉など）を返してしまう
         return 35.9585, 139.6198, "Asia/Tokyo", None
 
 def generate_full_horoscope(name, year, month, day, hour, minute, city, country):
@@ -342,22 +338,6 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
 
         # 対応表から数字を引く（見つからなければデフォルトで1）
         h_num = house_name_map.get(str(h_raw), 1)
-
-        norm_sign = sign_normalize_map.get(str(sign), "Aries")
-        s_idx = list(sign_data.keys()).index(norm_sign) if norm_sign in sign_data else 0
-        all_aspect_objs.append({"key": key, "abs_pos": s_idx * 30 + pos})
-        
-        p_name, s_name = get_p_name_clean(key, mode), get_s_name_clean(sign, mode)
-        if is_unknown_time: 
-            p_lines.append(f"**{p_name}** : {s_name} `({pos:.2f}°)`")
-        else: 
-            p_lines.append(f"**{p_name}** : {s_name} ({format_house_name_clean(h_num, mode)}) `({pos:.2f}°)`")
-
-        # デバッグ用：もしうまく取れてない場合に備えて数値に変換しておく処理
-        try:
-            h_num = int(str(h_num).replace('st', '').replace('nd', '').replace('rd', '').replace('th', ''))
-        except:
-            h_num = 1
 
         norm_sign = sign_normalize_map.get(str(sign), "Aries")
         s_idx = list(sign_data.keys()).index(norm_sign) if norm_sign in sign_data else 0
