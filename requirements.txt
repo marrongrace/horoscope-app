@@ -1,0 +1,6 @@
+streamlit
+matplotlib
+numpy
+geopy
+timezonefinder
+kerykeion
