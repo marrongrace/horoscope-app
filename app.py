@@ -322,24 +322,36 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
         if obj: celestial_bodies.append((key, obj))
 
     all_aspect_objs, p_lines = [], []
+    
+    # 英語のハウス名から数字への対応表
+    house_name_map = {
+        "First_House": 1, "Second_House": 2, "Third_House": 3, "Fourth_House": 4,
+        "Fifth_House": 5, "Sixth_House": 6, "Seventh_House": 7, "Eighth_House": 8,
+        "Ninth_House": 9, "Tenth_House": 10, "Eleventh_House": 11, "Twelfth_House": 12
+    }
+
     for key, p in celestial_bodies:
-        st.write(f"【デバッグ】{key} の中身:", p)
-        # 辞書型またはオブジェクト型から安全に値を取り出す
         if isinstance(p, dict):
             sign = p.get('sign', 'Aries')
             pos = p.get('position', 0.0)
-            # house, house_number, あるいはそれに類するキーを探す
-            h_num = p.get('house') or p.get('house_number') or 1
+            h_raw = p.get('house', 'First_House')
         else:
             sign = getattr(p, 'sign', 'Aries')
             pos = getattr(p, 'position', 0.0)
-            # kerykeionのオブジェクトが持つ可能性のあるハウスの属性を総当たりで確認
-            h_num = (
-                getattr(p, 'house', None) or 
-                getattr(p, 'house_number', None) or 
-                getattr(p, 'house_name', None) or 
-                1
-            )
+            h_raw = getattr(p, 'house', 'First_House')
+
+        # 対応表から数字を引く（見つからなければデフォルトで1）
+        h_num = house_name_map.get(str(h_raw), 1)
+
+        norm_sign = sign_normalize_map.get(str(sign), "Aries")
+        s_idx = list(sign_data.keys()).index(norm_sign) if norm_sign in sign_data else 0
+        all_aspect_objs.append({"key": key, "abs_pos": s_idx * 30 + pos})
+        
+        p_name, s_name = get_p_name_clean(key, mode), get_s_name_clean(sign, mode)
+        if is_unknown_time: 
+            p_lines.append(f"**{p_name}** : {s_name} `({pos:.2f}°)`")
+        else: 
+            p_lines.append(f"**{p_name}** : {s_name} ({format_house_name_clean(h_num, mode)}) `({pos:.2f}°)`")
 
         # デバッグ用：もしうまく取れてない場合に備えて数値に変換しておく処理
         try:
