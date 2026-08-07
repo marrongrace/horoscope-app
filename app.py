@@ -278,11 +278,11 @@ def detect_patterns(bodies, mode="日本語"):
         major = [m for m in members if m not in ["North Node", "South Node", "Chiron"]]
         if len(major) >= 3:
             s_loc = get_s_name_clean(s_name, mode)
-            m_names = ", ".join([get_p_name_clean(m, mode) for m in major])
+            m_names = " & ".join([get_p_name_clean(m, mode) for m in major])
             if mode == "日本語":
-                patterns.append(f"**ステリウム in {s_loc}** : [{m_names}]")
+                patterns.append(f"ステリウム in {s_loc} : {m_names}")
             else:
-                patterns.append(f"**Stellium in {s_loc}** : [{m_names}]")
+                patterns.append(f"Stellium in {s_loc} : {m_names}")
 
     opps = [(a, b) for a, b, t, _ in aspect_pairs if t == "Opposition"]
     squares = [(a, b) for a, b, t, _ in aspect_pairs if t == "Square"]
@@ -316,9 +316,9 @@ def detect_patterns(bodies, mode="日本語"):
         for apex in common_sq:
             p_apex, p_a, p_b = get_p_name_clean(apex, mode), get_p_name_clean(op_a, mode), get_p_name_clean(op_b, mode)
             if mode == "日本語":
-                patterns.append(f"**Tスクエア [頂点: {p_apex}]** : {p_a} と {p_b} の対立を {p_apex} が結びます")
+                patterns.append(f"Tスクエア [頂点: {p_apex}] : {p_a} & {p_b} & {p_apex}")
             else:
-                patterns.append(f"**T-Square [Apex: {p_apex}]** : {p_apex} bridges the opposition between {p_a} and {p_b}")
+                patterns.append(f"T-Square [Apex: {p_apex}] : {p_a} & {p_b} & {p_apex}")
 
     # グランドクロス
     checked_gc = set()
@@ -333,11 +333,11 @@ def detect_patterns(bodies, mode="日本語"):
                     sorted_key = tuple(sorted(list(all_nodes)))
                     if sorted_key not in checked_gc:
                         checked_gc.add(sorted_key)
-                        names = ", ".join([get_p_name_clean(k, mode) for k in sorted_key])
+                        names = " & ".join([get_p_name_clean(k, mode) for k in sorted_key])
                         if mode == "日本語":
-                            patterns.append(f"**グランドクロス** : [{names}] が十字型の強力な葛藤と駆動力を形成します")
+                            patterns.append(f"グランドクロス : {names}")
                         else:
-                            patterns.append(f"**Grand Cross** : [{names}] forms a powerful cross of tension and drive")
+                            patterns.append(f"Grand Cross : {names}")
 
     # グランドトライン
     checked_gt = set()
@@ -351,9 +351,9 @@ def detect_patterns(bodies, mode="日本語"):
                         checked_gt.add(sorted_key)
                         p_a, p_b, p_c = get_p_name_clean(a, mode), get_p_name_clean(b, mode), get_p_name_clean(c, mode)
                         if mode == "日本語":
-                            patterns.append(f"**グランドトライン** : [{p_a}, {p_b}, {p_c}] が調和の正三角形を形成します")
+                            patterns.append(f"グランドトライン : {p_a} & {p_b} & {p_c}")
                         else:
-                            patterns.append(f"**Grand Trine** : [{p_a}, {p_b}, {p_c}] forms a harmonious grand trine")
+                            patterns.append(f"Grand Trine : {p_a} & {p_b} & {p_c}")
 
     # ヨッド
     for a, sex_neighbors in sex_dict.items():
@@ -363,9 +363,9 @@ def detect_patterns(bodies, mode="日本語"):
                 p_apex = get_p_name_clean(apex, mode)
                 p_a, p_b = get_p_name_clean(a, mode), get_p_name_clean(b, mode)
                 if mode == "日本語":
-                    patterns.append(f"**ヨッド [頂点: {p_apex}]** : {p_a} と {p_b} のセクスタイルから、{p_apex} へ宿命的なエネルギーが集中します")
+                    patterns.append(f"ヨッド [頂点: {p_apex}] : {p_a} & {p_b} & {p_apex}")
                 else:
-                    patterns.append(f"**Yod [Apex: {p_apex}]** : {p_apex} acts as the focal point receiving quincunxes from a sextile between {p_a} and {p_b}")
+                    patterns.append(f"Yod [Apex: {p_apex}] : {p_a} & {p_b} & {p_apex}")
 
     return patterns
 
