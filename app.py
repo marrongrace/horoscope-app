@@ -399,7 +399,23 @@ def detect_patterns(bodies, mode="日本語"):
                 else:
                     patterns.append(f"Yod [Apex: {p_apex}] : {p_a} & {p_b} & {p_apex}")
 
-    return patterns
+    # ─── 完全に同じ組み合わせ（順序違い含む）の重複を除外する処理 ───
+    unique_patterns = []
+    seen = set()
+    for pat in patterns:
+        if ":" in pat:
+            header, body = pat.split(":", 1)
+            # 構成されている天体名をすべて抽出し、アルファベット順（または名前順）にソートして一意のキーにする
+            planets_sorted = tuple(sorted([p.strip() for p in body.split("&")]))
+            signature = (header.strip(), planets_sorted)
+        else:
+            signature = pat
+            
+        if signature not in seen:
+            seen.add(signature)
+            unique_patterns.append(pat)
+
+    return unique_patterns
 
 # ==========================================
 # 5. データ抽出・画面描画用辞書生成
