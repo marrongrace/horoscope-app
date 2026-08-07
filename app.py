@@ -574,7 +574,7 @@ def generate_copyable_text(data, mode="日本語"):
     
     return "\n".join(lines)
     
-        st.divider()
+    st.divider()
         st.markdown(f"### {'📋 結果をテキストで一括コピー' if toggle_lang=='日本語' else '📋 Copy All Results'}")
         
         # コピーしやすいようにコードブロックまたはテキストエリアで表示
