@@ -2,6 +2,8 @@ import warnings
 import datetime
 import streamlit as st
 import re
+from datetime import datetime
+import zoneinfo # Python 3.9以上であれば標準で使えます
 
 # ==========================================
 # ページ設定
@@ -122,7 +124,9 @@ with st.sidebar.form(key='horoscope_form'):
     user_name = st.text_input(t["name_input"], value="TestUser")
 
     now_date = datetime.date.today()
-    now_time = datetime.datetime.now().time()
+    # 現在の「日本時間」を取得する
+    tokyo_tz = zoneinfo.ZoneInfo("Asia/Tokyo")
+    now_time = datetime.now(tokyo_tz).time()
 
     birth_date = st.date_input(
         t["birth_date"], 
