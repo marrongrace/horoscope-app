@@ -2,8 +2,6 @@ import warnings
 import datetime
 import streamlit as st
 import re
-from datetime import datetime
-import zoneinfo # Python 3.9以上であれば標準で使えます
 
 # ==========================================
 # ページ設定
