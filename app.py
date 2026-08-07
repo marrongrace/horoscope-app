@@ -2,10 +2,17 @@ import warnings
 import datetime
 import streamlit as st
 import re
-import datetime
-import pytz # ※別途 !pip install pytz が必要な場合があります
+import pytz
 import os
 import swisseph as swe
+
+# ==========================================
+# 💡 【重要】スイスエフェメリス（ephe）のパス設定
+# ==========================================
+# app.py と同じ階層にある "ephe" フォルダを指定します
+ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
+if os.path.exists(ephe_path):
+    swe.set_ephe_path(ephe_path)
 
 # ==========================================
 # ページ設定
@@ -114,6 +121,10 @@ def get_p_name_clean(key, mode):
 st.sidebar.markdown("### 🌐 Language")
 toggle_lang = st.sidebar.radio("表示言語を選択:", ['日本語', 'English'], label_visibility="collapsed")
 t = ui_texts[toggle_lang]  # 選択された言語の辞書を取得
+
+# 🔍 デバッグ用：エフェメリスフォルダが正しく認識されているかサイドバー下部に表示
+st.sidebar.markdown("---")
+st.sidebar.caption(f"📁 Ephe Path: `{ephe_path}`\n\n🟢 Status: `{'Loaded' if os.path.exists(ephe_path) else 'Folder Not Found'}`")
 
 st.title(t["page_title"])
 
@@ -376,8 +387,8 @@ def detect_patterns(bodies, mode="日本語"):
     checked_med = set()
     for op_a, op_b in opps:
         mediators = (sex_dict.get(op_a, set()).intersection(tr_dict.get(op_b, set()))).union(
-                      tr_dict.get(op_a, set()).intersection(sex_dict.get(op_b, set()))
-                    )
+                    tr_dict.get(op_a, set()).intersection(sex_dict.get(op_b, set()))
+                  )
         for med in mediators:
             sorted_key = tuple(sorted([op_a, op_b])) + (med,)
             if sorted_key not in checked_med:
@@ -587,18 +598,16 @@ if submit_button:
         else:
             st.markdown(t["no_patterns"])
             
-        # ─── ここから一括コピー用の処理 ───
+        # ─── 一括コピー用の処理 ───
         st.divider()
         st.markdown(f"### {'📋 結果をテキストで一括コピー' if toggle_lang=='日本語' else '📋 Copy All Results'}")
         
-        # コピー用のテキストを綺麗に組み立てる
         copy_lines = []
         copy_lines.append(f"【ホロスコープ鑑定データ: {user_name}】")
         copy_lines.append(f"日時: {data['date_str']}")
         copy_lines.append(f"場所: {data['loc_str']}")
         copy_lines.append("\n[天体配置]")
         for b in data["bodies"]:
-            # HTMLタグやマークダウンの装飾を軽く掃除して読みやすくする
             clean_b = b.replace("**", "").replace("<br>", "").replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
             copy_lines.append(f"- {clean_b}")
             
@@ -612,18 +621,13 @@ if submit_button:
         clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
         copy_lines.append(clean_aspects)
         
-        # ─── ここから特殊アスペクト（複合アスペクト）の追加 ───
         copy_lines.append("\n[複合アスペクト・特別パターン]")
         if data["patterns"]:
             for pat in data["patterns"]:
-                # 余計な加工（splitなど）はせず、マークダウンの記号だけ綺麗にしてそのまま追加する
                 clean_pat = pat.replace("**", "").replace("`", "")
                 copy_lines.append(f"- {clean_pat}")
         else:
             copy_lines.append("- (該当する複合アスペクトなし)")
             
         full_copy_text = "\n".join(copy_lines)
-        
-        # コードブロックで表示
         st.code(full_copy_text, language="text")
-        # ──────────────────────────────────────────
