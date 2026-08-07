@@ -7,9 +7,8 @@ import os
 import swisseph as swe
 
 # ==========================================
-# 💡 【重要】スイスエフェメリス（ephe）のパス設定
+# 💡 スイスエフェメリス（ephe）のパス設定
 # ==========================================
-# app.py と同じ階層にある "ephe" フォルダを指定します
 ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
 if os.path.exists(ephe_path):
     swe.set_ephe_path(ephe_path)
@@ -24,6 +23,25 @@ st.set_page_config(
 )
 
 # ==========================================
+# 📍 日本の主要都市の正確な座標・タイムゾーン定義
+# ==========================================
+MAJOR_CITIES = {
+    "さいたま (Saitama)": {"lat": 35.8617, "lng": 139.6455, "tz": "Asia/Tokyo", "country": "JP"},
+    "東京 (Tokyo)": {"lat": 35.6894, "lng": 139.6917, "tz": "Asia/Tokyo", "country": "JP"},
+    "横浜 (Yokohama)": {"lat": 35.4437, "lng": 139.6380, "tz": "Asia/Tokyo", "country": "JP"},
+    "大阪 (Osaka)": {"lat": 34.6937, "lng": 135.5022, "tz": "Asia/Tokyo", "country": "JP"},
+    "名古屋 (Nagoya)": {"lat": 35.1815, "lng": 136.9066, "tz": "Asia/Tokyo", "country": "JP"},
+    "福岡 (Fukuoka)": {"lat": 33.5904, "lng": 130.4017, "tz": "Asia/Tokyo", "country": "JP"},
+    "札幌 (Sapporo)": {"lat": 43.0618, "lng": 141.3545, "tz": "Asia/Tokyo", "country": "JP"},
+    "京都 (Kyoto)": {"lat": 35.0116, "lng": 135.7681, "tz": "Asia/Tokyo", "country": "JP"},
+    "神戸 (Kobe)": {"lat": 34.6901, "lng": 135.1955, "tz": "Asia/Tokyo", "country": "JP"},
+    "広島 (Hiroshima)": {"lat": 34.3853, "lng": 132.4553, "tz": "Asia/Tokyo", "country": "JP"},
+    "仙台 (Sendai)": {"lat": 38.2682, "lng": 140.8694, "tz": "Asia/Tokyo", "country": "JP"},
+    "那覇 (Naha)": {"lat": 26.2124, "lng": 127.6809, "tz": "Asia/Tokyo", "country": "JP"},
+    "その他 (Custom Input)": {"lat": None, "lng": None, "tz": None, "country": "JP"}
+}
+
+# ==========================================
 # 3. UIテキスト辞書（多言語対応用）
 # ==========================================
 ui_texts = {
@@ -33,7 +51,8 @@ ui_texts = {
         "name_input": "お名前 / ラベル",
         "birth_date": "生年月日",
         "birth_time": "出生時間（初期値：日本時間）",
-        "city_input": "出生都市名 (英語例: Tokyo, Saitama)",
+        "city_select": "出生都市 (Major Cities)",
+        "city_input": "出生都市名 (英語例: Tokyo)",
         "country_input": "国コード (例: JP)",
         "settings_header": "⚙️ 表示設定",
         "aspect_view_label": "アスペクト表示:",
@@ -55,7 +74,8 @@ ui_texts = {
         "name_input": "Name / Label",
         "birth_date": "Birth Date",
         "birth_time": "Birth Time",
-        "city_input": "Birth City (e.g. Tokyo, Saitama)",
+        "city_select": "Birth City (Major Cities)",
+        "city_input": "Birth City (e.g. Tokyo)",
         "country_input": "Country Code (e.g. JP)",
         "settings_header": "⚙️ Display Settings",
         "aspect_view_label": "Aspect View:",
@@ -120,9 +140,8 @@ def get_p_name_clean(key, mode):
 # ==========================================
 st.sidebar.markdown("### 🌐 Language")
 toggle_lang = st.sidebar.radio("表示言語を選択:", ['日本語', 'English'], label_visibility="collapsed")
-t = ui_texts[toggle_lang]  # 選択された言語の辞書を取得
+t = ui_texts[toggle_lang]
 
-# 🔍 デバッグ用：エフェメリスフォルダが正しく認識されているかサイドバー下部に表示
 st.sidebar.markdown("---")
 st.sidebar.caption(f"📁 Ephe Path: `{ephe_path}`\n\n🟢 Status: `{'Loaded' if os.path.exists(ephe_path) else 'Folder Not Found'}`")
 
@@ -155,8 +174,19 @@ with st.sidebar.form(key='horoscope_form'):
     DEFAULT_HOUR = birth_time.hour
     DEFAULT_MINUTE = birth_time.minute
 
-    city_name = st.text_input(t["city_input"], value="Saitama")
-    country_code = st.text_input(t["country_input"], value="JP")
+    # 出生都市をセレクトボックスで選択
+    city_options = list(MAJOR_CITIES.keys())
+    selected_city_key = st.selectbox(t["city_select"], city_options, index=0)
+
+    # カスタム入力の場合の項目（セレクトボックスで「その他」を選んだ時のみ有効になるように管理）
+    if selected_city_key == "その他 (Custom Input)":
+        city_name = st.text_input(t["city_input"], value="Tokyo")
+        country_code = st.text_input(t["country_input"], value="JP")
+        is_custom_city = True
+    else:
+        city_name = selected_city_key.split(" ")[0]
+        country_code = MAJOR_CITIES[selected_city_key]["country"]
+        is_custom_city = False
 
     st.markdown("---")
     st.header(t["settings_header"])
@@ -181,30 +211,36 @@ except Exception as e:
     import_error_message = f"インポートエラー: {str(e)}"
 
 @st.cache_data
-def get_location_and_timezone(city, country):
+def get_location_and_timezone(city_key, custom_city, custom_country, is_custom):
+    # 主要都市から選ばれている場合は、完全に正確な固定座標を返す（ブレなし）
+    if not is_custom and city_key in MAJOR_CITIES and MAJOR_CITIES[city_key]["lat"] is not None:
+        data = MAJOR_CITIES[city_key]
+        return data["lat"], data["lng"], data["tz"], None
+
+    # カスタム入力の場合のみ geopy で検索
     if not HAS_LIBS: return None, None, None, f"ライブラリ不足 ({import_error_message})"
     try:
         geolocator = Nominatim(user_agent="astro_streamlit_app", timeout=5)
-        location = geolocator.geocode(f"{city}, {country}")
+        location = geolocator.geocode(f"{custom_city}, {custom_country}")
         if not location: 
-            return 35.9585, 139.6198, "Asia/Tokyo", None
+            return 35.6894, 139.6917, "Asia/Tokyo", None
         
         lat, lng = location.latitude, location.longitude
         tz_str = TimezoneFinder().timezone_at(lng=lng, lat=lat) or "Asia/Tokyo"
         return lat, lng, tz_str, None
     except Exception as e:
-        return 35.9585, 139.6198, "Asia/Tokyo", None
+        return 35.6894, 139.6917, "Asia/Tokyo", None
 
-def generate_full_horoscope(name, year, month, day, hour, minute, city, country):
+def generate_full_horoscope(name, year, month, day, hour, minute, city_key, custom_city, custom_country, is_custom):
     if not HAS_LIBS: return None, f"ライブラリ不足: {import_error_message}"
-    lat, lng, tz_str, err = get_location_and_timezone(city, country)
+    lat, lng, tz_str, err = get_location_and_timezone(city_key, custom_city, custom_country, is_custom)
     if err: return None, err
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         try:
             return AstrologicalSubject(
                 name=name, year=year, month=month, day=day,
-                hour=hour, minute=minute, lat=lat, lng=lng, tz_str=tz_str, city=city
+                hour=hour, minute=minute, lat=lat, lng=lng, tz_str=tz_str, city=custom_city if is_custom else city_key.split(" ")[0]
             ), None
         except Exception as e:
             return None, f"ホロスコープ計算エラー: {str(e)}"
@@ -322,7 +358,7 @@ def detect_patterns(bodies, mode="日本語"):
         qui_dict.setdefault(a, set()).add(b)
         qui_dict.setdefault(b, set()).add(a)
 
-    # Tスクエア（頂点を先頭に固定）
+    # Tスクエア
     for op_a, op_b in opps:
         common_sq = sq_dict.get(op_a, set()).intersection(sq_dict.get(op_b, set()))
         for apex in common_sq:
@@ -383,7 +419,7 @@ def detect_patterns(bodies, mode="日本語"):
                         else:
                             patterns.append(f"Mini Trine : {p_a} & {p_b} & {p_c}")
 
-    # メディエーション（調停天体を先頭に固定）
+    # メディエーション
     checked_med = set()
     for op_a, op_b in opps:
         mediators = (sex_dict.get(op_a, set()).intersection(tr_dict.get(op_b, set()))).union(
@@ -399,7 +435,7 @@ def detect_patterns(bodies, mode="日本語"):
                 else:
                     patterns.append(f"Mediation [Mediator] : {p_med} & {p_a} & {p_b}")
 
-    # ヨッド（頂点を先頭に固定）
+    # ヨッド
     for a, sex_neighbors in sex_dict.items():
         for b in sex_neighbors:
             common_qui = qui_dict.get(a, set()).intersection(qui_dict.get(b, set()))
@@ -431,9 +467,9 @@ def detect_patterns(bodies, mode="日本語"):
 # ==========================================
 # 5. データ抽出・画面描画用辞書生成
 # ==========================================
-def get_chart_data(name, year, month, day, hour, minute, city, country, mode, view_type, is_unknown_time):
+def get_chart_data(name, year, month, day, hour, minute, city_key, custom_city, custom_country, is_custom, mode, view_type, is_unknown_time):
     calc_h, calc_m = (12, 0) if is_unknown_time else (hour, minute)
-    chart, err = generate_full_horoscope(name, year, month, day, calc_h, calc_m, city, country)
+    chart, err = generate_full_horoscope(name, year, month, day, calc_h, calc_m, city_key, custom_city, custom_country, is_custom)
     if err: return {"error": err}
 
     celestial_bodies = [
@@ -460,7 +496,6 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
         "Ninth_House": 9, "Tenth_House": 10, "Eleventh_House": 11, "Twelfth_House": 12
     }
 
-    # 各ハウスのカスプ（起点）の絶対位置を取得する（5度前ルール判定用）
     houses_list = [
         chart.first_house, chart.second_house, chart.third_house, chart.fourth_house,
         chart.fifth_house, chart.sixth_house, chart.seventh_house, chart.eighth_house,
@@ -474,7 +509,6 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
             s_idx = list(sign_data.keys()).index(s_norm) if s_norm in sign_data else 0
             house_cusp_abs.append(s_idx * 30 + h.position)
 
-    # 5度前ルールを適用する対象の天体リスト（主要10天体）
     major_bodies_for_rule = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
 
     for key, p in celestial_bodies:
@@ -501,7 +535,6 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
             base_h_label = format_house_name_clean(h_num, mode)
             rule_applied_str = ""
             
-            # 主要10天体の場合のみ5度前ルールを適用
             if key in major_bodies_for_rule:
                 current_h_idx = h_num - 1
                 next_h_idx = (current_h_idx + 1) % 12
@@ -542,10 +575,11 @@ def get_chart_data(name, year, month, day, hour, minute, city, country, mode, vi
         h_lines.append("*(出生時間不明のためハウス除外)*" if mode == "日本語" else "*(Houses excluded due to unknown birth time)*")
 
     time_note = "（12:00仮定）" if is_unknown_time else ""
+    display_city_name = custom_city if is_custom else city_key.split(" ")[0]
     return {
         "error": None,
         "date_str": f"{year}年{month}月{day}日 {calc_h}:{calc_m:02d} {time_note}" if mode == "日本語" else f"{year}-{month:02d}-{day:02d} {calc_h}:{calc_m:02d} {'(Assumed 12:00)' if is_unknown_time else ''}",
-        "loc_str": f"{city} ({country}) [Lat:{chart.lat:.2f}, Lng:{chart.lng:.2f}]",
+        "loc_str": f"{display_city_name} [Lat:{chart.lat:.2f}, Lng:{chart.lng:.2f}]",
         "angles": angles_list,
         "bodies": p_lines,
         "houses": h_lines,
@@ -560,7 +594,7 @@ if submit_button:
     calc_year, calc_month, calc_day = birth_date.year, birth_date.month, birth_date.day
 
     with st.spinner(t["loading"]):
-        data = get_chart_data(user_name, calc_year, calc_month, calc_day, DEFAULT_HOUR, DEFAULT_MINUTE, city_name, country_code, toggle_lang, toggle_view, unknown_checkbox)
+        data = get_chart_data(user_name, calc_year, calc_month, calc_day, DEFAULT_HOUR, DEFAULT_MINUTE, selected_city_key, city_name, country_code, is_custom_city, toggle_lang, toggle_view, unknown_checkbox)
 
     if data.get("error"):
         st.error(data["error"])
