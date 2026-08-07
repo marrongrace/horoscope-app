@@ -124,9 +124,7 @@ with st.sidebar.form(key='horoscope_form'):
     user_name = st.text_input(t["name_input"], value="TestUser")
 
     now_date = datetime.date.today()
-    # 現在の「日本時間」を取得する
-    tokyo_tz = zoneinfo.ZoneInfo("Asia/Tokyo")
-    now_time = datetime.now(tokyo_tz).time()
+    now_time = datetime.datetime.now().time()
 
     birth_date = st.date_input(
         t["birth_date"], 
