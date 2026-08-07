@@ -383,9 +383,9 @@ def detect_patterns(bodies, mode="日本語"):
                 checked_med.add(sorted_key)
                 p_a, p_b, p_med = get_p_name_clean(op_a, mode), get_p_name_clean(op_b, mode), get_p_name_clean(med, mode)
                 if mode == "日本語":
-                    patterns.append(f"メディエーション [調停: {p_med}] : {p_med} & {p_a} & {p_b}")
+                    patterns.append(f"メディエーション [調停] : {p_med} & {p_a} & {p_b}")
                 else:
-                    patterns.append(f"Mediation [Mediator: {p_med}] : {p_med} & {p_a} & {p_b}")
+                    patterns.append(f"Mediation [Mediator] : {p_med} & {p_a} & {p_b}")
 
     # ヨッド（頂点を先頭に固定）
     for a, sex_neighbors in sex_dict.items():
