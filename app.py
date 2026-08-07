@@ -7,25 +7,21 @@ import os
 import swisseph as swe
 
 # ==========================================
-# 💡 画面上で確認できるデバッグコード
+# 📍 地名から緯度・経度を自動取得する関数（国土地理院API）
 # ==========================================
-ephe_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "ephe"))
-if not ephe_path.endswith(os.path.sep):
-    ephe_path += os.path.sep
-
-# ブラウザの画面に直接結果を表示する
-st.write(f"**📁 認識されているパス:** `{ephe_path}`")
-st.write(f"**📂 フォルダが存在するか:** `{os.path.exists(ephe_path)}`")
-
-if os.path.exists(ephe_path):
-    swe.set_ephe_path(ephe_path)
-    files_in_ephe = os.listdir(ephe_path)
-    st.write(f"**📄 フォルダの中身:** `{files_in_ephe}`")
-    
-    if not files_in_ephe:
-        st.warning("⚠️ フォルダは存在しますが、中にファイルが1つも入っていません！")
-else:
-    st.error("🚨 `ephe` フォルダ自体がサーバー上で見つかりません！")
+def get_lat_lng_from_address(place_name):
+    try:
+        encoded_name = urllib.parse.quote(place_name)
+        url = f"https://msearch.gsi.go.jp/address-search/AddressSearch?q={encoded_name}"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if data and len(data) > 0:
+                coords = data[0]["geometry"]["coordinates"]
+                return coords[1], coords[0]  # [lat, lng] の順で返す
+    except Exception as e:
+        print(f"ジオコーディングエラー: {e}")
+    return None, None
 
 # ==========================================
 # ページ設定
@@ -184,13 +180,33 @@ with st.sidebar.form(key='horoscope_form'):
     DEFAULT_HOUR = birth_time.hour
     DEFAULT_MINUTE = birth_time.minute
 
-    # ─── 都道府県選択 ＆ 市町村自由入力 ───
-    selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=10) # デフォルトで埼玉県(index 10)を選択
-    input_city_name = st.text_input(t["city_input"], value="加須市")
+    # ─── 都道府県選択 ＆ 市町村自由入力（自動座標連動版） ───
+    selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=10)
+    
+    # セッションステートの初期化（未登録の場合）
+    if "input_lat_val" not in st.session_state:
+        st.session_state.input_lat_val = 36.1243
+    if "input_lng_val" not in st.session_state:
+        st.session_state.input_lng_val = 139.5983
+    if "last_city_input" not in st.session_state:
+        st.session_state.last_city_input = "加須市"
+
+    # 市町村名の入力
+    city_input = st.text_input(t["city_input"], value=st.session_state.last_city_input)
+
+    # 地名が書き換えられたら自動で国土地理院APIを叩いて緯度・経度を更新
+    if city_input != st.session_state.last_city_input:
+        st.session_state.last_city_input = city_input
+        # 都道府県名＋市町村名で検索するとよりヒット率が上がります
+        search_query = f"{selected_pref}{city_input}" if selected_pref != "海外・その他" else city_input
+        lat_res, lng_res = get_lat_lng_from_address(search_query)
+        if lat_res is not None and lng_res is not None:
+            st.session_state.input_lat_val = lat_res
+            st.session_state.input_lng_val = lng_res
 
     st.markdown(t["lat_caption"])
-    input_lat = st.number_input(t["lat_input"], value=36.1243, format="%.4f")
-    input_lng = st.number_input(t["lng_input"], value=139.5983, format="%.4f")
+    input_lat = st.number_input(t["lat_input"], value=st.session_state.input_lat_val, format="%.4f")
+    input_lng = st.number_input(t["lng_input"], value=st.session_state.input_lng_val, format="%.4f")
 
     st.markdown("---")
     st.header(t["settings_header"])
