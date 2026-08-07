@@ -23,61 +23,33 @@ st.set_page_config(
 )
 
 # ==========================================
-# 📍 47都道府県の正確な座標・タイムゾーン定義（県庁所在地）
+# 📍 主要都市・代表的な市町村の座標・タイムゾーン定義
 # ==========================================
-PREFECTURES_CITIES = {
-    "北海道 (Hokkaido / Sapporo)": {"lat": 43.0641, "lng": 141.3469, "tz": "Asia/Tokyo", "country": "JP"},
-    "青森県 (Aomori)": {"lat": 40.8244, "lng": 140.7400, "tz": "Asia/Tokyo", "country": "JP"},
-    "岩手県 (Iwate / Morioka)": {"lat": 39.7036, "lng": 141.1525, "tz": "Asia/Tokyo", "country": "JP"},
-    "宮城県 (Miyagi / Sendai)": {"lat": 38.2689, "lng": 140.8719, "tz": "Asia/Tokyo", "country": "JP"},
-    "秋田県 (Akita)": {"lat": 39.7186, "lng": 140.1025, "tz": "Asia/Tokyo", "country": "JP"},
-    "山形県 (Yamagata)": {"lat": 38.2404, "lng": 140.3636, "tz": "Asia/Tokyo", "country": "JP"},
-    "福島県 (Fukushima)": {"lat": 37.7500, "lng": 140.4678, "tz": "Asia/Tokyo", "country": "JP"},
-    "茨城県 (Ibaraki / Mito)": {"lat": 36.3414, "lng": 140.4467, "tz": "Asia/Tokyo", "country": "JP"},
-    "栃木県 (Tochigi / Utsunomiya)": {"lat": 36.5658, "lng": 139.8836, "tz": "Asia/Tokyo", "country": "JP"},
-    "群馬県 (Gumma / Maebashi)": {"lat": 36.3911, "lng": 139.0608, "tz": "Asia/Tokyo", "country": "JP"},
-    "埼玉県 (Saitama)": {"lat": 35.8569, "lng": 139.6489, "tz": "Asia/Tokyo", "country": "JP"},
-    "千葉県 (Chiba)": {"lat": 35.6047, "lng": 140.1233, "tz": "Asia/Tokyo", "country": "JP"},
-    "東京都 (Tokyo)": {"lat": 35.6894, "lng": 139.6917, "tz": "Asia/Tokyo", "country": "JP"},
-    "神奈川県 (Kanagawa / Yokohama)": {"lat": 35.4478, "lng": 139.6425, "tz": "Asia/Tokyo", "country": "JP"},
-    "新潟県 (Niigata)": {"lat": 37.9022, "lng": 139.0236, "tz": "Asia/Tokyo", "country": "JP"},
-    "富山県 (Toyama)": {"lat": 36.6953, "lng": 137.2114, "tz": "Asia/Tokyo", "country": "JP"},
-    "石川県 (Ishikawa / Kanazawa)": {"lat": 36.5944, "lng": 136.6256, "tz": "Asia/Tokyo", "country": "JP"},
-    "福井県 (Fukui)": {"lat": 36.0653, "lng": 136.2219, "tz": "Asia/Tokyo", "country": "JP"},
-    "山梨県 (Yamanashi / Kofu)": {"lat": 35.6639, "lng": 138.5683, "tz": "Asia/Tokyo", "country": "JP"},
-    "長野県 (Nagano)": {"lat": 36.6514, "lng": 138.1811, "tz": "Asia/Tokyo", "country": "JP"},
-    "岐阜県 (Gifu)": {"lat": 35.3911, "lng": 136.7222, "tz": "Asia/Tokyo", "country": "JP"},
-    "静岡県 (Shizuoka)": {"lat": 34.9769, "lng": 138.3831, "tz": "Asia/Tokyo", "country": "JP"},
-    "愛知県 (Aichi / Nagoya)": {"lat": 35.1803, "lng": 136.9067, "tz": "Asia/Tokyo", "country": "JP"},
-    "三重県 (Mie / Tsu)": {"lat": 34.7303, "lng": 136.5086, "tz": "Asia/Tokyo", "country": "JP"},
-    "滋賀県 (Shiga / Otsu)": {"lat": 35.0036, "lng": 135.8686, "tz": "Asia/Tokyo", "country": "JP"},
-    "京都府 (Kyoto)": {"lat": 35.0214, "lng": 135.7556, "tz": "Asia/Tokyo", "country": "JP"},
-    "大阪府 (Osaka)": {"lat": 34.6939, "lng": 135.5022, "tz": "Asia/Tokyo", "country": "JP"},
-    "兵庫県 (Hyogo / Kobe)": {"lat": 34.6914, "lng": 135.1831, "tz": "Asia/Tokyo", "country": "JP"},
-    "奈良県 (Nara)": {"lat": 34.6853, "lng": 135.8328, "tz": "Asia/Tokyo", "country": "JP"},
-    "和歌山県 (Wakayama)": {"lat": 34.2261, "lng": 135.1675, "tz": "Asia/Tokyo", "country": "JP"},
-    "鳥取県 (Tottori)": {"lat": 35.5036, "lng": 134.2383, "tz": "Asia/Tokyo", "country": "JP"},
-    "島根県 (Shimane / Matsue)": {"lat": 35.4722, "lng": 133.0506, "tz": "Asia/Tokyo", "country": "JP"},
-    "岡山県 (Okayama)": {"lat": 34.6617, "lng": 133.9350, "tz": "Asia/Tokyo", "country": "JP"},
-    "広島県 (Hiroshima)": {"lat": 34.3964, "lng": 132.4594, "tz": "Asia/Tokyo", "country": "JP"},
-    "山口県 (Yamaguchi)": {"lat": 34.1858, "lng": 131.4714, "tz": "Asia/Tokyo", "country": "JP"},
-    "徳島県 (Tokushima)": {"lat": 34.0658, "lng": 134.5594, "tz": "Asia/Tokyo", "country": "JP"},
-    "香川県 (Kagawa / Takamatsu)": {"lat": 34.3403, "lng": 134.0433, "tz": "Asia/Tokyo", "country": "JP"},
-    "愛媛県 (Ehime / Matsuyama)": {"lat": 33.8394, "lng": 132.7656, "tz": "Asia/Tokyo", "country": "JP"},
-    "高知県 (Kochi)": {"lat": 33.5597, "lng": 133.5311, "tz": "Asia/Tokyo", "country": "JP"},
-    "福岡県 (Fukuoka)": {"lat": 33.5903, "lng": 130.4017, "tz": "Asia/Tokyo", "country": "JP"},
-    "佐賀県 (Saga)": {"lat": 33.2494, "lng": 130.2989, "tz": "Asia/Tokyo", "country": "JP"},
-    "長崎県 (Nagasaki)": {"lat": 32.7447, "lng": 129.8736, "tz": "Asia/Tokyo", "country": "JP"},
-    "熊本県 (Kumamoto)": {"lat": 32.7897, "lng": 130.7417, "tz": "Asia/Tokyo", "country": "JP"},
-    "大分県 (Oita)": {"lat": 33.2381, "lng": 131.6125, "tz": "Asia/Tokyo", "country": "JP"},
-    "宮崎県 (Miyazaki)": {"lat": 31.9111, "lng": 131.4239, "tz": "Asia/Tokyo", "country": "JP"},
-    "鹿児島県 (Kagoshima)": {"lat": 31.5603, "lng": 130.5581, "tz": "Asia/Tokyo", "country": "JP"},
-    "沖縄県 (Okinawa / Naha)": {"lat": 26.2122, "lng": 127.6792, "tz": "Asia/Tokyo", "country": "JP"},
-    "その他 (Custom Input)": {"lat": None, "lng": None, "tz": None, "country": "JP"}
+CITIES_DATA = {
+    # 埼玉県（加須市など詳細追加）
+    "埼玉県 加須市 (Kazo, Saitama)": {"lat": 36.1256, "lng": 139.6017, "tz": "Asia/Tokyo", "country": "JP"},
+    "埼玉県 さいたま市 (Saitama City)": {"lat": 35.8569, "lng": 139.6489, "tz": "Asia/Tokyo", "country": "JP"},
+    "埼玉県 川越市 (Kawagoe)": {"lat": 35.9253, "lng": 139.4854, "tz": "Asia/Tokyo", "country": "JP"},
+    "埼玉県 熊谷市 (Kumagaya)": {"lat": 36.1472, "lng": 139.3886, "tz": "Asia/Tokyo", "country": "JP"},
+    
+    # 主要な大都市・県庁所在地
+    "東京都 千代田区 (Chiyoda, Tokyo)": {"lat": 35.6814, "lng": 139.7671, "tz": "Asia/Tokyo", "country": "JP"},
+    "東京都 新宿区 (Shinjuku, Tokyo)": {"lat": 35.6938, "lng": 139.7034, "tz": "Asia/Tokyo", "country": "JP"},
+    "神奈川県 横浜市 (Yokohama, Kanagawa)": {"lat": 35.4478, "lng": 139.6425, "tz": "Asia/Tokyo", "country": "JP"},
+    "大阪府 大阪市 (Osaka City)": {"lat": 34.6939, "lng": 135.5022, "tz": "Asia/Tokyo", "country": "JP"},
+    "愛知県 名古屋市 (Nagoya, Aichi)": {"lat": 35.1803, "lng": 136.9067, "tz": "Asia/Tokyo", "country": "JP"},
+    "北海道 札幌市 (Sapporo, Hokkaido)": {"lat": 43.0641, "lng": 141.3469, "tz": "Asia/Tokyo", "country": "JP"},
+    "宮城県 仙台市 (Sendai, Miyagi)": {"lat": 38.2689, "lng": 140.8719, "tz": "Asia/Tokyo", "country": "JP"},
+    "広島県 広島市 (Hiroshima City)": {"lat": 34.3964, "lng": 132.4594, "tz": "Asia/Tokyo", "country": "JP"},
+    "福岡県 福岡市 (Fukuoka City)": {"lat": 33.5903, "lng": 130.4017, "tz": "Asia/Tokyo", "country": "JP"},
+    "沖縄県 那覇市 (Naha, Okinawa)": {"lat": 26.2122, "lng": 127.6792, "tz": "Asia/Tokyo", "country": "JP"},
+    
+    # 自由入力への切り替え用
+    "その他（市区町村を自由に入力）": {"lat": None, "lng": None, "tz": None, "country": "JP"}
 }
 
 # ==========================================
-# 3. UIテキスト辞書（多言語対応用）
+# UIテキスト辞書（多言語対応用）
 # ==========================================
 ui_texts = {
     "日本語": {
@@ -86,8 +58,8 @@ ui_texts = {
         "name_input": "お名前 / ラベル",
         "birth_date": "生年月日",
         "birth_time": "出生時間（初期値：日本時間）",
-        "city_select": "都道府県 (Prefectures)",
-        "city_input": "出生都市名 (英語例: Tokyo)",
+        "city_select": "出生地（市区町村を選択）",
+        "custom_city_input": "市区町村を自由入力（例: 秩父市, 鎌倉市）",
         "country_input": "国コード (例: JP)",
         "settings_header": "⚙️ 表示設定",
         "aspect_view_label": "アスペクト表示:",
@@ -109,8 +81,8 @@ ui_texts = {
         "name_input": "Name / Label",
         "birth_date": "Birth Date",
         "birth_time": "Birth Time",
-        "city_select": "Prefecture",
-        "city_input": "Birth City (e.g. Tokyo)",
+        "city_select": "Birth City / Town",
+        "custom_city_input": "Custom City (e.g. Kazo, Kamakura)",
         "country_input": "Country Code (e.g. JP)",
         "settings_header": "⚙️ Display Settings",
         "aspect_view_label": "Aspect View:",
@@ -129,7 +101,7 @@ ui_texts = {
 }
 
 # ==========================================
-# 3. 名称辞書と正規化マッピング
+# 名称辞書と正規化マッピング
 # ==========================================
 sign_data = {
     "Aries": {"jp": "牡羊座", "en": "Aries"}, "Taurus": {"jp": "牡牛座", "en": "Taurus"},
@@ -209,19 +181,20 @@ with st.sidebar.form(key='horoscope_form'):
     DEFAULT_HOUR = birth_time.hour
     DEFAULT_MINUTE = birth_time.minute
 
-    # 都道府県をセレクトボックスで選択（埼玉県をデフォルト選択に）
-    city_options = list(PREFECTURES_CITIES.keys())
-    default_index = city_options.index("埼玉県 (Saitama)") if "埼玉県 (Saitama)" in city_options else 0
+    # 市区町村のセレクトボックス（加須市をデフォルトに）
+    city_options = list(CITIES_DATA.keys())
+    default_index = city_options.index("埼玉県 加須市 (Kazo, Saitama)") if "埼玉県 加須市 (Kazo, Saitama)" in city_options else 0
     selected_city_key = st.selectbox(t["city_select"], city_options, index=default_index)
 
-    # カスタム入力の場合の項目
-    if selected_city_key == "その他 (Custom Input)":
-        city_name = st.text_input(t["city_input"], value="Tokyo")
+    # 「その他」を選んだ場合の自由入力欄
+    if selected_city_key == "その他（市区町村を自由に入力）":
+        custom_city_name = st.text_input(t["custom_city_input"], value="Kazo")
         country_code = st.text_input(t["country_input"], value="JP")
         is_custom_city = True
     else:
-        city_name = selected_city_key.split(" ")[0]
-        country_code = PREFECTURES_CITIES[selected_city_key]["country"]
+        # 選択されたリストから都市名を抽出しやすく加工
+        custom_city_name = selected_city_key.split(" ")[1] if len(selected_city_key.split(" ")) > 1 else selected_city_key
+        country_code = CITIES_DATA[selected_city_key]["country"]
         is_custom_city = False
 
     st.markdown("---")
@@ -248,22 +221,26 @@ except Exception as e:
 
 @st.cache_data
 def get_location_and_timezone(city_key, custom_city, custom_country, is_custom):
-    if not is_custom and city_key in PREFECTURES_CITIES and PREFECTURES_CITIES[city_key]["lat"] is not None:
-        data = PREFECTURES_CITIES[city_key]
+    # 事前定義データにあり、カスタムでなければそれを使用
+    if not is_custom and city_key in CITIES_DATA and CITIES_DATA[city_key]["lat"] is not None:
+        data = CITIES_DATA[city_key]
         return data["lat"], data["lng"], data["tz"], None
 
     if not HAS_LIBS: return None, None, None, f"ライブラリ不足 ({import_error_message})"
     try:
         geolocator = Nominatim(user_agent="astro_streamlit_app", timeout=5)
-        location = geolocator.geocode(f"{custom_city}, {custom_country}")
+        # 自由入力された市区町村名から緯度経度を自動取得
+        query_str = f"{custom_city}, {custom_country}"
+        location = geolocator.geocode(query_str)
         if not location: 
-            return 35.6894, 139.6917, "Asia/Tokyo", None
+            # 見つからない場合は埼玉県加須市をフォールバックに
+            return 36.1256, 139.6017, "Asia/Tokyo", None
         
         lat, lng = location.latitude, location.longitude
         tz_str = TimezoneFinder().timezone_at(lng=lng, lat=lat) or "Asia/Tokyo"
         return lat, lng, tz_str, None
     except Exception as e:
-        return 35.6894, 139.6917, "Asia/Tokyo", None
+        return 36.1256, 139.6017, "Asia/Tokyo", None
 
 def generate_full_horoscope(name, year, month, day, hour, minute, city_key, custom_city, custom_country, is_custom):
     if not HAS_LIBS: return None, f"ライブラリ不足: {import_error_message}"
@@ -274,7 +251,7 @@ def generate_full_horoscope(name, year, month, day, hour, minute, city_key, cust
         try:
             return AstrologicalSubject(
                 name=name, year=year, month=month, day=day,
-                hour=hour, minute=minute, lat=lat, lng=lng, tz_str=tz_str, city=custom_city if is_custom else city_key.split(" ")[0]
+                hour=hour, minute=minute, lat=lat, lng=lng, tz_str=tz_str, city=custom_city if is_custom else city_key
             ), None
         except Exception as e:
             return None, f"ホロスコープ計算エラー: {str(e)}"
@@ -348,7 +325,6 @@ def detect_patterns(bodies, mode="日本語"):
             if abs(diff - 60) <= 5.0: aspect_pairs.append((k1, k2, "Sextile", abs(diff - 60)))
             if abs(diff - 150) <= 3.0: aspect_pairs.append((k1, k2, "Quincunx", abs(diff - 150)))
 
-    # ステリウム
     sign_counts = {}
     for b in bodies:
         s_idx = int(b["abs_pos"] // 30)
@@ -392,7 +368,6 @@ def detect_patterns(bodies, mode="日本語"):
         qui_dict.setdefault(a, set()).add(b)
         qui_dict.setdefault(b, set()).add(a)
 
-    # Tスクエア
     for op_a, op_b in opps:
         common_sq = sq_dict.get(op_a, set()).intersection(sq_dict.get(op_b, set()))
         for apex in common_sq:
@@ -402,7 +377,6 @@ def detect_patterns(bodies, mode="日本語"):
             else:
                 patterns.append(f"T-Square [Apex: {p_apex}] : {p_apex} & {p_a} & {p_b}")
 
-    # グランドクロス
     checked_gc = set()
     for i in range(len(opps)):
         for j in range(i + 1, len(opps)):
@@ -421,7 +395,6 @@ def detect_patterns(bodies, mode="日本語"):
                         else:
                             patterns.append(f"Grand Cross : {names}")
 
-    # グランドトライン
     checked_gt = set()
     for a, neighbors in tr_dict.items():
         for b in neighbors:
@@ -437,7 +410,6 @@ def detect_patterns(bodies, mode="日本語"):
                         else:
                             patterns.append(f"Grand Trine : {p_a} & {p_b} & {p_c}")
 
-    # ミニトライン
     checked_mt = set()
     for a, neighbors in sex_dict.items():
         for b in neighbors:
@@ -453,7 +425,6 @@ def detect_patterns(bodies, mode="日本語"):
                         else:
                             patterns.append(f"Mini Trine : {p_a} & {p_b} & {p_c}")
 
-    # メディエーション
     checked_med = set()
     for op_a, op_b in opps:
         mediators = (sex_dict.get(op_a, set()).intersection(tr_dict.get(op_b, set()))).union(
@@ -469,7 +440,6 @@ def detect_patterns(bodies, mode="日本語"):
                 else:
                     patterns.append(f"Mediation [Mediator] : {p_med} & {p_a} & {p_b}")
 
-    # ヨッド
     for a, sex_neighbors in sex_dict.items():
         for b in sex_neighbors:
             common_qui = qui_dict.get(a, set()).intersection(qui_dict.get(b, set()))
@@ -481,7 +451,6 @@ def detect_patterns(bodies, mode="日本語"):
                 else:
                     patterns.append(f"Yod [Apex: {p_apex}] : {p_apex} & {p_a} & {p_b}")
 
-    # 重複排除処理
     unique_patterns = []
     seen = set()
     for pat in patterns:
@@ -609,7 +578,7 @@ def get_chart_data(name, year, month, day, hour, minute, city_key, custom_city, 
         h_lines.append("*(出生時間不明のためハウス除外)*" if mode == "日本語" else "*(Houses excluded due to unknown birth time)*")
 
     time_note = "（12:00仮定）" if is_unknown_time else ""
-    display_city_name = custom_city if is_custom else city_key.split(" ")[0]
+    display_city_name = custom_city if is_custom else custom_city
     return {
         "error": None,
         "date_str": f"{year}年{month}月{day}日 {calc_h}:{calc_m:02d} {time_note}" if mode == "日本語" else f"{year}-{month:02d}-{day:02d} {calc_h}:{calc_m:02d} {'(Assumed 12:00)' if is_unknown_time else ''}",
@@ -628,7 +597,7 @@ if submit_button:
     calc_year, calc_month, calc_day = birth_date.year, birth_date.month, birth_date.day
 
     with st.spinner(t["loading"]):
-        data = get_chart_data(user_name, calc_year, calc_month, calc_day, DEFAULT_HOUR, DEFAULT_MINUTE, selected_city_key, city_name, country_code, is_custom_city, toggle_lang, toggle_view, unknown_checkbox)
+        data = get_chart_data(user_name, calc_year, calc_month, calc_day, DEFAULT_HOUR, DEFAULT_MINUTE, selected_city_key, custom_city_name, country_code, is_custom_city, toggle_lang, toggle_view, unknown_checkbox)
 
     if data.get("error"):
         st.error(data["error"])
@@ -666,7 +635,6 @@ if submit_button:
         else:
             st.markdown(t["no_patterns"])
             
-        # ─── 一括コピー用の処理 ───
         st.divider()
         st.markdown(f"### {'📋 結果をテキストで一括コピー' if toggle_lang=='日本語' else '📋 Copy All Results'}")
         
