@@ -106,24 +106,40 @@ def validate_and_get_coords(pref, city_name):
     return False, "地名が見つからないか、通信エラーが発生しました", None, None
 
 def format_dms(lat, lng, mode="日本語"):
-    lat_deg = int(lat)
-    lat_min = int(round((lat - lat_deg) * 60))
-    if lat_min == 60:
-        lat_deg += 1
-        lat_min = 0
+    """緯度・経度を秒単位（DMS）までフォーマットする"""
+    def to_dms(val, is_lat=True):
+        abs_val = abs(val)
+        deg = int(abs_val)
+        minutes_float = (abs_val - deg) * 60
+        minute = int(minutes_float)
+        second = round((minutes_float - minute) * 60)
+        
+        # 秒が60になった場合の繰り上げ処理
+        if second == 60:
+            second = 0
+            minute += 1
+        if minute == 60:
+            minute = 0
+            deg += 1
+            
+        if is_lat:
+            if mode == "日本語":
+                direction = "北緯" if val >= 0 else "南緯"
+            else:
+                direction = "N" if val >= 0 else "S"
+        else:
+            if mode == "日本語":
+                direction = "東経" if val >= 0 else "西経"
+            else:
+                direction = "E" if val >= 0 else "W"
+                
+        if mode == "日本語":
+            return f"{direction} {deg}°{minute:02d}′{second:02d}″"
+        else:
+            return f"{deg}°{minute:02d}'{second:02d}\"{direction}"
 
-    lng_deg = int(lng)
-    lng_min = int(round((lng - lng_deg) * 60))
-    if lng_min == 60:
-        lng_deg += 1
-        lng_min = 0
-
-    if mode == "日本語":
-        lat_str = f"北緯 {lat_deg}°{lat_min:02d}′" if lat >= 0 else f"南緯 {abs(lat_deg)}°{lat_min:02d}′"
-        lng_str = f"東経 {lng_deg}°{lng_min:02d}′" if lng >= 0 else f"西経 {abs(lng_deg)}°{lng_min:02d}′"
-    else:
-        lat_str = f"{lat_deg}°{lat_min:02d}'N" if lat >= 0 else f"{abs(lat_deg)}°{lat_min:02d}'S"
-        lng_str = f"{lng_deg}°{lng_min:02d}'E" if lng >= 0 else f"{abs(lng_deg)}°{lng_min:02d}'W"
+    lat_str = to_dms(lat, is_lat=True)
+    lng_str = to_dms(lng, is_lat=False)
     
     return f"{lat_str}, {lng_str} (十進: {lat:.4f}, {lng:.4f})"
 
