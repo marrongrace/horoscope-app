@@ -200,55 +200,6 @@ def generate_full_horoscope(name, year, month, day, hour, minute, city, country)
 # ==========================================
 # 4. アスペクト・複合パターン計算
 # ==========================================
-def calculate_aspects(bodies, mode="日本語", view_type="ペア別"):
-    aspect_defs = [
-        ("Conjunction", 0, 7.0, "コンジャンクション (0°)", "Conjunction"),
-        ("Opposition", 180, 7.0, "オポジション (180°)", "Opposition"),
-        ("Trine", 120, 6.0, "トライン (120°)", "Trine"),
-        ("Square", 90, 6.0, "スクエア (90°)", "Square"),
-        ("Sextile", 60, 5.0, "セクスタイル (60°)", "Sextile"),
-        ("Quincunx", 150, 3.0, "クインカンクス (150°)", "Quincunx")
-    ]
-    results = []
-    n = len(bodies)
-    for i in range(n):
-        for j in range(i + 1, n):
-            b1, b2 = bodies[i], bodies[j]
-            diff = min(abs(b1["abs_pos"] - b2["abs_pos"]), 360 - abs(b1["abs_pos"] - b2["abs_pos"]))
-            for asp_key, target_ang, orb_limit, jp_label, en_label in aspect_defs:
-                orb = abs(diff - target_ang)
-                if orb <= orb_limit:
-                    lbl = jp_label if mode == "日本語" else en_label
-                    results.append({"label": lbl, "b1": b1["key"], "b2": b2["key"], "orb": orb})
-    
-    if not results: return "*(アスペクトなし)*" if mode == "日本語" else "*(No aspects)*"
-    
-    lines = []
-    if view_type == "アスペクト別":
-        grouped = {}
-        for r in results: grouped.setdefault(r["label"], []).append(r)
-        for label, items in grouped.items():
-            lines.append(f"**■ {label}**")
-            for item in sorted(items, key=lambda x: x["orb"]):
-                lines.append(f"- {get_p_name_clean(item['b1'], mode)} & {get_p_name_clean(item['b2'], mode)} `(orb: {item['orb']:.2f}°)`")
-            lines.append("")
-    else:
-        planet_priority = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "North Node", "South Node", "Chiron"]
-        def get_prio(r):
-            p1 = planet_priority.index(r["b1"]) if r["b1"] in planet_priority else 99
-            p2 = planet_priority.index(r["b2"]) if r["b2"] in planet_priority else 99
-            if p1 > p2: r["b1"], r["b2"] = r["b2"], r["b1"]; p1, p2 = p2, p1
-            return (p1, p2, r["orb"])
-            
-        sorted_results = sorted(results, key=get_prio)
-        prev = None
-        for r in sorted_results:
-            if prev and r["b1"] != prev: lines.append("")
-            lines.append(f"- {get_p_name_clean(r['b1'], mode)} & {get_p_name_clean(r['b2'], mode)} : **{r['label']}** `(orb: {r['orb']:.2f}°)`")
-            prev = r["b1"]
-            
-    return "\n".join(lines)
-
 def detect_patterns(bodies, mode="日本語"):
     patterns = []
     aspect_pairs = []
@@ -354,6 +305,38 @@ def detect_patterns(bodies, mode="日本語"):
                             patterns.append(f"グランドトライン : {p_a} & {p_b} & {p_c}")
                         else:
                             patterns.append(f"Grand Trine : {p_a} & {p_b} & {p_c}")
+
+    # ミニトライン
+    checked_mt = set()
+    for a, neighbors in sex_dict.items():
+        for b in neighbors:
+            if a < b:
+                common_tr = tr_dict.get(a, set()).intersection(tr_dict.get(b, set()))
+                for c in common_tr:
+                    sorted_key = tuple(sorted([a, b, c]))
+                    if sorted_key not in checked_mt:
+                        checked_mt.add(sorted_key)
+                        p_a, p_b, p_c = get_p_name_clean(sorted_key[0], mode), get_p_name_clean(sorted_key[1], mode), get_p_name_clean(sorted_key[2], mode)
+                        if mode == "日本語":
+                            patterns.append(f"ミニトライン : {p_a} & {p_b} & {p_c}")
+                        else:
+                            patterns.append(f"Mini Trine : {p_a} & {p_b} & {p_c}")
+
+    # メディエーション（調停）
+    checked_med = set()
+    for op_a, op_b in opps:
+        mediators = (sex_dict.get(op_a, set()).intersection(tr_dict.get(op_b, set()))).union(
+                      tr_dict.get(op_a, set()).intersection(sex_dict.get(op_b, set()))
+                    )
+        for med in mediators:
+            sorted_key = tuple(sorted([op_a, op_b])) + (med,)
+            if sorted_key not in checked_med:
+                checked_med.add(sorted_key)
+                p_a, p_b, p_med = get_p_name_clean(op_a, mode), get_p_name_clean(op_b, mode), get_p_name_clean(med, mode)
+                if mode == "日本語":
+                    patterns.append(f"メディエーション [調停: {p_med}] : {p_a} & {p_b} & {p_med}")
+                else:
+                    patterns.append(f"Mediation [Mediator: {p_med}] : {p_a} & {p_b} & {p_med}")
 
     # ヨッド
     for a, sex_neighbors in sex_dict.items():
