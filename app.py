@@ -611,8 +611,3 @@ if submit_button:
         # コードブロックで表示
         st.code(full_copy_text, language="text")
         # ──────────────────────────────────────────
-        
-        full_copy_text = "\n".join(copy_lines)
-        
-        # コードブロックで表示
-        st.code(full_copy_text, language="text")
