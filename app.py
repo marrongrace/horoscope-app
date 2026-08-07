@@ -558,7 +558,7 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
     }
 
 # ==========================================
-# 6. メイン画面の描画
+# 6. メイン画面の描画（修正版：複合アスペクト表示を無効化）
 # ==========================================
 if submit_button:
     calc_year, calc_month, calc_day = birth_date.year, birth_date.month, birth_date.day
@@ -595,14 +595,15 @@ if submit_button:
 
         st.divider()
 
-        st.markdown(f"### {t['patterns_header']}")
-        if data["patterns"]:
-            for pat in data["patterns"]:
-                st.success(pat)
-        else:
-            st.markdown(t["no_patterns"])
+        # ─── 複合アスペクト表示をコメントアウト ───
+        # st.markdown(f"### {t['patterns_header']}")
+        # if data["patterns"]:
+        #     for pat in data["patterns"]:
+        #         st.success(pat)
+        # else:
+        #     st.markdown(t["no_patterns"])
+        # ──────────────────────────────────────────
             
-        # ─── 一括コピー用の処理 ───
         st.divider()
         st.markdown(f"### {'📋 結果をテキストで一括コピー' if toggle_lang=='日本語' else '📋 Copy All Results'}")
         
@@ -625,13 +626,6 @@ if submit_button:
         clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
         copy_lines.append(clean_aspects)
         
-        copy_lines.append("\n[複合アスペクト・特別パターン]")
-        if data["patterns"]:
-            for pat in data["patterns"]:
-                clean_pat = pat.replace("**", "").replace("`", "")
-                copy_lines.append(f"- {clean_pat}")
-        else:
-            copy_lines.append("- (該当する複合アスペクトなし)")
-            
+        # 複合アスペクトのコピー処理も同様に除外
         full_copy_text = "\n".join(copy_lines)
         st.code(full_copy_text, language="text")
