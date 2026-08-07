@@ -8,6 +8,9 @@ import swisseph as swe
 import requests
 import urllib.parse
 
+# パス設定などは最初に一度でOK
+swe.set_ephe_path("./ephe")
+
 # ==========================================
 # 💡 エフェメリスパスの定義（ここで最初に定義します）
 # ==========================================
