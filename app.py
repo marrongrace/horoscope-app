@@ -2,9 +2,8 @@ import datetime
 import os
 import pytz
 import streamlit as st
-from horoscope_calc import get_lat_lng_from_address, get_chart_data, EPHE_PATH
+from horoscope_calc import validate_and_get_coords, get_chart_data, EPHE_PATH
 
-# ページ設定
 st.set_page_config(
     page_title="🔮 ホロスコープ鑑定書 / Horoscope Reading",
     page_icon="🔮",
@@ -29,7 +28,7 @@ ui_texts = {
         "birth_date": "生年月日",
         "birth_time": "出生時間（日本時間）",
         "pref_select": "都道府県",
-        "city_input": "市区町村・地名 (例: 加須市)",
+        "city_input": "市区町村・地名 (例: 古河市)",
         "lat_input": "緯度 (Latitude)",
         "lng_input": "経度 (Longitude)",
         "lat_caption": "💡 自動取得 または Googleマップ等の数値",
@@ -43,6 +42,7 @@ ui_texts = {
         "houses_tab": "🏠 12ハウス",
         "aspects_tab": "🔗 アスペクト",
         "patterns_tab": "💎 複合アスペクト",
+        "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）"
     },
     "English": {
         "page_title": "🔮 Professional Horoscope Reading",
@@ -65,22 +65,20 @@ ui_texts = {
         "houses_tab": "🏠 12 Houses",
         "aspects_tab": "🔗 Aspects",
         "patterns_tab": "💎 Complex Patterns",
+        "invalid_loc_error": "Please enter a valid location within the prefecture."
     }
 }
 
-# サイドバー：言語選択
 st.sidebar.markdown("### 🌐 Language / 言語")
 toggle_lang = st.sidebar.radio("言語:", ['日本語', 'English'], label_visibility="collapsed")
 t = ui_texts[toggle_lang]
 
 st.sidebar.markdown("---")
-st.sidebar.caption(f"📁 Ephe Path: `{EPHE_PATH}`\n\n🟢 Status: `{'Loaded' if os.path.exists(EPHE_PATH) else 'Not Found'}`")
-
 st.title(t["page_title"])
 
-# 出生データ入力フォーム
-st.sidebar.header(t["sidebar_header"])
-with st.sidebar.form(key='horoscope_form'):
+# サイドバー入力フォーム（リアルタイムバリデーション対応のため非form構成）
+with st.sidebar:
+    st.header(t["sidebar_header"])
     user_name = st.text_input(t["name_input"], value="TestUser")
     
     now_date = datetime.date.today()
@@ -90,21 +88,23 @@ with st.sidebar.form(key='horoscope_form'):
     birth_date = st.date_input(t["birth_date"], value=now_date, min_value=datetime.date(1900, 1, 1), max_value=datetime.date(2100, 12, 31))
     birth_time = st.time_input(t["birth_time"], value=now_time)
 
-    selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=10)
+    selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=10) # 茨城県などをデフォルトに
+    input_city_name = st.text_input(t["city_input"], value="古河市")
 
+    # リアルタイム検証と座標取得
+    is_valid, err_msg, lat_res, lng_res = validate_and_get_coords(selected_pref, input_city_name)
+
+    # すぐ下の赤字警告
+    if not is_valid and selected_pref != "海外・その他":
+        st.markdown(f"<p style='color: #ff4b4b; font-size: 0.82em; margin-top: -8px; margin-bottom: 8px;'>⚠️ 県内には存在しない地名です</p>", unsafe_allow_html=True)
+
+    # 緯度・経度の初期値調整
+    if is_valid and lat_res is not None and lng_res is not None:
+        st.session_state.input_lat_val = lat_res
+        st.session_state.input_lng_val = lng_res
+    
     if "input_lat_val" not in st.session_state: st.session_state.input_lat_val = 36.1243
     if "input_lng_val" not in st.session_state: st.session_state.input_lng_val = 139.5983
-    if "last_city_input" not in st.session_state: st.session_state.last_city_input = "加須市"
-
-    input_city_name = st.text_input(t["city_input"], value=st.session_state.last_city_input)
-
-    if input_city_name != st.session_state.last_city_input:
-        st.session_state.last_city_input = input_city_name
-        search_query = f"{selected_pref}{input_city_name}" if selected_pref != "海外・その他" else input_city_name
-        lat_res, lng_res = get_lat_lng_from_address(search_query)
-        if lat_res is not None and lng_res is not None:
-            st.session_state.input_lat_val = lat_res
-            st.session_state.input_lng_val = lng_res
 
     st.markdown(t["lat_caption"])
     input_lat = st.number_input(t["lat_input"], value=st.session_state.input_lat_val, format="%.4f")
@@ -116,81 +116,81 @@ with st.sidebar.form(key='horoscope_form'):
     toggle_view = "ペア別" if toggle_view_raw in ["ペア別", "By Pair"] else "アスペクト別"
     unknown_checkbox = st.checkbox(t["unknown_time_checkbox"])
 
-    submit_button = st.form_submit_button(label=t["submit_btn"])
+    submit_button = st.button(label=t["submit_btn"], type="primary")
 
 if submit_button:
-    with st.spinner(t["loading"]):
-        data = get_chart_data(
-            user_name, birth_date.year, birth_date.month, birth_date.day,
-            birth_time.hour, birth_time.minute, input_lat, input_lng,
-            input_city_name, toggle_lang, toggle_view, unknown_checkbox
-        )
-
-    if data.get("error"):
-        st.error(data["error"])
+    if not is_valid and selected_pref != "海外・その他":
+        st.error(t["invalid_loc_error"])
     else:
-        # ヘッダーカード
-        st.markdown(f"""
-        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-            <h2 style="margin: 0; color: #B8860B;">✨ {user_name} {"さんのホロスコープ鑑定書" if toggle_lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
-            <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data['date_str']}<br>📍 {data['loc_str']}</p>
-        </div>
-        """, unsafe_allow_html=True)
+        with st.spinner(t["loading"]):
+            data = get_chart_data(
+                user_name, birth_date.year, birth_date.month, birth_date.day,
+                birth_time.hour, birth_time.minute, input_lat, input_lng,
+                input_city_name, toggle_lang, toggle_view, unknown_checkbox
+            )
 
-        if data["angles"]:
-            col_a1, col_a2 = st.columns(2)
-            col_a1.info(data["angles"][0])
-            col_a2.info(data["angles"][1])
-            st.write("")
+        if data.get("error"):
+            st.error(data["error"])
+        else:
+            st.markdown(f"""
+            <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+                <h2 style="margin: 0; color: #B8860B;">✨ {user_name} {"さんのホロスコープ鑑定書" if toggle_lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
+                <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data['date_str']}<br>📍 {data['loc_str']}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-        # タブによる情報整理
-        tab1, tab2, tab3, tab4 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"]])
-
-        with tab1:
-            for p in data["bodies"]:
-                st.markdown(f"- {p}", unsafe_allow_html=True)
-
-        with tab2:
-            for h in data["houses"]:
-                st.markdown(f"- {h}")
-
-        with tab3:
-            st.markdown(data["aspects"])
-
-        with tab4:
-            if data["patterns"]:
-                for pat in data["patterns"]:
-                    st.success(pat)
-            else:
-                st.info("*(該当する複合アスペクトはありません)*" if toggle_lang=="日本語" else "*(No complex aspects found)*")
-
-        st.divider()
-
-        # テキスト一括コピー機能
-        with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
-            copy_lines = [
-                f"【ホロスコープ鑑定データ: {user_name}】",
-                f"日時: {data['date_str']}",
-                f"場所: {data['loc_str']}\n"
-            ]
             if data["angles"]:
-                copy_lines.append("[アングル]")
-                for a in data["angles"]:
-                    copy_lines.append(f"- {a.replace('**', '').replace('`', '')}")
-                copy_lines.append("")
-            
-            copy_lines.append("[天体配置]")
-            for b in data["bodies"]:
-                clean_b = b.replace("**", "").replace("<br>", "").replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
-                copy_lines.append(f"- {clean_b}")
+                col_a1, col_a2 = st.columns(2)
+                col_a1.info(data["angles"][0])
+                col_a2.info(data["angles"][1])
+                st.write("")
+
+            tab1, tab2, tab3, tab4 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"]])
+
+            with tab1:
+                for p in data["bodies"]:
+                    st.markdown(f"- {p}", unsafe_allow_html=True)
+
+            with tab2:
+                for h in data["houses"]:
+                    st.markdown(f"- {h}")
+
+            with tab3:
+                st.markdown(data["aspects"])
+
+            with tab4:
+                if data["patterns"]:
+                    for pat in data["patterns"]:
+                        st.success(pat)
+                else:
+                    st.info("*(該当する複合アスペクトはありません)*" if toggle_lang=="日本語" else "*(No complex aspects found)*")
+
+            st.divider()
+
+            with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+                copy_lines = [
+                    f"【ホロスコープ鑑定データ: {user_name}】",
+                    f"日時: {data['date_str']}",
+                    f"場所: {data['loc_str']}\n"
+                ]
+                if data["angles"]:
+                    copy_lines.append("[アングル]")
+                    for a in data["angles"]:
+                        copy_lines.append(f"- {a.replace('**', '').replace('`', '')}")
+                    copy_lines.append("")
                 
-            copy_lines.append("\n[主要アスペクト]")
-            clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
-            copy_lines.append(clean_aspects)
+                copy_lines.append("[天体配置]")
+                for b in data["bodies"]:
+                    clean_b = b.replace("**", "").replace("<br>", "").replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
+                    copy_lines.append(f"- {clean_b}")
+                    
+                copy_lines.append("\n[主要アスペクト]")
+                clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
+                copy_lines.append(clean_aspects)
 
-            if data["patterns"]:
-                copy_lines.append("\n[複合アスペクト]")
-                for pat in data["patterns"]:
-                    copy_lines.append(f"- {pat}")
+                if data["patterns"]:
+                    copy_lines.append("\n[複合アスペクト]")
+                    for pat in data["patterns"]:
+                        copy_lines.append(f"- {pat}")
 
-            st.code("\n".join(copy_lines), language="text")
+                st.code("\n".join(copy_lines), language="text")
