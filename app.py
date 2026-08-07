@@ -2,6 +2,9 @@ import warnings
 import datetime
 import streamlit as st
 import re
+# 別の書き方
+import datetime
+import pytz # ※別途 !pip install pytz が必要な場合があります
 
 # ==========================================
 # ページ設定
@@ -122,7 +125,8 @@ with st.sidebar.form(key='horoscope_form'):
     user_name = st.text_input(t["name_input"], value="TestUser")
 
     now_date = datetime.date.today()
-    now_time = datetime.datetime.now().time()
+    tokyo_tz = pytz.timezone('Asia/Tokyo')
+    now_time = datetime.datetime.now(tokyo_tz).time()
 
     birth_date = st.date_input(
         t["birth_date"], 
