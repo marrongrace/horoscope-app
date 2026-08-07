@@ -7,9 +7,15 @@ import os
 import swisseph as swe
 
 # ==========================================
-# 💡 スイスエフェメリス（ephe）のパス設定
+# 💡 スイスエフェメリス（ephe）のパス設定（修正版）
 # ==========================================
-ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
+import os
+
+# 絶対パスに変換し、末尾に確実にパス区切り文字を付与する
+ephe_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "ephe"))
+if not ephe_path.endswith(os.path.sep):
+    ephe_path += os.path.sep
+
 if os.path.exists(ephe_path):
     swe.set_ephe_path(ephe_path)
 
