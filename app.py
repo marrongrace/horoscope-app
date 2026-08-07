@@ -600,21 +600,16 @@ if submit_button:
         copy_lines.append("\n[複合アスペクト・特別パターン]")
         if data["patterns"]:
             for pat in data["patterns"]:
-                # 元の文字列から「頂点」や「対立」などの情報を抜き出して再構成
+                # 余計な加工（splitなど）はせず、マークダウンの記号だけ綺麗にしてそのまま追加する
                 clean_pat = pat.replace("**", "").replace("`", "")
-                
-                # パターンごとの簡易整形
-                if "Tスクエア" in clean_pat or "T-Square" in clean_pat:
-                    # 例: T-Square [Apex: Venus] : Venus bridges the opposition between Dragon Head and Dragon Tail
-                    # を Tスクエア[頂点: 金星] : ドラゴンヘッド & ドラゴンテイル & 金星 に変換
-                    apex = clean_pat.split("[")[1].split("]")[0].replace("Apex: ", "").strip()
-                    # もっと単純に、パターンの名前だけ残してリストを作る
-                    copy_lines.append(f"- {clean_pat.split(':')[0].strip()} : {clean_pat.split(']')[1].replace(':', '').strip()}")
-                else:
-                    # その他のステリウムやヨッドなどもシンプルに
-                    copy_lines.append(f"- {clean_pat.split(':')[0].strip()} : {clean_pat.split(':')[1].strip()}")
+                copy_lines.append(f"- {clean_pat}")
         else:
             copy_lines.append("- (該当する複合アスペクトなし)")
+            
+        full_copy_text = "\n".join(copy_lines)
+        
+        # コードブロックで表示
+        st.code(full_copy_text, language="text")
         # ──────────────────────────────────────────
         
         full_copy_text = "\n".join(copy_lines)
