@@ -7,15 +7,15 @@ import numpy as np
 
 import os
 import swisseph as swe
+import streamlit as st # これが必要になる場合があります
 
-# === ここを追加 ===
-# スクリプトと同じ階層にある "ephe" フォルダの場所をスイスエフェメリスに教える
+# ... (パス設定処理の直後) ...
 ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
-if os.path.exists(ephe_path):
-    swe.set_ephe_path(ephe_path)
-# =================
-print(f"DEBUG: ephe path is {ephe_path}")
-print(f"DEBUG: path exists? {os.path.exists(ephe_path)}")
+swe.set_ephe_path(ephe_path)
+
+# 【画面に表示して確認する】
+st.write(f"DEBUG: 検索しているフォルダパス: {ephe_path}")
+st.write(f"DEBUG: フォルダは存在しますか？: {os.path.exists(ephe_path)}")
 
 # 外部ライブラリのインポート（未インストール時のフォールバック用）
 try:
