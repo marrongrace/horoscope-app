@@ -13,10 +13,6 @@ import streamlit as st # これが必要になる場合があります
 ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
 swe.set_ephe_path(ephe_path)
 
-# 【画面に表示して確認する】
-st.write(f"DEBUG: 検索しているフォルダパス: {ephe_path}")
-st.write(f"DEBUG: フォルダは存在しますか？: {os.path.exists(ephe_path)}")
-
 # 外部ライブラリのインポート（未インストール時のフォールバック用）
 try:
     from geopy.geocoders import Nominatim
