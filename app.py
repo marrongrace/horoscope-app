@@ -24,7 +24,7 @@ ui_texts = {
         "sidebar_header": "📝 出生データ入力",
         "name_input": "お名前 / ラベル",
         "birth_date": "生年月日",
-        "birth_time": "出生時間",
+        "birth_time": "出生時間(初期値：日本時間)",
         "city_input": "出生都市名 (英語例: Tokyo, Saitama)",
         "country_input": "国コード (例: JP)",
         "settings_header": "⚙️ 表示設定",
