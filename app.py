@@ -542,3 +542,35 @@ if submit_button:
             st.markdown(t["no_patterns"])
 else:
     st.info(t["initial_info"])
+
+def generate_copyable_text(data, mode="日本語"):
+    """チャット等に貼り付けやすいようにテキストを整形する"""
+    lines = []
+    if mode == "日本語":
+        lines.append(f"【ホロスコープ鑑定データ】")
+        lines.append(f"日時: {data['date_str']}")
+        lines.append(f"場所: {data['loc_str']}")
+        lines.append("\n■ 天体配置:")
+        # HTMLタグやマークダウンの記号を除去してシンプルに整形
+        for b in data.get("raw_bodies_for_copy", []):
+            lines.append(f"- {b['name']}: {b['sign']} ({b['house']}) {b['pos']:.2f}°")
+        
+        if data.get("angles"):
+            lines.append("\n■ アングル:")
+            for a in data["angles"]:
+                # マークダウン強調を軽く掃除
+                clean_a = a.replace("**", "").replace("`", "")
+                lines.append(f"- {clean_a}")
+                
+        lines.append("\n■ 主要アスペクト:")
+        # アスペクトテキストの整形
+        clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
+        lines.append(clean_aspects)
+    else:
+        lines.append(f"[Horoscope Reading Data]")
+        lines.append(f"Date: {data['date_str']}")
+        lines.append(f"Location: {data['loc_str']}")
+        # 英語用の整形...
+    
+    return "\n".join(lines)
+    
