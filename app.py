@@ -7,20 +7,20 @@ import os
 import swisseph as swe
 
 # ==========================================
-# 💡 スイスエフェメリス（ephe）のパス設定（修正版）
+# 💡 スイスエフェメリス（ephe）のパス設定 ＆ デバッグ
 # ==========================================
-import os
-
-# 絶対パスに変換し、末尾に確実にパス区切り文字を付与する
 ephe_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "ephe"))
 if not ephe_path.endswith(os.path.sep):
     ephe_path += os.path.sep
 
 if os.path.exists(ephe_path):
     swe.set_ephe_path(ephe_path)
-# デバッグ用：現在使用中のエフェメリスモードを確認する
-# 0 = 簡易モード(Moshier), 1 = JPLファイル使用モード
-print(f"DEBUG: Ephe path is {swe.get_ephe_path()}")
+    # フォルダ内にあるファイルを直接ターミナル/ログに出力して確認
+    files_in_ephe = os.listdir(ephe_path)
+    print(f"DEBUG: フォルダのパス -> {ephe_path}")
+    print(f"DEBUG: フォルダ内にあるファイル -> {files_in_ephe}")
+else:
+    print(f"DEBUG: エラー：epheフォルダが見つかりません -> {ephe_path}")
 
 # ==========================================
 # ページ設定
