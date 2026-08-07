@@ -540,47 +540,10 @@ if submit_button:
                 st.success(pat)
         else:
             st.markdown(t["no_patterns"])
-else:
-    st.info(t["initial_info"])
-
-def generate_copyable_text(data, mode="日本語"):
-    """チャット等に貼り付けやすいようにテキストを整形する"""
-    lines = []
-    if mode == "日本語":
-        lines.append(f"【ホロスコープ鑑定データ】")
-        lines.append(f"日時: {data['date_str']}")
-        lines.append(f"場所: {data['loc_str']}")
-        lines.append("\n■ 天体配置:")
-        # HTMLタグやマークダウンの記号を除去してシンプルに整形
-        for b in data.get("raw_bodies_for_copy", []):
-            lines.append(f"- {b['name']}: {b['sign']} ({b['house']}) {b['pos']:.2f}°")
-        
-        if data.get("angles"):
-            lines.append("\n■ アングル:")
-            for a in data["angles"]:
-                # マークダウン強調を軽く掃除
-                clean_a = a.replace("**", "").replace("`", "")
-                lines.append(f"- {clean_a}")
-                
-        lines.append("\n■ 主要アスペクト:")
-        # アスペクトテキストの整形
-        clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
-        lines.append(clean_aspects)
-    else:
-        lines.append(f"[Horoscope Reading Data]")
-        lines.append(f"Date: {data['date_str']}")
-        lines.append(f"Location: {data['loc_str']}")
-        # 英語用の整形...
-    
-    return "\n".join(lines)
-    
-    st.divider()
+            
+        # ─── ここから先ほどエラーになっていた部分（正しくインデント調整済み） ───
+        st.divider()
         st.markdown(f"### {'📋 結果をテキストで一括コピー' if toggle_lang=='日本語' else '📋 Copy All Results'}")
         
-        # コピーしやすいようにコードブロックまたはテキストエリアで表示
-        # （ここではStrealmitのコードブロックのコピー機能を利用）
-        copy_text = f"お名前: {user_name}\n日時: {data['date_str']}\n"
-        # 各天体の簡易テキストを作成してまとめる
-        # ...
-        
-        st.code(copy_text, language="text")
+else:
+    st.info(t["initial_info"])
