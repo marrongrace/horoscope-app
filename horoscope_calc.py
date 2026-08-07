@@ -4,15 +4,16 @@ import re
 import io
 import matplotlib.pyplot as plt
 import numpy as np
-import os             # ★ここに追加
-import swisseph as swe # ★ここに追加
 
-# --- ここにパス設定を追加 ---
-# アプリ起動時にエフェメリスファイルのパスを一度だけ設定する
+import os
+import swisseph as swe
+
+# === ここを追加 ===
+# スクリプトと同じ階層にある "ephe" フォルダの場所をスイスエフェメリスに教える
 ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
 if os.path.exists(ephe_path):
     swe.set_ephe_path(ephe_path)
-# -------------------------
+# =================
 
 # 外部ライブラリのインポート（未インストール時のフォールバック用）
 try:
