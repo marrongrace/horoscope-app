@@ -5,6 +5,8 @@ import re
 import pytz
 import os
 import swisseph as swe
+import requests
+import urllib.parse
 
 # ==========================================
 # 📍 地名から緯度・経度を自動取得する関数（国土地理院API）
