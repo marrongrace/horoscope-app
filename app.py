@@ -310,15 +310,15 @@ def detect_patterns(bodies, mode="日本語"):
         qui_dict.setdefault(a, set()).add(b)
         qui_dict.setdefault(b, set()).add(a)
 
-    # Tスクエア
+    # Tスクエア（頂点を先頭に固定）
     for op_a, op_b in opps:
         common_sq = sq_dict.get(op_a, set()).intersection(sq_dict.get(op_b, set()))
         for apex in common_sq:
             p_apex, p_a, p_b = get_p_name_clean(apex, mode), get_p_name_clean(op_a, mode), get_p_name_clean(op_b, mode)
             if mode == "日本語":
-                patterns.append(f"Tスクエア [頂点: {p_apex}] : {p_a} & {p_b} & {p_apex}")
+                patterns.append(f"Tスクエア [頂点: {p_apex}] : {p_apex} & {p_a} & {p_b}")
             else:
-                patterns.append(f"T-Square [Apex: {p_apex}] : {p_a} & {p_b} & {p_apex}")
+                patterns.append(f"T-Square [Apex: {p_apex}] : {p_apex} & {p_a} & {p_b}")
 
     # グランドクロス
     checked_gc = set()
@@ -371,7 +371,7 @@ def detect_patterns(bodies, mode="日本語"):
                         else:
                             patterns.append(f"Mini Trine : {p_a} & {p_b} & {p_c}")
 
-    # メディエーション（調停）
+    # メディエーション（調停天体を先頭に固定）
     checked_med = set()
     for op_a, op_b in opps:
         mediators = (sex_dict.get(op_a, set()).intersection(tr_dict.get(op_b, set()))).union(
@@ -383,11 +383,11 @@ def detect_patterns(bodies, mode="日本語"):
                 checked_med.add(sorted_key)
                 p_a, p_b, p_med = get_p_name_clean(op_a, mode), get_p_name_clean(op_b, mode), get_p_name_clean(med, mode)
                 if mode == "日本語":
-                    patterns.append(f"メディエーション [調停: {p_med}] : {p_a} & {p_b} & {p_med}")
+                    patterns.append(f"メディエーション [調停: {p_med}] : {p_med} & {p_a} & {p_b}")
                 else:
-                    patterns.append(f"Mediation [Mediator: {p_med}] : {p_a} & {p_b} & {p_med}")
+                    patterns.append(f"Mediation [Mediator: {p_med}] : {p_med} & {p_a} & {p_b}")
 
-    # ヨッド
+    # ヨッド（頂点を先頭に固定）
     for a, sex_neighbors in sex_dict.items():
         for b in sex_neighbors:
             common_qui = qui_dict.get(a, set()).intersection(qui_dict.get(b, set()))
@@ -395,17 +395,16 @@ def detect_patterns(bodies, mode="日本語"):
                 p_apex = get_p_name_clean(apex, mode)
                 p_a, p_b = get_p_name_clean(a, mode), get_p_name_clean(b, mode)
                 if mode == "日本語":
-                    patterns.append(f"ヨッド [頂点: {p_apex}] : {p_a} & {p_b} & {p_apex}")
+                    patterns.append(f"ヨッド [頂点: {p_apex}] : {p_apex} & {p_a} & {p_b}")
                 else:
-                    patterns.append(f"Yod [Apex: {p_apex}] : {p_a} & {p_b} & {p_apex}")
+                    patterns.append(f"Yod [Apex: {p_apex}] : {p_apex} & {p_a} & {p_b}")
 
-    # ─── 完全に同じ組み合わせ（順序違い含む）の重複を除外する処理 ───
+    # 重複排除処理
     unique_patterns = []
     seen = set()
     for pat in patterns:
         if ":" in pat:
             header, body = pat.split(":", 1)
-            # 構成されている天体名をすべて抽出し、アルファベット順（または名前順）にソートして一意のキーにする
             planets_sorted = tuple(sorted([p.strip() for p in body.split("&")]))
             signature = (header.strip(), planets_sorted)
         else:
