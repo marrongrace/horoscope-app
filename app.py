@@ -574,3 +574,13 @@ def generate_copyable_text(data, mode="日本語"):
     
     return "\n".join(lines)
     
+        st.divider()
+        st.markdown(f"### {'📋 結果をテキストで一括コピー' if toggle_lang=='日本語' else '📋 Copy All Results'}")
+        
+        # コピーしやすいようにコードブロックまたはテキストエリアで表示
+        # （ここではStrealmitのコードブロックのコピー機能を利用）
+        copy_text = f"お名前: {user_name}\n日時: {data['date_str']}\n"
+        # 各天体の簡易テキストを作成してまとめる
+        # ...
+        
+        st.code(copy_text, language="text")
