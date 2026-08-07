@@ -114,7 +114,6 @@ def format_dms(lat, lng, mode="日本語"):
         minute = int(minutes_float)
         second = round((minutes_float - minute) * 60)
         
-        # 秒が60になった場合の繰り上げ処理
         if second == 60:
             second = 0
             minute += 1
@@ -123,15 +122,9 @@ def format_dms(lat, lng, mode="日本語"):
             deg += 1
             
         if is_lat:
-            if mode == "日本語":
-                direction = "北緯" if val >= 0 else "南緯"
-            else:
-                direction = "N" if val >= 0 else "S"
+            direction = "北緯" if val >= 0 else "南緯" if mode == "日本語" else ("N" if val >= 0 else "S")
         else:
-            if mode == "日本語":
-                direction = "東経" if val >= 0 else "西経"
-            else:
-                direction = "E" if val >= 0 else "W"
+            direction = "東経" if val >= 0 else "西経" if mode == "日本語" else ("E" if val >= 0 else "W")
                 
         if mode == "日本語":
             return f"{direction} {deg}°{minute:02d}′{second:02d}″"
@@ -214,6 +207,10 @@ def detect_patterns(bodies, mode="日本語"):
     patterns = []
     aspect_pairs = []
     n = len(bodies)
+    
+    # 全天体の位置マップ作成
+    body_map = {b["key"]: b["abs_pos"] for b in bodies}
+
     for i in range(n):
         for j in range(i + 1, n):
             pos1, pos2 = bodies[i]["abs_pos"], bodies[j]["abs_pos"]
@@ -226,19 +223,64 @@ def detect_patterns(bodies, mode="日本語"):
             if abs(diff - 60) <= 5.0: aspect_pairs.append((k1, k2, "Sextile", abs(diff - 60)))
             if abs(diff - 150) <= 3.0: aspect_pairs.append((k1, k2, "Quincunx", abs(diff - 150)))
 
-    sign_counts = {}
-    for b in bodies:
-        s_idx = int(b["abs_pos"] // 30)
-        s_keys = list(SIGN_DATA.keys())
-        if s_idx < len(s_keys):
-            sign_counts.setdefault(s_keys[s_idx], []).append(b["key"])
+    # --- 【改良版】ステリウム判定（コンジャンクションの連鎖・ネットワーク） ---
+    # 対象外にする天体（感受点・主要天体を対象にするためノードやキロンなどは除外）
+    valid_stellium_bodies = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
+    
+    stellium_edges = []
+    filtered_bodies = [b for b in bodies if b["key"] in valid_stellium_bodies]
+    fn = len(filtered_bodies)
+    
+    for i in range(fn):
+        for j in range(i + 1, fn):
+            b1, b2 = filtered_bodies[i], filtered_bodies[j]
+            diff = min(abs(b1["abs_pos"] - b2["abs_pos"]), 360 - abs(b1["abs_pos"] - b2["abs_pos"]))
             
-    for s_name, members in sign_counts.items():
-        major = [m for m in members if m not in ["North Node", "South Node", "Chiron"]]
-        if len(major) >= 3:
-            s_loc = get_s_name(s_name, mode)
-            m_names = " & ".join([get_p_name(m, mode) for m in major])
-            patterns.append(f"ステリウム in {s_loc} : {m_names}" if mode == "日本語" else f"Stellium in {s_loc} : {m_names}")
+            # 太陽・月が絡む場合は最大10度、その他は最大7.5度（6〜8度の範囲）
+            is_luminary = (b1["key"] in ["Sun", "Moon"] or b2["key"] in ["Sun", "Moon"])
+            orb_limit = 10.0 if is_luminary else 7.5
+            
+            if diff <= orb_limit:
+                stellium_edges.append((b1["key"], b2["key"]))
+
+    # グラフの隣接リストを作成
+    adj = {}
+    for k1, k2 in stellium_edges:
+        adj.setdefault(k1, set()).add(k2)
+        adj.setdefault(k2, set()).add(k1)
+
+    # 連結成分（3つ以上がコンジャンクションで繋がっているグループ）を抽出
+    visited = set()
+    stellium_groups = []
+    for node in adj:
+        if node not in visited:
+            component = []
+            stack = [node]
+            visited.add(node)
+            while stack:
+                curr = stack.pop()
+                component.append(curr)
+                for neighbor in adj.get(curr, set()):
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        stack.append(neighbor)
+            if len(component) >= 3:
+                stellium_groups.append(component)
+
+    priority = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+    for comp in stellium_groups:
+        comp_sorted = sorted(comp, key=lambda x: priority.index(x) if x in priority else 99)
+        m_names = " & ".join([get_p_name(m, mode) for m in comp_sorted])
+        
+        # グループの中心付近のサインを算出
+        avg_pos = sum([body_map[k] for k in comp_sorted]) / len(comp_sorted)
+        s_idx = int((avg_pos % 360) // 30)
+        s_keys = list(SIGN_DATA.keys())
+        s_loc = get_s_name(s_keys[s_idx], mode) if s_idx < len(s_keys) else ""
+        
+        lbl = f"ステリウム (周辺: {s_loc})" if mode == "日本語" else f"Stellium (approx. {s_loc})"
+        patterns.append(f"{lbl} : {m_names}")
+    # -------------------------------------------------------------
 
     opps = [(a, b) for a, b, t, _ in aspect_pairs if t == "Opposition"]
     squares = [(a, b) for a, b, t, _ in aspect_pairs if t == "Square"]
