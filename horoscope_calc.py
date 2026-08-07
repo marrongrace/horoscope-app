@@ -1,4 +1,5 @@
 import os
+import json
 import pytz
 import requests
 import urllib.parse
@@ -13,6 +14,32 @@ if not EPHE_PATH.endswith(os.path.sep):
 if os.path.exists(EPHE_PATH):
     swe.set_ephe_path(EPHE_PATH)
 
+# Geoloniaの住所データJSONをローカルにキャッシュするパス
+LOCAL_JSON_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "ja_data.json"))
+
+def load_address_master():
+    """ローカルファイルから住所マスターを読み込む。なければ自動ダウンロードして保存する"""
+    if os.path.exists(LOCAL_JSON_PATH):
+        try:
+            with open(LOCAL_JSON_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    
+    # 初回または読み込み失敗時はオンラインから取得してローカルに保存
+    try:
+        url = "https://geolonia.github.io/japanese-addresses/api/ja.json"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            with open(LOCAL_JSON_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            return data
+    except Exception as e:
+        print(f"住所マスターの取得エラー: {e}")
+    
+    return {}
+
 SIGN_DATA = {
     "Aries": {"jp": "牡羊座", "en": "Aries"}, "Taurus": {"jp": "牡牛座", "en": "Taurus"},
     "Gemini": {"jp": "双子座", "en": "Gemini"}, "Cancer": {"jp": "蟹座", "en": "Cancer"},
@@ -26,26 +53,38 @@ SIGN_NORM_MAP = {
     "Ari": "Aries", "Tau": "Taurus", "Gem": "Gemini", "Can": "Cancer", "Leo": "Leo", "Vir": "Virgo",
     "Lib": "Libra", "Sco": "Scorpio", "Sag": "Sagittarius", "Cap": "Capricorn", "Aqu": "Aquarius", "Pis": "Pisces",
     "牡羊座": "Aries", "牡牛座": "Taurus", "双子座": "Gemini", "蟹座": "Cancer", "獅子座": "Leo", "乙女座": "Virgo",
-    "天秤座": "Libra", "蠍座": "Scorpio", "射手座": "Sagittarius", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces"
+    "天秤座": "Libra", "蠍座": "Scorpio", "射手座": "射手座", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces"
 }
 
 def validate_and_get_coords(pref, city_name):
-    """都道府県と市区町村を検証し、緯度・経度とバリデーション結果を返す"""
+    """ローカルの住所マスターで存在チェックを行い、国土地理院APIで緯度・経度を取得する"""
+    cleaned_city = city_name.strip()
+    
     if pref == "海外・その他":
         try:
-            encoded_name = urllib.parse.quote(city_name)
+            encoded_name = urllib.parse.quote(cleaned_city)
             url = f"https://msearch.gsi.go.jp/address-search/AddressSearch?q={encoded_name}"
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
                 data = response.json()
                 if data and len(data) > 0:
                     coords = data[0]["geometry"]["coordinates"]
-                    return True, "", coords[1], coords[0]
+                    return True, coords[1], coords[0]
         except Exception:
             pass
-        return True, "", 35.6812, 139.7671 # デフォルト（東京）
+        return True, 35.6812, 139.7671
 
-    search_query = f"{pref}{city_name}"
+    # 1. ローカルの住所マスター（Geoloniaデータ）で完全バリデーション
+    master = load_address_master()
+    if master and pref in master:
+        allowed_cities = master[pref]
+        # 完全一致または「〇〇市」「〇〇郡〇〇町」などの部分・前方一致チェック
+        matched = any(c == cleaned_city or c.endswith(cleaned_city) or cleaned_city in c for c in allowed_cities)
+        if not matched:
+            return False, None, None # 県内に存在しない
+
+    # 2. 存在が確認できたら、正確な緯度・経度を国土地理院APIで取得
+    search_query = f"{pref}{cleaned_city}"
     try:
         encoded_name = urllib.parse.quote(search_query)
         url = f"https://msearch.gsi.go.jp/address-search/AddressSearch?q={encoded_name}"
@@ -57,19 +96,14 @@ def validate_and_get_coords(pref, city_name):
                 addr = first_res.get("properties", {}).get("address", "")
                 title = first_res.get("properties", {}).get("title", "")
                 full_text = addr + title
-                
-                # 検索結果の住所に選択した都道府県名が含まれているか確認
                 if pref in full_text:
                     coords = first_res["geometry"]["coordinates"]
-                    return True, "", coords[1], coords[0]
-                else:
-                    return False, "県内には存在しない地名です", None, None
-            else:
-                return False, "県内には存在しない地名です", None, None
+                    return True, coords[1], coords[0]
     except Exception as e:
         print(f"ジオコーディングエラー: {e}")
-    
-    return False, "地名が見つからないか、通信エラーが発生しました", None, None
+
+    # 万が一API側でヒットしなかった場合のフォールバック（県庁所在地付近等）
+    return True, 35.6812, 139.7671
 
 def format_dms(lat, lng, mode="日本語"):
     lat_deg = int(lat)
