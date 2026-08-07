@@ -22,7 +22,7 @@ PREFECTURES = [
 
 ui_texts = {
     "日本語": {
-        "page_title": "🔮 本格ホロスコープ鑑定システム",
+        "page_title": "🔮 ホロスコープ鑑定システム",
         "sidebar_header": "📝 出生データ入力",
         "name_input": "お名前 / ラベル",
         "birth_date": "生年月日",
