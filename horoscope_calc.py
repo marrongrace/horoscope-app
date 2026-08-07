@@ -2,10 +2,17 @@ import warnings
 import datetime
 import re
 import io
-import os  # 追加
 import matplotlib.pyplot as plt
 import numpy as np
-import swisseph as swe  # 追加
+import os             # ★ここに追加
+import swisseph as swe # ★ここに追加
+
+# --- ここにパス設定を追加 ---
+# アプリ起動時にエフェメリスファイルのパスを一度だけ設定する
+ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
+if os.path.exists(ephe_path):
+    swe.set_ephe_path(ephe_path)
+# -------------------------
 
 # 外部ライブラリのインポート（未インストール時のフォールバック用）
 try:
