@@ -564,10 +564,18 @@ if submit_button:
         clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
         copy_lines.append(clean_aspects)
         
+        # ─── ここから特殊アスペクト（複合アスペクト）の追加 ───
+        copy_lines.append("\n[複合アスペクト・特別パターン]")
+        if data["patterns"]:
+            for pat in data["patterns"]:
+                # マークダウンの太字や記号を軽く掃除して読みやすくする
+                clean_pat = pat.replace("**", "").replace("`", "")
+                copy_lines.append(f"- {clean_pat}")
+        else:
+            copy_lines.append("- (該当する複合アスペクトなし)")
+        # ──────────────────────────────────────────
+        
         full_copy_text = "\n".join(copy_lines)
         
-        # コードブロック（右上にコピーボタンが出る）で表示
+        # コードブロックで表示
         st.code(full_copy_text, language="text")
-
-else:
-    st.info(t["initial_info"])
