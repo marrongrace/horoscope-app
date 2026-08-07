@@ -6,7 +6,6 @@ import warnings
 import swisseph as swe
 from kerykeion import AstrologicalSubject
 
-# エフェメリスパスの設定
 EPHE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "ephe"))
 if not EPHE_PATH.endswith(os.path.sep):
     EPHE_PATH += os.path.sep
@@ -14,7 +13,6 @@ if not EPHE_PATH.endswith(os.path.sep):
 if os.path.exists(EPHE_PATH):
     swe.set_ephe_path(EPHE_PATH)
 
-# サイン定義
 SIGN_DATA = {
     "Aries": {"jp": "牡羊座", "en": "Aries"}, "Taurus": {"jp": "牡牛座", "en": "Taurus"},
     "Gemini": {"jp": "双子座", "en": "Gemini"}, "Cancer": {"jp": "蟹座", "en": "Cancer"},
@@ -44,6 +42,29 @@ def get_lat_lng_from_address(place_name):
     except Exception as e:
         print(f"ジオコーディングエラー: {e}")
     return None, None
+
+def format_dms(lat, lng, mode="日本語"):
+    """十進法を度・分（DMS）形式に変換する関数"""
+    lat_deg = int(lat)
+    lat_min = int(round((lat - lat_deg) * 60))
+    if lat_min == 60:
+        lat_deg += 1
+        lat_min = 0
+
+    lng_deg = int(lng)
+    lng_min = int(round((lng - lng_deg) * 60))
+    if lng_min == 60:
+        lng_deg += 1
+        lng_min = 0
+
+    if mode == "日本語":
+        lat_str = f"北緯 {lat_deg}°{lat_min:02d}′" if lat >= 0 else f"南緯 {abs(lat_deg)}°{lat_min:02d}′"
+        lng_str = f"東経 {lng_deg}°{lng_min:02d}′" if lng >= 0 else f"西経 {abs(lng_deg)}°{lng_min:02d}′"
+    else:
+        lat_str = f"{lat_deg}°{lat_min:02d}'N" if lat >= 0 else f"{abs(lat_deg)}°{lat_min:02d}'S"
+        lng_str = f"{lng_deg}°{lng_min:02d}'E" if lng >= 0 else f"{abs(lng_deg)}°{lng_min:02d}'W"
+    
+    return f"{lat_str}, {lng_str} (十進: {lat:.4f}, {lng:.4f})"
 
 def get_s_name(key, mode="日本語"):
     norm = SIGN_NORM_MAP.get(str(key).strip(), "Aries")
@@ -128,7 +149,6 @@ def detect_patterns(bodies, mode="日本語"):
             if abs(diff - 60) <= 5.0: aspect_pairs.append((k1, k2, "Sextile", abs(diff - 60)))
             if abs(diff - 150) <= 3.0: aspect_pairs.append((k1, k2, "Quincunx", abs(diff - 150)))
 
-    # ステリウム
     sign_counts = {}
     for b in bodies:
         s_idx = int(b["abs_pos"] // 30)
@@ -159,7 +179,6 @@ def detect_patterns(bodies, mode="日本語"):
     for a, b in quincunxes:
         qui_dict.setdefault(a, set()).add(b); qui_dict.setdefault(b, set()).add(a)
 
-    # Tスクエア
     for op_a, op_b in opps:
         common_sq = sq_dict.get(op_a, set()).intersection(sq_dict.get(op_b, set()))
         for apex in common_sq:
@@ -167,7 +186,6 @@ def detect_patterns(bodies, mode="日本語"):
             lbl = f"Tスクエア [頂点: {p_apex}]" if mode == "日本語" else f"T-Square [Apex: {p_apex}]"
             patterns.append(f"{lbl} : {p_apex} & {p_a} & {p_b}")
 
-    # グランドトライン
     checked_gt = set()
     for a, neighbors in tr_dict.items():
         for b in neighbors:
@@ -181,7 +199,6 @@ def detect_patterns(bodies, mode="日本語"):
                         lbl = "グランドトライン" if mode == "日本語" else "Grand Trine"
                         patterns.append(f"{lbl} : {p_a} & {p_b} & {p_c}")
 
-    # ミニトライン
     checked_mt = set()
     for a, neighbors in sex_dict.items():
         for b in neighbors:
@@ -195,7 +212,6 @@ def detect_patterns(bodies, mode="日本語"):
                         lbl = "ミニトライン" if mode == "日本語" else "Mini Trine"
                         patterns.append(f"{lbl} : {p_a} & {p_b} & {p_c}")
 
-    # ヨッド
     for a, sex_neighbors in sex_dict.items():
         for b in sex_neighbors:
             common_qui = qui_dict.get(a, set()).intersection(qui_dict.get(b, set()))
@@ -204,7 +220,6 @@ def detect_patterns(bodies, mode="日本語"):
                 lbl = f"ヨッド [頂点: {p_apex}]" if mode == "日本語" else f"Yod [Apex: {p_apex}]"
                 patterns.append(f"{lbl} : {p_apex} & {p_a} & {p_b}")
 
-    # 重複排除
     unique, seen = [], set()
     for pat in patterns:
         if ":" in pat:
@@ -312,7 +327,10 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
 
     time_note = "（12:00仮定）" if is_unknown_time else ""
     date_str = f"{year}年{month}月{day}日 {calc_h}:{calc_m:02d} {time_note}" if mode == "日本語" else f"{year}-{month:02d}-{day:02d} {calc_h}:{calc_m:02d} {'(Assumed 12:00)' if is_unknown_time else ''}"
-    loc_str = f"[{city_display_name}] [Lat:{chart.lat:.2f}, Lng:{chart.lng:.2f}]"
+    
+    # 度・分形式に変換した座標文字列を作成
+    dms_loc_str = format_dms(chart.lat, chart.lng, mode)
+    loc_str = f"[{city_display_name}] [{dms_loc_str}]"
 
     return {
         "error": None, "date_str": date_str, "loc_str": loc_str,
