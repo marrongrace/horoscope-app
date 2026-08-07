@@ -2,8 +2,10 @@ import warnings
 import datetime
 import re
 import io
+import os  # 追加
 import matplotlib.pyplot as plt
 import numpy as np
+import swisseph as swe  # 追加
 
 # 外部ライブラリのインポート（未インストール時のフォールバック用）
 try:
@@ -14,6 +16,19 @@ try:
 except Exception as e:
     HAS_LIBS = False
     IMPORT_ERROR_MESSAGE = f"インポートエラー: {str(e)}"
+
+# ==========================================
+# 【追加】エフェメリスファイル（.se1）のパスを通す処理
+# ==========================================
+if HAS_LIBS:
+    # スクリプトと同じ階層にある "ephe" フォルダを指定する場合
+    ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
+    if os.path.exists(ephe_path):
+        swe.set_ephe_path(ephe_path)
+    else:
+        # Streamlit Cloud等でフォルダ階層が異なる場合の保険（カレントディレクトリ等）
+        if os.path.exists("ephe"):
+            swe.set_ephe_path("ephe")
 
 # ==========================================
 # 辞書データ
