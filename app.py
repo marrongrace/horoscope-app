@@ -9,6 +9,16 @@ import requests
 import urllib.parse
 
 # ==========================================
+# 💡 エフェメリスパスの定義（ここで最初に定義します）
+# ==========================================
+ephe_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "ephe"))
+if not ephe_path.endswith(os.path.sep):
+    ephe_path += os.path.sep
+
+if os.path.exists(ephe_path):
+    swe.set_ephe_path(ephe_path)
+    
+# ==========================================
 # 📍 地名から緯度・経度を自動取得する関数（国土地理院API）
 # ==========================================
 def get_lat_lng_from_address(place_name):
