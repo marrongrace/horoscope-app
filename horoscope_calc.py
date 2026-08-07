@@ -14,6 +14,8 @@ ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
 if os.path.exists(ephe_path):
     swe.set_ephe_path(ephe_path)
 # =================
+print(f"DEBUG: ephe path is {ephe_path}")
+print(f"DEBUG: path exists? {os.path.exists(ephe_path)}")
 
 # 外部ライブラリのインポート（未インストール時のフォールバック用）
 try:
