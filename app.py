@@ -7,10 +7,6 @@ import pytz # ※別途 !pip install pytz が必要な場合があります
 import os
 import swisseph as swe
 
-# アプリの場所を基準にして "ephe" フォルダの絶対パスを自動取得する
-ephe_path = os.path.join(os.path.dirname(__file__), "ephe")
-swe.set_ephe_path(ephe_path)
-
 # ==========================================
 # ページ設定
 # ==========================================
