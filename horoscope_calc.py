@@ -29,22 +29,49 @@ SIGN_NORM_MAP = {
     "天秤座": "Libra", "蠍座": "Scorpio", "射手座": "Sagittarius", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces"
 }
 
-def get_lat_lng_from_address(place_name):
+def validate_and_get_coords(pref, city_name):
+    """都道府県と市区町村を検証し、緯度・経度とバリデーション結果を返す"""
+    if pref == "海外・その他":
+        try:
+            encoded_name = urllib.parse.quote(city_name)
+            url = f"https://msearch.gsi.go.jp/address-search/AddressSearch?q={encoded_name}"
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                if data and len(data) > 0:
+                    coords = data[0]["geometry"]["coordinates"]
+                    return True, "", coords[1], coords[0]
+        except Exception:
+            pass
+        return True, "", 35.6812, 139.7671 # デフォルト（東京）
+
+    search_query = f"{pref}{city_name}"
     try:
-        encoded_name = urllib.parse.quote(place_name)
+        encoded_name = urllib.parse.quote(search_query)
         url = f"https://msearch.gsi.go.jp/address-search/AddressSearch?q={encoded_name}"
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
             data = response.json()
             if data and len(data) > 0:
-                coords = data[0]["geometry"]["coordinates"]
-                return coords[1], coords[0] # [lat, lng]
+                first_res = data[0]
+                addr = first_res.get("properties", {}).get("address", "")
+                title = first_res.get("properties", {}).get("title", "")
+                full_text = addr + title
+                
+                # 検索結果の住所に選択した都道府県名が含まれているか確認
+                if pref in full_text:
+                    coords = first_res["geometry"]["coordinates"]
+                    return True, "", coords[1], coords[0]
+                else:
+                    return False, "県内には存在しない地名です", None, None
+            else:
+                return False, "県内には存在しない地名です", None, None
     except Exception as e:
         print(f"ジオコーディングエラー: {e}")
-    return None, None
+    
+    return False, "地名が見つからないか、通信エラーが発生しました", None, None
 
 def format_dms(lat, lng, mode="日本語"):
-    """十進法を度・分（DMS）形式に変換する関数"""
     lat_deg = int(lat)
     lat_min = int(round((lat - lat_deg) * 60))
     if lat_min == 60:
@@ -328,7 +355,6 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
     time_note = "（12:00仮定）" if is_unknown_time else ""
     date_str = f"{year}年{month}月{day}日 {calc_h}:{calc_m:02d} {time_note}" if mode == "日本語" else f"{year}-{month:02d}-{day:02d} {calc_h}:{calc_m:02d} {'(Assumed 12:00)' if is_unknown_time else ''}"
     
-    # 度・分形式に変換した座標文字列を作成
     dms_loc_str = format_dms(chart.lat, chart.lng, mode)
     loc_str = f"[{city_display_name}] [{dms_loc_str}]"
 
