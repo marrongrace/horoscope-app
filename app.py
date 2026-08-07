@@ -18,6 +18,9 @@ if not ephe_path.endswith(os.path.sep):
 
 if os.path.exists(ephe_path):
     swe.set_ephe_path(ephe_path)
+# デバッグ用：現在使用中のエフェメリスモードを確認する
+# 0 = 簡易モード(Moshier), 1 = JPLファイル使用モード
+print(f"DEBUG: Ephe path is {swe.get_ephe_path()}")
 
 # ==========================================
 # ページ設定
