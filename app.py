@@ -7,20 +7,25 @@ import os
 import swisseph as swe
 
 # ==========================================
-# 💡 スイスエフェメリス（ephe）のパス設定 ＆ デバッグ
+# 💡 画面上で確認できるデバッグコード
 # ==========================================
 ephe_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "ephe"))
 if not ephe_path.endswith(os.path.sep):
     ephe_path += os.path.sep
 
+# ブラウザの画面に直接結果を表示する
+st.write(f"**📁 認識されているパス:** `{ephe_path}`")
+st.write(f"**📂 フォルダが存在するか:** `{os.path.exists(ephe_path)}`")
+
 if os.path.exists(ephe_path):
     swe.set_ephe_path(ephe_path)
-    # フォルダ内にあるファイルを直接ターミナル/ログに出力して確認
     files_in_ephe = os.listdir(ephe_path)
-    print(f"DEBUG: フォルダのパス -> {ephe_path}")
-    print(f"DEBUG: フォルダ内にあるファイル -> {files_in_ephe}")
+    st.write(f"**📄 フォルダの中身:** `{files_in_ephe}`")
+    
+    if not files_in_ephe:
+        st.warning("⚠️ フォルダは存在しますが、中にファイルが1つも入っていません！")
 else:
-    print(f"DEBUG: エラー：epheフォルダが見つかりません -> {ephe_path}")
+    st.error("🚨 `ephe` フォルダ自体がサーバー上で見つかりません！")
 
 # ==========================================
 # ページ設定
