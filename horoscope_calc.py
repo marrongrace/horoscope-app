@@ -50,10 +50,14 @@ SIGN_DATA = {
 }
 
 SIGN_NORM_MAP = {
+    # ★ 英語フルネームを追加
+    "Aries": "Aries", "Taurus": "Taurus", "Gemini": "Gemini", "Cancer": "Cancer", "Leo": "Leo", "Virgo": "Virgo",
+    "Libra": "Libra", "Scorpio": "Scorpio", "Sagittarius": "Sagittarius", "Capricorn": "Capricorn", "Aquarius": "Aquarius", "Pisces": "Pisces",
+    # 既存の短縮形や日本語
     "Ari": "Aries", "Tau": "Taurus", "Gem": "Gemini", "Can": "Cancer", "Leo": "Leo", "Vir": "Virgo",
     "Lib": "Libra", "Sco": "Scorpio", "Sag": "Sagittarius", "Cap": "Capricorn", "Aqu": "Aquarius", "Pis": "Pisces",
     "牡羊座": "Aries", "牡牛座": "Taurus", "双子座": "Gemini", "蟹座": "Cancer", "獅子座": "Leo", "乙女座": "Virgo",
-    "天秤座": "Libra", "蠍座": "Scorpio", "射手座": "Sagittarius", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces"
+    "天秤座": "Libra", "蠍座": "Scorpio", "射手座": "射手座", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces"
 }
 
 # ==========================================
