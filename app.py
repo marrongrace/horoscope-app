@@ -528,12 +528,6 @@ if submit_button:
 
         st.divider()
 
-        st.markdown(f"### {t['aspects_header']}")
-        with st.expander(t["aspects_expander"], expanded=True):
-            st.markdown(data["aspects"])
-
-        st.divider()
-
         st.markdown(f"### {t['patterns_header']}")
         if data["patterns"]:
             for pat in data["patterns"]:
@@ -541,9 +535,35 @@ if submit_button:
         else:
             st.markdown(t["no_patterns"])
             
-        # ─── ここから先ほどエラーになっていた部分（正しくインデント調整済み） ───
+        # ─── ここから一括コピー用の処理 ───
         st.divider()
         st.markdown(f"### {'📋 結果をテキストで一括コピー' if toggle_lang=='日本語' else '📋 Copy All Results'}")
         
+        # コピー用のテキストを綺麗に組み立てる
+        copy_lines = []
+        copy_lines.append(f"【ホロスコープ鑑定データ: {user_name}】")
+        copy_lines.append(f"日時: {data['date_str']}")
+        copy_lines.append(f"場所: {data['loc_str']}")
+        copy_lines.append("\n[天体配置]")
+        for b in data["bodies"]:
+            # HTMLタグやマークダウンの装飾を軽く掃除して読みやすくする
+            clean_b = b.replace("**", "").replace("<br>", "").replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
+            copy_lines.append(f"- {clean_b}")
+            
+        if data["angles"]:
+            copy_lines.append("\n[アングル]")
+            for a in data["angles"]:
+                clean_a = a.replace("**", "").replace("`", "")
+                copy_lines.append(f"- {clean_a}")
+                
+        copy_lines.append("\n[主要アスペクト]")
+        clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
+        copy_lines.append(clean_aspects)
+        
+        full_copy_text = "\n".join(copy_lines)
+        
+        # コードブロック（右上にコピーボタンが出る）で表示
+        st.code(full_copy_text, language="text")
+
 else:
     st.info(t["initial_info"])
