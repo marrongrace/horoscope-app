@@ -203,14 +203,14 @@ with st.sidebar.form(key='horoscope_form'):
     if "last_city_input" not in st.session_state:
         st.session_state.last_city_input = "加須市"
 
-    # 市町村名の入力
-    city_input = st.text_input(t["city_input"], value=st.session_state.last_city_input)
+    # ▼【修正】変数名を 'input_city_name' に合わせる
+    input_city_name = st.text_input(t["city_input"], value=st.session_state.last_city_input)
 
-    # 地名が書き換えられたら自動で国土地理院APIを叩いて緯度・経度を更新
-    if city_input != st.session_state.last_city_input:
-        st.session_state.last_city_input = city_input
+    # ▼【修正】条件判定や代入もすべて 'input_city_name' に統一する
+    if input_city_name != st.session_state.last_city_input:
+        st.session_state.last_city_input = input_city_name
         # 都道府県名＋市町村名で検索するとよりヒット率が上がります
-        search_query = f"{selected_pref}{city_input}" if selected_pref != "海外・その他" else city_input
+        search_query = f"{selected_pref}{input_city_name}" if selected_pref != "海外・その他" else input_city_name
         lat_res, lng_res = get_lat_lng_from_address(search_query)
         if lat_res is not None and lng_res is not None:
             st.session_state.input_lat_val = lat_res
