@@ -414,14 +414,13 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
             rule_str = ""
             if key in major_bodies:
                 # 5度前ルールの処理を一時的に無効化（コメントアウト）する
-                pass
-                # next_idx = (h_num % 12)
-                # cusp_next = house_cusp_abs[next_idx]
-                # dist = (cusp_next - abs_p_pos) % 360
-                # if 0.0 <= dist <= 5.0:
-                #     eff_h = next_idx + 1
-                #     eff_label = format_house_name(eff_h, mode)
-                #     rule_str = f" (5度前ルール適用 ➡️ {eff_label})" if mode == "日本語" else f" (5-degree rule applied ➡️ {eff_label})"
+                next_idx = (h_num % 12)
+                cusp_next = house_cusp_abs[next_idx]
+                dist = (cusp_next - abs_p_pos) % 360
+                if 0.0 <= dist <= 5.0:
+                    eff_h = next_idx + 1
+                    eff_label = format_house_name(eff_h, mode)
+                    rule_str = f" (5度前ルール適用 ➡️ {eff_label})" if mode == "日本語" else f" (5-degree rule applied ➡️ {eff_label})"
             
             if rule_str:
                 p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({pos:.2f}°)`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_str.strip()}")
