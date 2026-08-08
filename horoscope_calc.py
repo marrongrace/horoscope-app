@@ -117,28 +117,29 @@ def validate_and_get_coords(pref, city_name):
 def format_dms(lat, lng, mode="日本語"):
     """緯度・経度を秒単位（DMS）までフォーマットする"""
     def to_dms(val, is_lat=True):
-        abs_val = abs(val)
-        deg = int(abs_val)
-        minutes_float = (abs_val - deg) * 60
-        minute = int(minutes_float)
-        second = round((minutes_float - minute) * 60)
+    abs_val = abs(val)
+    deg = int(abs_val)
+    minutes_float = (abs_val - deg) * 60
+    minute = int(minutes_float)
+    second = round((minutes_float - minute) * 60)
+    
+    if second == 60:
+        second = 0
+        minute += 1
+    if minute == 60:
+        minute = 0
+        deg += 1
         
-        if second == 60:
-            second = 0
-            minute += 1
-        if minute == 60:
-            minute = 0
-            deg += 1
+    if is_lat:
+        direction = "北緯" if val >= 0 else "南緯" if mode == "日本語" else ("N" if val >= 0 else "S")
+    else:
+        direction = "東経" if val >= 0 else "西経" if mode == "日本語" else ("E" if val >= 0 else "W")
             
-        if is_lat:
-            direction = "北緯" if val >= 0 else "南緯" if mode == "日本語" else ("N" if val >= 0 else "S")
-        else:
-            direction = "東経" if val >= 0 else "西経" if mode == "日本語" else ("E" if val >= 0 else "W")
-                
-        if mode == "日本語":
-            return f"{direction} {deg}°{minute:02d}′{second:02d}″"
-        else:
-            return f"{deg}°{minute:02d}'{second:02d}\"{direction}"
+    # ▼ ここを度.分.秒のドット区切りに変更 ▼
+    if mode == "日本語":
+        return f"{direction} {deg}.{minute:02d}.{second:02d}"
+    else:
+        return f"{deg}.{minute:02d}.{second:02d} {direction}"
 
     lat_str = to_dms(lat, is_lat=True)
     lng_str = to_dms(lng, is_lat=False)
