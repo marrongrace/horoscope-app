@@ -202,7 +202,9 @@ if submit_button:
                 col_a2.info(data["angles"][1])
                 st.write("")
 
-            tab1, tab2, tab3, tab4 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"]])
+            # タブの作成（5つに増やす）
+            ruler_tab_label = "ハウスルーラー" if lang == "日本語" else "House Rulers"
+            tab1, tab2, tab3, tab4, tab5 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"], ruler_tab_label])
 
             with tab1:
                 for p in data["bodies"]:
@@ -210,27 +212,20 @@ if submit_button:
 
             with tab2:
                 for h in data["houses"]:
-                    st.markdown(f"- {convert_to_dms(h)}")
+                    st.markdown(f"- {h}")
 
             with tab3:
+                # （前回実装したアスペクトの整形表示部分）
                 converted_aspects = convert_to_dms(data["aspects"])
                 aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
-                
                 current_planet = None
-                
                 for line in aspect_lines:
                     if " & " in line:
                         raw_target = line.lstrip("-* ").strip()
                         planet = raw_target.split(" & ")[0].strip()
-                        
                         if planet != current_planet:
                             current_planet = planet
-                            # 見出しの前に少し余白（区切り）を入れるか、見出しを出力
-                            if current_planet != aspect_lines[0].lstrip("-* ").split(" & ")[0].strip():
-                                st.write("")  # 最初の見出し以外は上に少し余白を入れる
-                            st.markdown(f"#### 🌟 {current_planet} のアスペクト")
-                    
-                    # 各アスペクト行を出力
+                            st.markdown(f"\n#### 🌟 {current_planet} のアスペクト")
                     st.markdown(line)
 
             with tab4:
@@ -239,14 +234,15 @@ if submit_button:
                         st.success(convert_to_dms(pat))
                 else:
                     st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
-                    
+
+            # 🌟 新しく追加する「ハウスルーラー」のタブ
             with tab5:
                 if data["house_rulers"]:
                     for r_line in data["house_rulers"]:
                         st.markdown(f"- {r_line}")
                 else:
-                    st.info("*(出生時間不明のためハウスルーラー除外)*" if lang=="日本語"  
-                            
+                    st.info("*(出生時間不明のためハウスルーラー除外)*" if lang=="日本語" else "*(House rulers excluded due to unknown birth time)*")
+
             st.divider()
 
             with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
