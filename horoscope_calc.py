@@ -54,6 +54,12 @@ SIGN_NORM_MAP = {
     "天秤座": "Libra", "蠍座": "Scorpio", "射手座": "Sagittarius", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces"
 }
 
+RULERS = {
+    "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury", "Cancer": "Moon",
+    "Leo": "Sun", "Virgo": "Mercury", "Libra": "Venus", "Scorpio": "Pluto",
+    "Sagittarius": "Jupiter", "Capricorn": "Saturn", "Aquarius": "Uranus", "Pisces": "Neptune"
+}
+
 def get_cities_for_prefecture(pref):
     """指定された都道府県の市区町村リストを返す"""
     if pref == "海外・その他":
@@ -114,6 +120,32 @@ def validate_and_get_coords(pref, city_name):
     
     return False, "地名が見つからないか、通信エラーが発生しました", None, None
 
+def get_house_rulers(houses_list, mode="日本語"):
+    """
+    各ハウスのカスプサインから支配星（ルーラー）を求め、リストとして返す
+    """
+    if not houses_list:
+        return []
+    
+    ruler_lines = []
+    for i, h in enumerate(houses_list, 1):
+        h_num = i
+        # ハウスのサイン名（英語正規化キーを取得するため）
+        sign_key = h.sign
+        norm_sign = SIGN_NORM_MAP.get(str(sign_key), "Aries")
+        
+        # 支配星（英語キー）を取得
+        ruler_eng = RULERS.get(norm_sign, "Sun")
+        
+        # 表示用名に変換
+        sign_name = get_s_name(sign_key, mode)
+        ruler_name = get_p_name(ruler_eng, mode)
+        
+        house_lbl = format_house_name(h_num, mode)
+        ruler_lines.append(f"**{house_lbl}** ({sign_name}) ➔ 支配星: **{ruler_name}**")
+        
+    return ruler_lines
+    
 def to_dms(val, is_lat=True, mode="日本語"):
     abs_val = abs(val)
     deg = int(abs_val)
@@ -359,6 +391,106 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
             )
         except Exception as e:
             return {"error": f"ホロスコープ計算エラー: {str(e)}"}
+
+    bodies_meta = [
+        ("Sun", chart.sun), ("Moon", chart.moon), ("Mercury", chart.mercury),
+        ("Venus", chart.venus), ("Mars", chart.mars), ("Jupiter", chart.jupiter),
+        ("Saturn", chart.saturn), ("Uranus", chart.uranus), ("Neptune", chart.neptune), ("Pluto", chart.pluto)
+    ]
+
+    for key, attr_list in [("North Node", ["true_north_lunar_node", "node"]), ("South Node", ["true_south_lunar_node", "south_node"]), ("Chiron", ["chiron"])]:
+        for attr in attr_list:
+            if hasattr(chart, attr) and getattr(chart, attr):
+                bodies_meta.append((key, getattr(chart, attr)))
+                break
+
+    all_aspect_objs, p_lines = [], []
+    house_name_map = {
+        "First_House": 1, "Second_House": 2, "Third_House": 3, "Fourth_House": 4,
+        "Fifth_House": 5, "Sixth_House": 6, "Seventh_House": 7, "Eighth_House": 8,
+        "Ninth_House": 9, "Tenth_House": 10, "Eleventh_House": 11, "Twelfth_House": 12
+    }
+
+    houses_list = [
+        chart.first_house, chart.second_house, chart.third_house, chart.fourth_house,
+        chart.fifth_house, chart.sixth_house, chart.seventh_house, chart.eighth_house,
+        chart.ninth_house, chart.tenth_house, chart.eleventh_house, chart.twelfth_house
+    ] if not is_unknown_time else []
+
+    house_cusp_abs = []
+    if not is_unknown_time:
+        for h in houses_list:
+            s_norm = SIGN_NORM_MAP.get(str(h.sign), "Aries")
+            s_idx = list(SIGN_DATA.keys()).index(s_norm) if s_norm in SIGN_DATA else 0
+            house_cusp_abs.append(s_idx * 30 + h.position)
+
+    major_bodies = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
+
+    for key, p in bodies_meta:
+        sign = p.get('sign', 'Aries') if isinstance(p, dict) else getattr(p, 'sign', 'Aries')
+        pos = p.get('position', 0.0) if isinstance(p, dict) else getattr(p, 'position', 0.0)
+        h_raw = p.get('house', 'First_House') if isinstance(p, dict) else getattr(p, 'house', 'First_House')
+
+        h_num = house_name_map.get(str(h_raw), 1)
+        norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
+        s_idx = list(SIGN_DATA.keys()).index(norm_sign) if norm_sign in SIGN_DATA else 0
+        abs_p_pos = s_idx * 30 + pos
+        all_aspect_objs.append({"key": key, "abs_pos": abs_p_pos})
+        
+        p_name, s_name = get_p_name(key, mode), get_s_name(sign, mode)
+        
+        if is_unknown_time:
+            p_lines.append(f"**{p_name}** : {s_name} `({pos:.2f}°)`")
+        else:
+            base_h_label = format_house_name(h_num, mode)
+            rule_str = ""
+            if key in major_bodies:
+                next_idx = (h_num % 12)
+                cusp_next = house_cusp_abs[next_idx]
+                dist = (cusp_next - abs_p_pos) % 360
+                if 0.0 <= dist <= 5.0:
+                    eff_h = next_idx + 1
+                    eff_label = format_house_name(eff_h, mode)
+                    rule_str = f" (5度前ルール適用 ➡️ {eff_label})" if mode == "日本語" else f" (5-degree rule applied ➡️ {eff_label})"
+            
+            if rule_str:
+                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({pos:.2f}°)`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_str.strip()}")
+            else:
+                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({pos:.2f}°)`")
+
+    angles_list, h_lines = [], []
+    ruler_list = []
+    
+    if not is_unknown_time:
+        asc_s = get_s_name(chart.first_house.sign, mode)
+        mc_s = get_s_name(chart.tenth_house.sign, mode)
+        asc_lbl = "ASC (アセンダント)" if mode == "日本語" else "ASC (Ascendant)"
+        mc_lbl = "MC (ミッドヘブン)" if mode == "日本語" else "MC (Midheaven)"
+        angles_list = [
+            f"**{asc_lbl}** : {asc_s} `({chart.first_house.position:.2f}°)`",
+            f"**{mc_lbl}** : {mc_s} `({chart.tenth_house.position:.2f}°)`"
+        ]
+        for i, h in enumerate(houses_list, 1):
+            h_lines.append(f"**{format_house_name(i, mode)}** : {get_s_name(h.sign, mode)} `({h.position:.2f}°)`")
+        
+        ruler_list = get_house_rulers(houses_list, mode)
+    else:
+        h_lines.append("*(出生時間不明のためハウス除外)*" if mode == "日本語" else "*(Houses excluded due to unknown birth time)*")
+
+    time_note = "（12:00仮定）" if is_unknown_time else ""
+    date_str = f"{year}年{month}月{day}日 {calc_h}:{calc_m:02d} {time_note}" if mode == "日本語" else f"{year}-{month:02d}-{day:02d} {calc_h}:{calc_m:02d} {'(Assumed 12:00)' if is_unknown_time else ''}"
+    
+    lat_str = to_dms(chart.lat, is_lat=True, mode=mode)
+    lng_str = to_dms(chart.lng, is_lat=False, mode=mode)
+    loc_str = f"[{city_display_name}] [{lat_str}, {lng_str} (十進: {chart.lat:.4f}, {chart.lng:.4f})]"
+
+    return {
+        "error": None, "date_str": date_str, "loc_str": loc_str,
+        "angles": angles_list, "bodies": p_lines, "houses": h_lines,
+        "house_rulers": ruler_list,
+        "aspects": calculate_aspects(all_aspect_objs, mode, view_type),
+        "patterns": detect_patterns(all_aspect_objs, mode)
+    }
 
     bodies_meta = [
         ("Sun", chart.sun), ("Moon", chart.moon), ("Mercury", chart.mercury),
