@@ -352,6 +352,12 @@ def detect_patterns(bodies, mode="日本語"):
             unique.append(pat)
     return unique
 
+def format_to_dot_notation(deg, minute=0):
+    """
+    度と分を '○○.○○' または '○○.○○.○○' の形式に変換する
+    """
+    return f"{int(deg)}.{int(minute):02d}"
+
 def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_name, mode, view_type, is_unknown_time):
     calc_h, calc_m = (12, 0) if is_unknown_time else (hour, minute)
     with warnings.catch_warnings():
