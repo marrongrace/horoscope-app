@@ -213,7 +213,25 @@ if submit_button:
                     st.markdown(f"- {convert_to_dms(h)}")
 
             with tab3:
-                st.markdown(convert_to_dms(data["aspects"]))
+                # 60進数変換を通しつつ、改行ごとに分割
+                converted_aspects = convert_to_dms(data["aspects"])
+                aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
+                
+                current_planet = None
+                
+                for line in aspect_lines:
+                    if " & " in line:
+                        # 最初の惑星名を抽出（マークダウンの記号やスペースを除去）
+                        raw_target = line.lstrip("-* ").strip()
+                        planet = raw_target.split(" & ")[0].strip()
+                        
+                        # 前の行と違う惑星に変わったタイミングで見出しを挿入
+                        if planet != current_planet:
+                            current_planet = planet
+                            st.markdown(f"#### 🌟 {current_planet} のアスペクト")
+                    
+                    # 各アスペクト行を出力
+                    st.markdown(line)
 
             with tab4:
                 if data["patterns"]:
