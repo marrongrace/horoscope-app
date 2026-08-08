@@ -134,13 +134,7 @@ with st.sidebar:
     )
 
     st.caption(
-    "※3 緯度・経度は十進数表記です  \n（例: 36.1243）"
-    if toggle_lang == "日本語"
-    else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
-    )
-
-    st.caption(
-    "※3 緯度・経度は十進数表記です  \n（例: 36.1243）"
+    "※2 緯度・経度は十進数表記です  \n（例: 36.1243）"
     if toggle_lang == "日本語"
     else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
     )
