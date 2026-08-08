@@ -32,7 +32,7 @@ ui_texts = {
         "city_input": "市区町村・地名 (例: 古河市)",
         "lat_input": "緯度 (Latitude)",
         "lng_input": "経度 (Longitude)",
-        "lat_caption": "💡 自動取得 または  /nGoogleマップ等の数値",
+        "lat_caption": "※ 自動取得 または Googleマップ  \n等の数値）",
         "settings_header": "⚙️ 表示設定",
         "aspect_view_label": "アスペクト表示形式:",
         "aspect_view_options": ["ペア別", "アスペクト別"],
