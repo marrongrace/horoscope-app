@@ -10,15 +10,6 @@ st.set_page_config(
     layout="centered",
 )
 
-# 現在の言語設定（例: lang = "日本語"）に合わせてテキストを取得していると仮重ねします
-t = ui_texts[lang]
-
-# タイトルの表示
-st.markdown(f"# {t['page_title']}")
-
-# 👇 タイトルの直下に小さく注釈を表示するコード
-st.caption(t["disclaimer"])
-
 BASE_PREFECTURES = [
     "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
     "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
@@ -83,6 +74,15 @@ ui_texts = {
         "invalid_loc_error": "Please enter a valid location within the prefecture."
     }
 }
+
+# 現在の言語設定（例: lang = "日本語"）に合わせてテキストを取得していると仮重ねします
+t = ui_texts[lang]
+
+# タイトルの表示
+st.markdown(f"# {t['page_title']}")
+
+# 👇 タイトルの直下に小さく注釈を表示するコード
+st.caption(t["disclaimer"])
 
 st.sidebar.markdown("### 🌐 Language / 言語")
 toggle_lang = st.sidebar.radio("言語:", ['日本語', 'English'], label_visibility="collapsed")
