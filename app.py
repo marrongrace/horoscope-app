@@ -233,9 +233,9 @@ if submit_button:
                 else:
                     st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
-            # 🌟 新しく追加した「ハウスルーラー」のタブ
+            # 🌟 ハウスルーラーのタブ
             with tab5:
-                if data["house_rulers"]:
+                if data.get("house_rulers"):
                     for r_line in data["house_rulers"]:
                         st.markdown(f"- {r_line}")
                 else:
