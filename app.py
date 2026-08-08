@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered",
 )
 
-PREFECTURES = [
+BASE_PREFECTURES = [
     "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
     "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
     "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県",
@@ -28,6 +28,7 @@ ui_texts = {
         "birth_date": "生年月日",
         "birth_time": "出生時間（日本時間）",
         "pref_select": "都道府県",
+        "pref_default": "県名を選択してください",
         "city_input": "市区町村・地名 (例: 古河市)",
         "lat_input": "緯度 (Latitude)",
         "lng_input": "経度 (Longitude)",
@@ -42,6 +43,7 @@ ui_texts = {
         "houses_tab": "🏠 12ハウス",
         "aspects_tab": "🔗 アスペクト",
         "patterns_tab": "💎 複合アスペクト",
+        "invalid_pref_error": "都道府県を選択してください",
         "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）"
     },
     "English": {
@@ -51,6 +53,7 @@ ui_texts = {
         "birth_date": "Birth Date",
         "birth_time": "Birth Time",
         "pref_select": "Prefecture",
+        "pref_default": "Please select a prefecture",
         "city_input": "City / Location Name",
         "lat_input": "Latitude",
         "lng_input": "Longitude",
@@ -65,6 +68,7 @@ ui_texts = {
         "houses_tab": "🏠 12 Houses",
         "aspects_tab": "🔗 Aspects",
         "patterns_tab": "💎 Complex Patterns",
+        "invalid_pref_error": "Please select a prefecture",
         "invalid_loc_error": "Please enter a valid location within the prefecture."
     }
 }
@@ -73,10 +77,12 @@ st.sidebar.markdown("### 🌐 Language / 言語")
 toggle_lang = st.sidebar.radio("言語:", ['日本語', 'English'], label_visibility="collapsed")
 t = ui_texts[toggle_lang]
 
+# 先頭に初期選択肢を追加
+PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
+
 st.sidebar.markdown("---")
 st.title(t["page_title"])
 
-# サイドバー入力フォーム（リアルタイムバリデーション対応のため非form構成）
 with st.sidebar:
     st.header(t["sidebar_header"])
     user_name = st.text_input(t["name_input"], value="TestUser")
@@ -88,17 +94,18 @@ with st.sidebar:
     birth_date = st.date_input(t["birth_date"], value=now_date, min_value=datetime.date(1900, 1, 1), max_value=datetime.date(2100, 12, 31))
     birth_time = st.time_input(t["birth_time"], value=now_time)
 
-    selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=10) # 茨城県などをデフォルトに
+    selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=0)
     input_city_name = st.text_input(t["city_input"], value="古河市")
 
-    # リアルタイム検証と座標取得
-    is_valid, err_msg, lat_res, lng_res = validate_and_get_coords(selected_pref, input_city_name)
+    is_valid, err_msg, lat_res, lng_res = False, "", None, None
+    if selected_pref != t["pref_default"]:
+        is_valid, err_msg, lat_res, lng_res = validate_and_get_coords(selected_pref, input_city_name)
 
-    # すぐ下の赤字警告
-    if not is_valid and selected_pref != "海外・その他":
-        st.markdown(f"<p style='color: #ff4b4b; font-size: 0.82em; margin-top: -8px; margin-bottom: 8px;'>⚠️ 県内には存在しない地名です</p>", unsafe_allow_html=True)
+    if selected_pref == t["pref_default"]:
+        st.markdown(f"<p style='color: #ff4b4b; font-size: 0.82em; margin-top: -8px; margin-bottom: 8px;'>⚠️ {t['invalid_pref_error']}</p>", unsafe_allow_html=True)
+    elif not is_valid and selected_pref != "海外・その他":
+        st.markdown(f"<p style='color: #ff4b4b; font-size: 0.82em; margin-top: -8px; margin-bottom: 8px;'>⚠️ {t['invalid_loc_error']}</p>", unsafe_allow_html=True)
 
-    # 緯度・経度の初期値調整
     if is_valid and lat_res is not None and lng_res is not None:
         st.session_state.input_lat_val = lat_res
         st.session_state.input_lng_val = lng_res
@@ -119,7 +126,9 @@ with st.sidebar:
     submit_button = st.button(label=t["submit_btn"], type="primary")
 
 if submit_button:
-    if not is_valid and selected_pref != "海外・その他":
+    if selected_pref == t["pref_default"]:
+        st.error(t["invalid_pref_error"])
+    elif not is_valid and selected_pref != "海外・その他":
         st.error(t["invalid_loc_error"])
     else:
         with st.spinner(t["loading"]):
