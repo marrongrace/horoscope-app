@@ -129,22 +129,80 @@ def validate_and_get_coords(pref, city_name):
     
     return False, "地名が見つからないか、通信エラーが発生しました", None, None
 
-def get_house_rulers(houses_list, mode):
-    ruler_lines = []
+def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
+    """
+    各ハウスのカスプのルーラーをたどる連鎖（チェーン）を計算する
+    形式例:
+    - 第1ハウス → 第3ハウス → 第9ハウス (ドミサイル)
+    - 第1ハウス → 第3ハウス → 第9ハウス → 第5ハウス (以降9ハウスとのループ)
+    """
+    # 1. 各天体がどのハウスにいるかのマップを作成 (Body Key -> House Number 1~12)
+    body_house_map = {}
+    for key, p in bodies_meta:
+        h_raw = p.get('house', 'First_House') if isinstance(p, dict) else getattr(p, 'house', 'First_House')
+        h_num = house_name_map.get(str(h_raw), 1)
+        body_house_map[key] = h_num
+
+    # 2. 各ハウス(1~12)のルーラーが着地するハウスのマッピングを作成
+    house_links = {}
     for i, h in enumerate(houses_list, 1):
         sign = h.get('sign', 'Aries') if isinstance(h, dict) else getattr(h, 'sign', 'Aries')
         norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
         
-        # 支配星のキーを取得
+        # サインの支配星キー
         ruler_key = SIGN_RULERS.get(norm_sign, "Sun")
-        ruler_name = get_p_name(ruler_key, mode)
         
-        house_label = format_house_name(i, mode)
-        sign_name = get_s_name(sign, mode)
+        # その支配星がどのハウスにいるか
+        target_house = body_house_map.get(ruler_key, i)
+        house_links[i] = target_house
+
+    # 3. 各ハウスを起点にしてチェーンをトレース
+    chain_results = []
+    for start_h in range(1, 13):
+        path = [start_h]
+        visited = set([start_h])
+        current = start_h
         
-        ruler_lines.append(f"**{house_label}** ({sign_name}) ➡️ 支配星: **{ruler_name}**")
+        status = "end"
+        loop_target = None
         
-    return ruler_lines
+        while current in house_links:
+            next_house = house_links[current]
+            
+            # すでに訪れたハウスに再び入った場合（ループ）
+            if next_house in visited:
+                path.append(next_house)
+                status = "loop"
+                loop_target = next_house
+                break
+                
+            # 自分自身に戻ってきた場合（ドミサイル）
+            if next_house == current:
+                path.append(next_house)
+                status = "domicile"
+                break
+                
+            visited.add(next_house)
+            path.append(next_house)
+            current = next_house
+            
+            # 無限ループ防止の安全装置
+            if len(path) > 15:
+                break
+        
+        # 文字列の組み立て（「第1ハウス → 第3ハウス...」形式）
+        path_str = " → ".join([f"第{h}ハウス" for h in path])
+        
+        if status == "domicile":
+            display_text = f"**第{start_h}ハウス** ➡️ {path_str} (ドミサイル)"
+        elif status == "loop":
+            display_text = f"**第{start_h}ハウス** ➡️ {path_str} (以降 第{loop_target}ハウスとのループ)"
+        else:
+            display_text = f"**第{start_h}ハウス** ➡️ {path_str}"
+            
+        chain_results.append(display_text)
+        
+    return chain_results
     
 def to_dms(val, is_lat=True, mode="日本語"):
     abs_val = abs(val)
@@ -473,7 +531,8 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         for i, h in enumerate(houses_list, 1):
             h_lines.append(f"**{format_house_name(i, mode)}** : {get_s_name(h.sign, mode)} `({h.position:.2f}°)`")
         
-        ruler_list = get_house_rulers(houses_list, mode)
+        # 🌟 ここで新しくチェーン計算関数を呼び出し
+        ruler_list = get_house_ruler_chains(houses_list, bodies_meta, house_name_map)
     else:
         h_lines.append("*(出生時間不明のためハウス除外)*" if mode == "日本語" else "*(Houses excluded due to unknown birth time)*")
 
