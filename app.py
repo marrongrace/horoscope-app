@@ -83,7 +83,7 @@ ui_texts = {
 # 3. 選択された言語に基づいて `t` を決定
 t = ui_texts[lang]
 
-# 4. メイン画面のタイトルと注釈を綺麗に表示する（二重表記なし）
+# 4. メイン画面のタイトルと注釈を綺麗に表示する
 st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
@@ -103,7 +103,6 @@ def convert_to_dms(text):
             min_val = 0
         return f"({deg}°{min_val:02d}')"
     
-    # 括弧内の小数付き度数をマッチさせて置換
     return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
     
 with st.sidebar:
@@ -215,7 +214,6 @@ if submit_button:
                     st.markdown(f"- {h}")
 
             with tab3:
-                # （前回実装したアスペクトの整形表示部分）
                 converted_aspects = convert_to_dms(data["aspects"])
                 aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
                 current_planet = None
@@ -235,7 +233,7 @@ if submit_button:
                 else:
                     st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
-            # 🌟 新しく追加する「ハウスルーラー」のタブ
+            # 🌟 新しく追加した「ハウスルーラー」のタブ
             with tab5:
                 if data["house_rulers"]:
                     for r_line in data["house_rulers"]:
