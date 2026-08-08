@@ -89,6 +89,22 @@ st.caption(t["disclaimer"])
 # 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
 
+def convert_to_dms(text):
+    """
+    (16.30°) のような10進数の度数表記を (16°18') の60進数表記に変換する関数
+    """
+    def replace_deg(match):
+        val = float(match.group(1))
+        deg = int(val)
+        min_val = round((val - deg) * 60)
+        if min_val == 60:
+            deg += 1
+            min_val = 0
+        return f"({deg}°{min_val:02d}')"
+    
+    # 括弧内の小数付き度数をマッチさせて置換
+    return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
+    
 with st.sidebar:
     st.header(t["sidebar_header"])
     user_name = st.text_input(t["name_input"], value="TestUser")
