@@ -453,8 +453,10 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
     time_note = "（12:00仮定）" if is_unknown_time else ""
     date_str = f"{year}年{month}月{day}日 {calc_h}:{calc_m:02d} {time_note}" if mode == "日本語" else f"{year}-{month:02d}-{day:02d} {calc_h}:{calc_m:02d} {'(Assumed 12:00)' if is_unknown_time else ''}"
     
-    dms_loc_str = format_dms(chart.lat, chart.lng, mode)
-    loc_str = f"[{city_display_name}] [{dms_loc_str}]"
+    # lat_str と lng_str を to_dms でドット区切りに変換して結合する
+    lat_str = to_dms(chart.lat, is_lat=True)
+    lng_str = to_dms(chart.lng, is_lat=False)
+    loc_str = f"[{city_display_name}] [{lat_str}, {lng_str} (十進: {chart.lat:.4f}, {chart.lng:.4f})]"
 
     return {
         "error": None, "date_str": date_str, "loc_str": loc_str,
