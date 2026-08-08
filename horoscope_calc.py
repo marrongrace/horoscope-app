@@ -54,6 +54,15 @@ SIGN_NORM_MAP = {
     "天秤座": "Libra", "蠍座": "Scorpio", "射手座": "Sagittarius", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces"
 }
 
+def get_cities_for_prefecture(pref):
+    """指定された都道府県の市区町村リストを返す"""
+    if pref == "海外・その他":
+        return []
+    master = load_address_master()
+    if master and pref in master:
+        return master[pref]
+    return []
+
 def validate_and_get_coords(pref, city_name):
     """ローカルの住所マスターで存在チェックを行い、緯度・経度を返す (返り値4つ)"""
     cleaned_city = city_name.strip()
