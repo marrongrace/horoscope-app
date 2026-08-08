@@ -114,9 +114,7 @@ def validate_and_get_coords(pref, city_name):
     
     return False, "地名が見つからないか、通信エラーが発生しました", None, None
 
-def format_dms(lat, lng, mode="日本語"):
-    """緯度・経度を秒単位（DMS）までフォーマットする"""
-    def to_dms(val, is_lat=True):
+def to_dms(val, is_lat=True):
     abs_val = abs(val)
     deg = int(abs_val)
     minutes_float = (abs_val - deg) * 60
