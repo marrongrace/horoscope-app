@@ -45,10 +45,10 @@ ui_texts = {
         "unknown_time_checkbox": "出生時間が分からない（12:00仮定 / ハウス除外）",
         "submit_btn": "✨ ホロスコープを作る",
         "loading": "星々の配置を精密に計算中... 🌌✨",
-        # "bodies_tab": "🌟 天体 ＋ 感受点",
-        # "houses_tab": "🏠 12ハウス",
-        # "aspects_tab": "🔗 アスペクト",
-        # "patterns_tab": "💎 複合アスペクト",
+        "bodies_tab": "🌟 天体 ＋ 感受点",
+        "houses_tab": "🏠 12ハウス",
+        "aspects_tab": "🔗 アスペクト",
+        "patterns_tab": "💎 複合アスペクト",
         "invalid_pref_error": "都道府県を選択してください",
         "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）"
     },
@@ -201,8 +201,6 @@ if submit_button:
                 col_a1.info(data["angles"][0])
                 col_a2.info(data["angles"][1])
                 st.write("")
-
-            tab1, tab2, tab3, tab4 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"]])
 
             tab1, tab2, tab3, tab4 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"]])
 
