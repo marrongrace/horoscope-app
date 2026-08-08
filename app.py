@@ -95,9 +95,20 @@ with st.sidebar:
     birth_time = st.time_input(t["birth_time"], value=now_time)
 
     selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=0)
-    input_city_name = st.text_input(t["city_input"], value="古河市")
+    
+    from horoscope_calc import get_cities_for_prefecture
+    
+    available_cities = get_cities_for_prefecture(selected_pref) if selected_pref != t["pref_default"] else []
+    
+    if selected_pref == "海外・その他":
+        input_city_name = st.text_input(t["city_input"], value="ロンドン")
+    elif available_cities:
+        input_city_name = st.selectbox(t["city_input"], available_cities, index=0)
+    else:
+        input_city_name = st.text_input(t["city_input"], value="", placeholder="先に都道府県を選択してください" if toggle_lang=="日本語" else "Please select a prefecture first")
 
     is_valid, err_msg, lat_res, lng_res = False, "", None, None
+    
     if selected_pref != t["pref_default"]:
         is_valid, err_msg, lat_res, lng_res = validate_and_get_coords(selected_pref, input_city_name)
 
