@@ -213,7 +213,6 @@ if submit_button:
                     st.markdown(f"- {convert_to_dms(h)}")
 
             with tab3:
-                # 60進数変換を通しつつ、改行ごとに分割
                 converted_aspects = convert_to_dms(data["aspects"])
                 aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
                 
@@ -221,14 +220,17 @@ if submit_button:
                 
                 for line in aspect_lines:
                     if " & " in line:
-                        # 最初の惑星名を抽出（マークダウンの記号やスペースを除去）
                         raw_target = line.lstrip("-* ").strip()
                         planet = raw_target.split(" & ")[0].strip()
                         
-                        # 前の行と違う惑星に変わったタイミングで見出しを挿入
                         if planet != current_planet:
                             current_planet = planet
+                            # 見出しの前に少し余白（区切り）を入れるか、見出しを出力
+                            if current_planet != aspect_lines[0].lstrip("-* ").split(" & ")[0].strip():
+                                st.write("")  # 最初の見出し以外は上に少し余白を入れる
                             st.markdown(f"#### 🌟 {current_planet} のアスペクト")
+                    
+                    st.markdown(line)
                     
                     # 各アスペクト行を出力
                     st.markdown(line)
