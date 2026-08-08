@@ -137,18 +137,6 @@ def to_dms(val, is_lat=True, mode="日本語"):
         return f"{direction} {deg}.{minute:02d}.{second:02d}"
     else:
         return f"{deg}.{minute:02d}.{second:02d} {direction}"
-            
-    # ▼ ここを度.分.秒のドット区切りに変更 ▼
-    if mode == "日本語":
-        return f"{direction} {deg}.{minute:02d}.{second:02d}"
-    else:
-        return f"{deg}.{minute:02d}.{second:02d} {direction}"
-
-    lat_str = to_dms(chart.lat, is_lat=True, mode=mode)
-    lng_str = to_dms(chart.lng, is_lat=False, mode=mode)
-    loc_str = f"[{city_display_name}] [{lat_str}, {lng_str} (十進: {chart.lat:.4f}, {chart.lng:.4f})]"
-    
-    return f"{lat_str}, {lng_str} (十進: {lat:.4f}, {lng:.4f})"
 
 def get_s_name(key, mode="日本語"):
     norm = SIGN_NORM_MAP.get(str(key).strip(), "Aries")
@@ -358,9 +346,6 @@ def detect_patterns(bodies, mode="日本語"):
     return unique
 
 def format_to_dot_notation(deg, minute=0):
-    """
-    度と分を '○○.○○' または '○○.○○.○○' の形式に変換する
-    """
     return f"{int(deg)}.{int(minute):02d}"
 
 def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_name, mode, view_type, is_unknown_time):
@@ -459,9 +444,9 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
     time_note = "（12:00仮定）" if is_unknown_time else ""
     date_str = f"{year}年{month}月{day}日 {calc_h}:{calc_m:02d} {time_note}" if mode == "日本語" else f"{year}-{month:02d}-{day:02d} {calc_h}:{calc_m:02d} {'(Assumed 12:00)' if is_unknown_time else ''}"
     
-    # lat_str と lng_str を to_dms でドット区切りに変換して結合する
-    lat_str = to_dms(chart.lat, is_lat=True)
-    lng_str = to_dms(chart.lng, is_lat=False)
+    # ここで正しく to_dms を呼び出してドット区切りの文字列を作成する
+    lat_str = to_dms(chart.lat, is_lat=True, mode=mode)
+    lng_str = to_dms(chart.lng, is_lat=False, mode=mode)
     loc_str = f"[{city_display_name}] [{lat_str}, {lng_str} (十進: {chart.lat:.4f}, {chart.lng:.4f})]"
 
     return {
