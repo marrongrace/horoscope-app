@@ -20,15 +20,15 @@ BASE_PREFECTURES = [
     "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県", "海外・その他"
 ]
 
-# まず最初（またはサイドバー等）で言語の変数 `lang` を用意する
-# （例：サイドバーで言語を選択させる場合）
-lang = st.sidebar.selectbox("言語 / Language", ["日本語", "English"])
+# 1. 言語選択はサイドバーで1つにまとめる
+st.sidebar.markdown("### 🌐 Language / 言語")
+lang = st.sidebar.radio("言語選択", ["日本語", "English"], label_visibility="collapsed")
 
+# 2. 辞書の定義
 ui_texts = {
     "日本語": {
         "page_title": "🔮 ホロスコープ作成システム",
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
-        "sidebar_header": "📝 出生データ入力",
         "sidebar_header": "📝 出生データ入力",
         "name_input": "お名前 / ラベル",
         "birth_date": "生年月日",
@@ -79,14 +79,12 @@ ui_texts = {
     }
 }
 
-#`lang` と `ui_texts` が揃った後に `t` を定義する
+# 3. 選択された言語に基づいて `t` を決定
 t = ui_texts[lang]
 
-# 4. 画面にタイトルと注釈を表示する
+# 4. メイン画面のタイトルと注釈を1箇所だけで綺麗に表示する
+st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
-st.sidebar.markdown("### 🌐 Language / 言語")
-toggle_lang = st.sidebar.radio("言語:", ['日本語', 'English'], label_visibility="collapsed")
-t = ui_texts[toggle_lang]
 
 # 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
