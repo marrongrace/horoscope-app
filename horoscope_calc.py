@@ -114,7 +114,7 @@ def validate_and_get_coords(pref, city_name):
     
     return False, "地名が見つからないか、通信エラーが発生しました", None, None
 
-def to_dms(val, is_lat=True):
+def to_dms(val, is_lat=True, mode="日本語"):
     abs_val = abs(val)
     deg = int(abs_val)
     minutes_float = (abs_val - deg) * 60
@@ -133,14 +133,20 @@ def to_dms(val, is_lat=True):
     else:
         direction = "東経" if val >= 0 else "西経" if mode == "日本語" else ("E" if val >= 0 else "W")
             
+    if mode == "日本語":
+        return f"{direction} {deg}.{minute:02d}.{second:02d}"
+    else:
+        return f"{deg}.{minute:02d}.{second:02d} {direction}"
+            
     # ▼ ここを度.分.秒のドット区切りに変更 ▼
     if mode == "日本語":
         return f"{direction} {deg}.{minute:02d}.{second:02d}"
     else:
         return f"{deg}.{minute:02d}.{second:02d} {direction}"
 
-    lat_str = to_dms(lat, is_lat=True)
-    lng_str = to_dms(lng, is_lat=False)
+    lat_str = to_dms(chart.lat, is_lat=True, mode=mode)
+    lng_str = to_dms(chart.lng, is_lat=False, mode=mode)
+    loc_str = f"[{city_display_name}] [{lat_str}, {lng_str} (十進: {chart.lat:.4f}, {chart.lng:.4f})]"
     
     return f"{lat_str}, {lng_str} (十進: {lat:.4f}, {lng:.4f})"
 
