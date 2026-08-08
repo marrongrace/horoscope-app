@@ -23,7 +23,6 @@ BASE_PREFECTURES = [
 ui_texts = {
     "日本語": {
         "page_title": "🔮 ホロスコープ作成システム",
-        st.caption("※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。")
         "sidebar_header": "📝 出生データ入力",
         "sidebar_header": "📝 出生データ入力",
         "name_input": "お名前 / ラベル",
