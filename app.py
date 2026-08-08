@@ -240,6 +240,13 @@ if submit_button:
                 else:
                     st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
                     
+            with tab5:
+                if data["house_rulers"]:
+                    for r_line in data["house_rulers"]:
+                        st.markdown(f"- {r_line}")
+                else:
+                    st.info("*(出生時間不明のためハウスルーラー除外)*" if lang=="日本語"  
+                            
             st.divider()
 
             with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
