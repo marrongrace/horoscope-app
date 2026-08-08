@@ -2,7 +2,7 @@ import datetime
 import os
 import pytz
 import streamlit as st
-from horoscope_calc import validate_and_get_coords, get_chart_data, EPHE_PATH
+from horoscope_calc import validate_and_get_coords, get_chart_data, EPHE_PATH, get_cities_for_prefecture
 
 st.set_page_config(
     page_title="🔮 ホロスコープ鑑定書 / Horoscope Reading",
@@ -82,30 +82,24 @@ ui_texts = {
 # 3. 選択された言語に基づいて `t` を決定
 t = ui_texts[lang]
 
-# 4. メイン画面のタイトルと注釈を1箇所だけで綺麗に表示する
+# 4. メイン画面のタイトルと注釈を綺麗に表示する（二重表記なし）
 st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
 # 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
 
-st.sidebar.markdown("---")
-st.title(t["page_title"])
-
 with st.sidebar:
     st.header(t["sidebar_header"])
     user_name = st.text_input(t["name_input"], value="TestUser")
     
     now_date = datetime.date.today()
-    # 初期値は安全な 12:00（正午）に固定
     default_birth_time = datetime.time(12, 0)
 
     birth_date = st.date_input(t["birth_date"], value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date(2100, 12, 31), key="birth_date_input")
     birth_time = st.time_input(t["birth_time"], value=default_birth_time, key="birth_time_input")
 
     selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=0)
-    
-    from horoscope_calc import get_cities_for_prefecture
     
     available_cities = get_cities_for_prefecture(selected_pref) if selected_pref != t["pref_default"] else []
     
@@ -114,7 +108,7 @@ with st.sidebar:
     elif available_cities:
         input_city_name = st.selectbox(t["city_input"], available_cities, index=0)
     else:
-        input_city_name = st.text_input(t["city_input"], value="", placeholder="先に都道府県を選択してください" if toggle_lang=="日本語" else "Please select a prefecture first")
+        input_city_name = st.text_input(t["city_input"], value="", placeholder="先に都道府県を選択してください" if lang=="日本語" else "Please select a prefecture first")
 
     is_valid, err_msg, lat_res, lng_res = False, "", None, None
     
@@ -137,20 +131,20 @@ with st.sidebar:
     input_lng = st.number_input(t["lng_input"], value=st.session_state.input_lng_val, format="%.4f")
 
     st.caption(
-    "※1 緯度・経度は十進数表記です  \n（例: 36.1243）"
-    if toggle_lang == "日本語"
-    else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
+        "※1 緯度・経度は十進数表記です \n（例: 36.1243）"
+        if lang == "日本語"
+        else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
     )
     
     st.caption(
         "※2 都道府県名・地名を選択すると自動的に計算されます"
-        if toggle_lang == "日本語"
+        if lang == "日本語"
         else "* Use minus (-) for Southern/Western hemispheres"
     )
     
     st.caption(
         "※3 その他の地域で計算する場合、地図アプリなどから経度・緯度を取得してください"
-        if toggle_lang == "日本語"
+        if lang == "日本語"
         else "* Use minus (-) for Southern/Western hemispheres"
     )
 
@@ -172,7 +166,7 @@ if submit_button:
             data = get_chart_data(
                 user_name, birth_date.year, birth_date.month, birth_date.day,
                 birth_time.hour, birth_time.minute, input_lat, input_lng,
-                input_city_name, toggle_lang, toggle_view, unknown_checkbox
+                input_city_name, lang, toggle_view, unknown_checkbox
             )
 
         if data.get("error"):
@@ -180,7 +174,7 @@ if submit_button:
         else:
             st.markdown(f"""
             <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-                <h2 style="margin: 0; color: #B8860B;">✨ {user_name} {"さんのホロスコープ" if toggle_lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
+                <h2 style="margin: 0; color: #B8860B;">✨ {user_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
                 <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data['date_str']}<br>📍 {data['loc_str']}</p>
             </div>
             """, unsafe_allow_html=True)
@@ -209,7 +203,7 @@ if submit_button:
                     for pat in data["patterns"]:
                         st.success(pat)
                 else:
-                    st.info("*(該当する複合アスペクトはありません)*" if toggle_lang=="日本語" else "*(No complex aspects found)*")
+                    st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
             st.divider()
 
