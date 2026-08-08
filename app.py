@@ -230,8 +230,6 @@ if submit_button:
                                 st.write("")  # 最初の見出し以外は上に少し余白を入れる
                             st.markdown(f"#### 🌟 {current_planet} のアスペクト")
                     
-                    st.markdown(line)
-                    
                     # 各アスペクト行を出力
                     st.markdown(line)
 
