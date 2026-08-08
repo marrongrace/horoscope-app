@@ -127,7 +127,7 @@ with st.sidebar:
     input_lat = st.number_input(t["lat_input"], value=st.session_state.input_lat_val, format="%.4f")
     input_lng = st.number_input(t["lng_input"], value=st.session_state.input_lng_val, format="%.4f")
 
-     st.caption(
+    st.caption(
     "※1 都道府県もしくは市町村が選択されると、自動的に入力されます）"
     if toggle_lang == "日本語"
     else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
