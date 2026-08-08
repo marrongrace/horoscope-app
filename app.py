@@ -203,24 +203,26 @@ if submit_button:
 
             tab1, tab2, tab3, tab4 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"]])
 
+            tab1, tab2, tab3, tab4 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"]])
+
             with tab1:
                 for p in data["bodies"]:
-                    st.markdown(f"- {p}", unsafe_allow_html=True)
+                    st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
 
             with tab2:
                 for h in data["houses"]:
-                    st.markdown(f"- {h}")
+                    st.markdown(f"- {convert_to_dms(h)}")
 
             with tab3:
-                st.markdown(data["aspects"])
+                st.markdown(convert_to_dms(data["aspects"]))
 
             with tab4:
                 if data["patterns"]:
                     for pat in data["patterns"]:
-                        st.success(pat)
+                        st.success(convert_to_dms(pat))
                 else:
                     st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
-
+                    
             st.divider()
 
             with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
