@@ -201,7 +201,7 @@ if submit_button:
                 col_a2.info(data["angles"][1])
                 st.write("")
 
-            # タブの作成（5つに増やす）
+            # タブの作成（全5タブ）
             ruler_tab_label = "ハウスルーラー" if lang == "日本語" else "House Rulers"
             tab1, tab2, tab3, tab4, tab5 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"], ruler_tab_label])
 
@@ -260,6 +260,16 @@ if submit_button:
                     clean_b = b.replace("**", "").replace("<br>", "").replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
                     copy_lines.append(f"- {clean_b}")
                     
+                copy_lines.append("\n[12ハウス]")
+                for h in data["houses"]:
+                    copy_lines.append(f"- {h.replace('**', '').replace('`', '')}")
+
+                # ハウスルーラー情報もコピーに追加
+                if data.get("house_rulers"):
+                    copy_lines.append("\n[ハウスルーラー]")
+                    for r_line in data["house_rulers"]:
+                        copy_lines.append(f"- {r_line.replace('**', '').replace('`', '').replace('➡️', '->')}")
+
                 copy_lines.append("\n[主要アスペクト]")
                 clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
                 copy_lines.append(clean_aspects)
