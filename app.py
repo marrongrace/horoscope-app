@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import pytz
 import streamlit as st
 from horoscope_calc import validate_and_get_coords, get_chart_data, EPHE_PATH, get_cities_for_prefecture
