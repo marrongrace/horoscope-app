@@ -9,6 +9,7 @@ st.set_page_config(
     page_icon="🔮",
     layout="centered",
 )
+st.caption(t["disclaimer"])
 
 BASE_PREFECTURES = [
     "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
@@ -75,7 +76,6 @@ ui_texts = {
     }
 }
 
-st.caption(t["disclaimer"])
 st.sidebar.markdown("### 🌐 Language / 言語")
 toggle_lang = st.sidebar.radio("言語:", ['日本語', 'English'], label_visibility="collapsed")
 t = ui_texts[toggle_lang]
