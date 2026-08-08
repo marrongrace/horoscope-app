@@ -83,7 +83,6 @@ ui_texts = {
 t = ui_texts[lang]
 
 # 4. 画面にタイトルと注釈を表示する
-st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 st.sidebar.markdown("### 🌐 Language / 言語")
 toggle_lang = st.sidebar.radio("言語:", ['日本語', 'English'], label_visibility="collapsed")
