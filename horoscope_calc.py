@@ -54,10 +54,19 @@ SIGN_NORM_MAP = {
     "天秤座": "Libra", "蠍座": "Scorpio", "射手座": "Sagittarius", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces"
 }
 
-RULERS = {
-    "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury", "Cancer": "Moon",
-    "Leo": "Sun", "Virgo": "Mercury", "Libra": "Venus", "Scorpio": "Pluto",
-    "Sagittarius": "Jupiter", "Capricorn": "Saturn", "Aquarius": "Uranus", "Pisces": "Neptune"
+SIGN_RULERS = {
+    "Aries": "Mars",
+    "Taurus": "Venus",
+    "Gemini": "Mercury",
+    "Cancer": "Moon",
+    "Leo": "Sun",
+    "Virgo": "Mercury",
+    "Libra": "Venus",
+    "Scorpio": "Pluto",      # 伝統的には Mars
+    "Sagittarius": "Jupiter",
+    "Capricorn": "Saturn",
+    "Aquarius": "Uranus",    # 伝統的には Saturn
+    "Pisces": "Neptune"      # 伝統的には Jupiter
 }
 
 def get_cities_for_prefecture(pref):
@@ -120,29 +129,20 @@ def validate_and_get_coords(pref, city_name):
     
     return False, "地名が見つからないか、通信エラーが発生しました", None, None
 
-def get_house_rulers(houses_list, mode="日本語"):
-    """
-    各ハウスのカスプサインから支配星（ルーラー）を求め、リストとして返す
-    """
-    if not houses_list:
-        return []
-    
+def get_house_rulers(houses_list, mode):
     ruler_lines = []
     for i, h in enumerate(houses_list, 1):
-        h_num = i
-        # ハウスのサイン名（英語正規化キーを取得するため）
-        sign_key = h.sign
-        norm_sign = SIGN_NORM_MAP.get(str(sign_key), "Aries")
+        sign = h.get('sign', 'Aries') if isinstance(h, dict) else getattr(h, 'sign', 'Aries')
+        norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
         
-        # 支配星（英語キー）を取得
-        ruler_eng = RULERS.get(norm_sign, "Sun")
+        # 支配星のキーを取得
+        ruler_key = SIGN_RULERS.get(norm_sign, "Sun")
+        ruler_name = get_p_name(ruler_key, mode)
         
-        # 表示用名に変換
-        sign_name = get_s_name(sign_key, mode)
-        ruler_name = get_p_name(ruler_eng, mode)
+        house_label = format_house_name(i, mode)
+        sign_name = get_s_name(sign, mode)
         
-        house_lbl = format_house_name(h_num, mode)
-        ruler_lines.append(f"**{house_lbl}** ({sign_name}) ➔ 支配星: **{ruler_name}**")
+        ruler_lines.append(f"**{house_label}** ({sign_name}) ➡️ 支配星: **{ruler_name}**")
         
     return ruler_lines
     
