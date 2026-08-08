@@ -128,6 +128,12 @@ with st.sidebar:
     input_lat = st.number_input(t["lat_input"], value=st.session_state.input_lat_val, format="%.4f")
     input_lng = st.number_input(t["lng_input"], value=st.session_state.input_lng_val, format="%.4f")
 
+    st.caption(
+    "※ 緯度・経度は十進数（例: 36.1243）で入力してください"
+    if toggle_lang == "日本語"
+    else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
+    )
+    
     st.markdown("---")
     st.header(t["settings_header"])
     toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"])
