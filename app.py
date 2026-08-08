@@ -32,7 +32,6 @@ ui_texts = {
         "city_input": "市区町村・地名 (例: 古河市)",
         "lat_input": "緯度 (Latitude)",
         "lng_input": "経度 (Longitude)",
-        "lat_caption": "※ 自動取得 または Googleマップ  \n　 等の数値",
         "settings_header": "⚙️ 表示設定",
         "aspect_view_label": "アスペクト表示形式:",
         "aspect_view_options": ["ペア別", "アスペクト別"],
@@ -128,12 +127,24 @@ with st.sidebar:
     input_lat = st.number_input(t["lat_input"], value=st.session_state.input_lat_val, format="%.4f")
     input_lng = st.number_input(t["lng_input"], value=st.session_state.input_lng_val, format="%.4f")
 
-    st.caption(
-    "※ 緯度・経度は十進数表記です  \n（例: 36.1243）"
+     st.caption(
+    "※1 都道府県もしくは市町村が選択されると、自動的に入力されます）"
     if toggle_lang == "日本語"
     else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
     )
-    
+
+    st.caption(
+    "※3 緯度・経度は十進数表記です  \n（例: 36.1243）"
+    if toggle_lang == "日本語"
+    else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
+    )
+
+    st.caption(
+    "※3 緯度・経度は十進数表記です  \n（例: 36.1243）"
+    if toggle_lang == "日本語"
+    else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
+    )
+
     st.markdown("---")
     st.header(t["settings_header"])
     toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"])
