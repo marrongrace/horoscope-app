@@ -88,11 +88,11 @@ with st.sidebar:
     user_name = st.text_input(t["name_input"], value="TestUser")
     
     now_date = datetime.date.today()
-    tokyo_tz = pytz.timezone('Asia/Tokyo')
-    now_time = datetime.datetime.now(tokyo_tz).time()
+    # 初期値は安全な 12:00（正午）に固定
+    default_birth_time = datetime.time(12, 0)
 
-    birth_date = st.date_input(t["birth_date"], value=now_date, min_value=datetime.date(1900, 1, 1), max_value=datetime.date(2100, 12, 31))
-    birth_time = st.time_input(t["birth_time"], value=now_time)
+    birth_date = st.date_input(t["birth_date"], value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date(2100, 12, 31), key="birth_date_input")
+    birth_time = st.time_input(t["birth_time"], value=default_birth_time, key="birth_time_input")
 
     selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=0)
     
