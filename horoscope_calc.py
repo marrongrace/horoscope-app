@@ -133,8 +133,8 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
     """
     各ハウスのカスプのルーラーをたどる連鎖（チェーン）を計算する
     形式例:
-    - 第1ハウス → 第3ハウス → 第9ハウス (ドミサイル)
-    - 第1ハウス → 第3ハウス → 第9ハウス → 第5ハウス (以降9ハウスとのループ)
+    - 第1ハウス → 第11ハウス (ドミサイル)
+    - 第2ハウス → 第9ハウス → 第12ハウス → 第10ハウス → 第1ハウス → 第11ハウス (ドミサイル)
     """
     # 1. 各天体がどのハウスにいるかのマップを作成 (Body Key -> House Number 1~12)
     body_house_map = {}
@@ -169,17 +169,16 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
         while current in house_links:
             next_house = house_links[current]
             
-            # すでに訪れたハウスに再び入った場合（ループ）
+            # ★ 1. まず「自分自身に戻ってきた（その場で完結＝ドミサイル）」の判定を優先
+            if next_house == current:
+                status = "domicile"
+                break
+                
+            # ★ 2. すでに訪れた他のハウスに戻ってきた場合（真のループ）
             if next_house in visited:
                 path.append(next_house)
                 status = "loop"
                 loop_target = next_house
-                break
-                
-            # 自分自身に戻ってきた場合（ドミサイル）
-            if next_house == current:
-                path.append(next_house)
-                status = "domicile"
                 break
                 
             visited.add(next_house)
@@ -190,7 +189,7 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
             if len(path) > 15:
                 break
         
-        # 文字列の組み立て（「第1ハウス → 第3ハウス...」形式）
+        # 文字列の組み立て
         path_str = " → ".join([f"第{h}ハウス" for h in path])
         
         if status == "domicile":
