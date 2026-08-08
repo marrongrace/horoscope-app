@@ -20,6 +20,10 @@ BASE_PREFECTURES = [
     "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県", "海外・その他"
 ]
 
+# まず最初（またはサイドバー等）で言語の変数 `lang` を用意する
+# （例：サイドバーで言語を選択させる場合）
+lang = st.sidebar.selectbox("言語 / Language", ["日本語", "English"])
+
 ui_texts = {
     "日本語": {
         "page_title": "🔮 ホロスコープ作成システム",
@@ -75,15 +79,12 @@ ui_texts = {
     }
 }
 
-# 現在の言語設定（例: lang = "日本語"）に合わせてテキストを取得していると仮重ねします
+#`lang` と `ui_texts` が揃った後に `t` を定義する
 t = ui_texts[lang]
 
-# タイトルの表示
+# 4. 画面にタイトルと注釈を表示する
 st.markdown(f"# {t['page_title']}")
-
-# 👇 タイトルの直下に小さく注釈を表示するコード
 st.caption(t["disclaimer"])
-
 st.sidebar.markdown("### 🌐 Language / 言語")
 toggle_lang = st.sidebar.radio("言語:", ['日本語', 'English'], label_visibility="collapsed")
 t = ui_texts[toggle_lang]
