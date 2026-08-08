@@ -208,7 +208,6 @@ def detect_patterns(bodies, mode="日本語"):
     aspect_pairs = []
     n = len(bodies)
     
-    # 全天体の位置マップ作成
     body_map = {b["key"]: b["abs_pos"] for b in bodies}
 
     for i in range(n):
@@ -223,8 +222,6 @@ def detect_patterns(bodies, mode="日本語"):
             if abs(diff - 60) <= 5.0: aspect_pairs.append((k1, k2, "Sextile", abs(diff - 60)))
             if abs(diff - 150) <= 3.0: aspect_pairs.append((k1, k2, "Quincunx", abs(diff - 150)))
 
-    # --- 【改良版】ステリウム判定（コンジャンクションの連鎖・ネットワーク） ---
-    # 対象外にする天体（感受点・主要天体を対象にするためノードやキロンなどは除外）
     valid_stellium_bodies = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
     
     stellium_edges = []
@@ -236,20 +233,17 @@ def detect_patterns(bodies, mode="日本語"):
             b1, b2 = filtered_bodies[i], filtered_bodies[j]
             diff = min(abs(b1["abs_pos"] - b2["abs_pos"]), 360 - abs(b1["abs_pos"] - b2["abs_pos"]))
             
-            # 太陽・月が絡む場合は最大10度、その他は最大7.5度（6〜8度の範囲）
             is_luminary = (b1["key"] in ["Sun", "Moon"] or b2["key"] in ["Sun", "Moon"])
             orb_limit = 10.0 if is_luminary else 7.5
             
             if diff <= orb_limit:
                 stellium_edges.append((b1["key"], b2["key"]))
 
-    # グラフの隣接リストを作成
     adj = {}
     for k1, k2 in stellium_edges:
         adj.setdefault(k1, set()).add(k2)
         adj.setdefault(k2, set()).add(k1)
 
-    # 連結成分（3つ以上がコンジャンクションで繋がっているグループ）を抽出
     visited = set()
     stellium_groups = []
     for node in adj:
@@ -272,7 +266,6 @@ def detect_patterns(bodies, mode="日本語"):
         comp_sorted = sorted(comp, key=lambda x: priority.index(x) if x in priority else 99)
         m_names = " & ".join([get_p_name(m, mode) for m in comp_sorted])
         
-        # グループの中心付近のサインを算出
         avg_pos = sum([body_map[k] for k in comp_sorted]) / len(comp_sorted)
         s_idx = int((avg_pos % 360) // 30)
         s_keys = list(SIGN_DATA.keys())
@@ -280,7 +273,6 @@ def detect_patterns(bodies, mode="日本語"):
         
         lbl = f"ステリウム (周辺: {s_loc})" if mode == "日本語" else f"Stellium (approx. {s_loc})"
         patterns.append(f"{lbl} : {m_names}")
-    # -------------------------------------------------------------
 
     opps = [(a, b) for a, b, t, _ in aspect_pairs if t == "Opposition"]
     squares = [(a, b) for a, b, t, _ in aspect_pairs if t == "Square"]
