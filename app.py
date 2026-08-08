@@ -123,7 +123,6 @@ with st.sidebar:
     if "input_lat_val" not in st.session_state: st.session_state.input_lat_val = 36.1243
     if "input_lng_val" not in st.session_state: st.session_state.input_lng_val = 139.5983
 
-    st.markdown(t["lat_caption"])
     input_lat = st.number_input(t["lat_input"], value=st.session_state.input_lat_val, format="%.4f")
     input_lng = st.number_input(t["lng_input"], value=st.session_state.input_lng_val, format="%.4f")
 
