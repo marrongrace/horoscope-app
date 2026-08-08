@@ -129,7 +129,7 @@ with st.sidebar:
     input_lng = st.number_input(t["lng_input"], value=st.session_state.input_lng_val, format="%.4f")
 
     st.caption(
-    "※ 緯度・経度は十進数（例: 36.1243）で入力してください"
+    "※ 緯度・経度は十進数（例: 36.1243）表記です"
     if toggle_lang == "日本語"
     else "* Please enter coordinates in decimal degrees (e.g., 36.1243)"
     )
