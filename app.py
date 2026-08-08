@@ -137,6 +137,12 @@ with st.sidebar:
         if toggle_lang == "日本語"
         else "* Use minus (-) for Southern/Western hemispheres"
     )
+    
+    st.caption(
+        "※3 その他の地域で計算する場合、地図アプリなどから経度・緯度を取得してください"
+        if toggle_lang == "日本語"
+        else "* Use minus (-) for Southern/Western hemispheres"
+    )
 
     st.markdown("---")
     st.header(t["settings_header"])
