@@ -185,6 +185,7 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
 def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     """
     指定された条件に特化したミッドポイント（ハーフサム）を計算する
+    ※ 「〇/△＝◇」の形式（2点間のミッドポイントに対するヒット）のみを抽出する
     """
     body_map = {b["key"]: b["abs_pos"] for b in bodies}
     planet_keys = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
@@ -204,7 +205,7 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     all_points = list(body_map.items())
     n = len(all_points)
 
-    # 1. 2点間ペアのミッドポイント
+    # 1. 2点間ペアのミッドポイント（〇/△ ＝ ◇）のみを計算
     for i in range(n):
         for j in range(i, n):
             k1, pos1 = all_points[i]
@@ -238,29 +239,6 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
                             "aspect": asp_label,
                             "orb": orb
                         })
-
-    # 2. 単体軸に対するヒット
-    single_axes = ["Sun", "Moon", "ASC", "MC", "North Node", "South Node"]
-    for axis_k in single_axes:
-        if axis_k not in body_map:
-            continue
-        axis_pos = body_map[axis_k]
-        
-        for target_k, target_pos in all_points:
-            if target_k == axis_k:
-                continue
-            
-            diff = min(abs(axis_pos - target_pos), 360 - abs(axis_pos - target_pos))
-            for ang in aspect_angles:
-                orb = abs(diff - ang)
-                if orb <= orb_limit:
-                    asp_label = "0°" if ang == 0 else ("90°" if ang == 90 else "180°")
-                    hit_results.append({
-                        "axis": get_p_name(axis_k, mode),
-                        "target": get_p_name(target_k, mode),
-                        "aspect": asp_label,
-                        "orb": orb
-                    })
 
     unique_hits = {}
     for h in hit_results:
