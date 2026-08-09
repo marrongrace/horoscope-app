@@ -185,11 +185,21 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
 def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     """
     指定された条件に特化したミッドポイント（ハーフサム）を計算する
-    ※ 「〇/△＝◇」の形式（2点間のミッドポイントに対するヒット）のみを抽出する
+    ※ 同一天体ペアを除外し、太陽始まりの周期が早い順（プライオリティ順）でソート
     """
     body_map = {b["key"]: b["abs_pos"] for b in bodies}
     planet_keys = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
     
+    # 太陽始まり、周期が早い順のプライオリティ定義
+    priority = [
+        "Sun", "Moon", "Mercury", "Venus", "Mars",
+        "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto",
+        "Chiron", "North Node", "South Node", "ASC", "MC"
+    ]
+    
+    def get_prio(key):
+        return priority.index(key) if key in priority else 99
+
     def get_midpoint_pos(pos1, pos2):
         diff = abs(pos1 - pos2)
         if diff > 180:
@@ -205,7 +215,7 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     all_points = list(body_map.items())
     n = len(all_points)
 
-    # 1. 2点間ペアのミッドポイント（〇/△ ＝ ◇）のみを計算
+    # 1. 異なる2点間ペアのミッドポイント（〇/△ ＝ ◇）のみを計算（i + 1 から始めて同一ペアを排除）
     for i in range(n):
         for j in range(i + 1, n):
             k1, pos1 = all_points[i]
@@ -221,6 +231,11 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
                 if (k1, k2) not in allowed_pairs and (k2, k1) not in allowed_pairs:
                     continue
 
+            # 優先度が高い方を左側に正規化
+            if get_prio(k1) > get_prio(k2):
+                k1, k2 = k2, k1
+                pos1, pos2 = pos2, pos1
+
             mp_pos = get_midpoint_pos(pos1, pos2)
             mp_name = f"{get_p_name(k1, mode)}/{get_p_name(k2, mode)}"
 
@@ -234,6 +249,8 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
                     if orb <= orb_limit:
                         asp_label = "0°" if ang == 0 else ("90°" if ang == 90 else "180°")
                         hit_results.append({
+                            "prio1": get_prio(k1),
+                            "prio2": get_prio(k2),
                             "axis": mp_name,
                             "target": get_p_name(target_k, mode),
                             "aspect": asp_label,
@@ -246,8 +263,10 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
         if key not in unique_hits or h["orb"] < unique_hits[key]["orb"]:
             unique_hits[key] = h
 
+    # 太陽始まりのプライオリティ順（prio1, prio2）かつオーブの小ささでソート
     formatted_lines = []
-    for h in sorted(unique_hits.values(), key=lambda x: (x["axis"], x["orb"])):
+    sorted_hits = sorted(unique_hits.values(), key=lambda x: (x["prio1"], x["prio2"], x["orb"]))
+    for h in sorted_hits:
         line = f"- **{h['axis']}** ＝ **{h['target']}** `({h['aspect']} / orb: {h['orb']:.2f}°)`"
         formatted_lines.append(line)
 
