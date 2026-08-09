@@ -229,17 +229,17 @@ if "chart_data" in st.session_state:
         else:
             st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
-    # 🌟 ハウスルーラーのタブ（カード風デザインに変更）
+    # 🌟 ハウスルーラーのタブ（5度前ルール適用の切り替え機能付き）
     with tab5:
         if data.get("house_rulers"):
             ruler_mode = st.radio(
-                "表示モードを選択" if lang == "日本語" else "Select Display Mode",
-                ["5度前ルール適用なし", "5度前ルール適用あり"] if lang == "日本語" else ["Without 5-degree rule", "With 5-degree rule"],
+                "表示モードを選択",
+                ["5度前ルール適用なし", "5度前ルール適用あり"],
                 key="ruler_mode_radio"
             )
             st.write("")
 
-            if ruler_mode.startswith("5度前ルール適用なし") or ruler_mode.startswith("Without"):
+            if ruler_mode.startswith("5度前ルール適用なし"):
                 target_rulers = data.get("house_rulers", [])
             else:
                 target_rulers = data.get(
@@ -247,26 +247,17 @@ if "chart_data" in st.session_state:
                 )
 
             for r_line in target_rulers:
-                formatted_line = r_line.lstrip("-* ").strip()
-                formatted_line = formatted_line.replace("->", "→").replace("➡️", "→")
-
+                formatted_line = (
+                    r_line.replace("->", "→").replace("➡️", "→").strip()
+                )
                 if " → " in formatted_line:
-                    parts = formatted_line.split(" → ", 1)
-                    house_part = parts[0].strip()
-                    ruler_part = parts[1].strip()
-                    st.markdown(f"""
-                    <div style="padding: 10px 14px; margin-bottom: 8px; border-left: 4px solid #B8860B; background-color: rgba(184,134,11,0.04); border-radius: 0 8px 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <span style="font-weight: 600; color: #333;">{house_part}</span>
-                        <span style="color: #B8860B; margin: 0 8px;">➔</span>
-                        <span style="color: #444;">{ruler_part}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"- {formatted_line}")
+                    formatted_line = formatted_line.replace(" → ", "：", 1)
+
+                st.markdown(f"- {formatted_line}")
         else:
             st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
 
-    # 🌟 ミッドポイントのタブ
+    # 🌟 ミッドポイントのタブ（ハイフン重複防止）
     with tab6:
         st.caption("主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
         midpoints_data = data.get("midpoints", [])
@@ -282,10 +273,13 @@ if "chart_data" in st.session_state:
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
         u_name = st.session_state.get("user_name", "TestUser")
         
+        # HTMLタグなどを安全に除去するヘルパー関数
         def clean_html(text):
             if not isinstance(text, str):
                 return str(text)
+            # <span ...> や </span> などのHTMLタグを削除
             text = re.sub(r'<[^>]+>', '', text)
+            # Markdownの装飾（**や`）も除去
             text = text.replace('**', '').replace('`', '')
             return text
 
@@ -334,6 +328,7 @@ if "chart_data" in st.session_state:
             for pat in data["patterns"]:
                 copy_lines.append(f"- {clean_html(pat)}")
 
+        # ミッドポイント
         midpoints_data = data.get("midpoints", [])
         if midpoints_data:
             copy_lines.append("\n[ミッドポイント]")
