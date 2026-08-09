@@ -237,13 +237,21 @@ if submit_button:
                 else:
                     st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
-            # 🌟 ハウスルーラーのタブ
+            # 🌟 ハウスルーラーのタブ（5度前ルール適用の切り替え機能付き）
             with tab5:
                 if data.get("house_rulers"):
-                    for r_line in data["house_rulers"]:
+                    ruler_mode = st.radio(
+                        "計算方式の選択", 
+                        ["5度前ルール適用なし（標準）", "5度前ルール適用あり（5度前ルール反映）"], 
+                        horizontal=True,
+                        label_visibility="collapsed"
+                    )
+                    st.write("")
+                    target_rulers = data["house_rulers"] if ruler_mode.startswith("5度前ルール適用なし") else data["house_rulers_with_5deg"]
+                    for r_line in target_rulers:
                         st.markdown(f"- {r_line}")
                 else:
-                    st.info("*(出生時間不明のためハウスルーラー除外)*" if lang=="日本語" else "*(House rulers excluded due to unknown birth time)*")
+                    st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
 
             # 🌟 ミッドポイントのタブ
             with tab6:
@@ -279,8 +287,12 @@ if submit_button:
                     copy_lines.append(f"- {h.replace('**', '').replace('`', '')}")
 
                 if data.get("house_rulers"):
-                    copy_lines.append("\n[ハウスルーラー]")
+                    copy_lines.append("\n[ハウスルーラー（5度前ルール適用なし）]")
                     for r_line in data["house_rulers"]:
+                        copy_lines.append(f"- {r_line.replace('**', '').replace('`', '').replace('➡️', '->')}")
+                    
+                    copy_lines.append("\n[ハウスルーラー（5度前ルール適用あり）]")
+                    for r_line in data["house_rulers_with_5deg"]:
                         copy_lines.append(f"- {r_line.replace('**', '').replace('`', '').replace('➡️', '->')}")
 
                 copy_lines.append("\n[主要アスペクト]")
