@@ -185,10 +185,13 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
 def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     """
     指定された条件に特化したミッドポイント（ハーフサム）を計算する
-    ※ 同一天体ペアを除外し、太陽始まりの周期が早い順（プライオリティ順）でソート
+    ※ 同一天体ペア、および木星以降の大天体同士のペアを除外
     """
     body_map = {b["key"]: b["abs_pos"] for b in bodies}
     planet_keys = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
+    
+    # 木星以降の大天体（社会天体・トランスサタニアン）の定義
+    outer_planets = {"Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
     
     # 太陽始まり、周期が早い順のプライオリティ定義
     priority = [
@@ -215,11 +218,15 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     all_points = list(body_map.items())
     n = len(all_points)
 
-    # 1. 異なる2点間ペアのミッドポイント（〇/△ ＝ ◇）のみを計算（i + 1 から始めて同一ペアを排除）
+    # 1. 異なる2点間ペアのミッドポイントを計算
     for i in range(n):
         for j in range(i + 1, n):
             k1, pos1 = all_points[i]
             k2, pos2 = all_points[j]
+            
+            # 木星以降の大天体同士のペア（例: 木星/冥王星など）は除外
+            if k1 in outer_planets and k2 in outer_planets:
+                continue
             
             is_node_involved = (k1 in ["North Node", "South Node"] or k2 in ["North Node", "South Node"])
             if is_node_involved:
@@ -263,7 +270,7 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
         if key not in unique_hits or h["orb"] < unique_hits[key]["orb"]:
             unique_hits[key] = h
 
-    # 太陽始まりのプライオリティ順（prio1, prio2）かつオーブの小ささでソート
+    # プライオリティ順（太陽始まり）かつオーブの小ささでソート
     formatted_lines = []
     sorted_hits = sorted(unique_hits.values(), key=lambda x: (x["prio1"], x["prio2"], x["orb"]))
     for h in sorted_hits:
