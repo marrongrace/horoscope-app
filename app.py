@@ -86,7 +86,6 @@ t = ui_texts[lang]
 st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
-# 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
 
 def convert_to_dms(text):
@@ -278,7 +277,7 @@ if "chart_data" in st.session_state:
         else:
             st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
-    # 🌟 ハウスルーラーのタブ（シンプル矢印表記）
+    # 🌟 ハウスルーラーのタブ（重複を解消し「第1ハウス → 第11ハウス (ドミサイル)」の形に整形）
     with tab5:
         if data.get("house_rulers"):
             ruler_mode = st.radio(
@@ -296,10 +295,9 @@ if "chart_data" in st.session_state:
                 )
 
             for r_line in target_rulers:
-                # 記号を綺麗な矢印に統一し、置換せずにそのまま繋ぐ
-                formatted_line = (
-                    r_line.replace("->", "→").replace("➡️", "→").strip()
-                )
+                formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
+                # 「第1ハウス → 第1ハウス →」のような重複がある場合、「第1ハウス →」にスッキリ整理する
+                formatted_line = re.sub(r'^(第\d+ハウス)\s*→\s*\1\s*→\s*', r'\1 → ', formatted_line)
                 st.markdown(f"- {formatted_line}")
         else:
             st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
@@ -361,6 +359,7 @@ if "chart_data" in st.session_state:
             
             for r_line in target_rulers_for_copy:
                 formatted_r = clean_html(r_line).replace('➡️', '->').replace('->', '→')
+                formatted_r = re.sub(r'^(第\d+ハウス)\s*→\s*\1\s*→\s*', r'\1 → ', formatted_r)
                 copy_lines.append(f"- {formatted_r}")
 
         copy_lines.append("\n[主要アスペクト]")
