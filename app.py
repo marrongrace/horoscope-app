@@ -295,28 +295,19 @@ if "chart_data" in st.session_state:
             copy_lines.append(f"- {h.replace('**', '').replace('`', '')}")
 
         if data.get("house_rulers"):
-
-            def format_ruler_text(line):
-                clean_line = (
-                    line.replace("**", "")
-                    .replace("`", "")
-                    .replace("➡️", "→")
-                    .replace("->", "→")
-                    .strip()
-                )
-                # 最初の矢印だけをコロン「：」に置換する
-                if " → " in clean_line:
-                    clean_line = clean_line.replace(" → ", "：", 1)
-                return clean_line
-
-            copy_lines.append("\n[ハウスルーラー（5度前ルール適用なし）]")
-            for r_line in data["house_rulers"]:
-                copy_lines.append(f"- {format_ruler_text(r_line)}")
-
-            if data.get("house_rulers_with_5deg"):
-                copy_lines.append("\n[ハウスルーラー（5度前ルール適用あり）]")
-                for r_line in data["house_rulers_with_5deg"]:
-                    copy_lines.append(f"- {format_ruler_text(r_line)}")
+            # セッションから現在の選択状態を安全に取得する
+            ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
+            
+            copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
+            
+            target_rulers_for_copy = (
+                data.get("house_rulers", []) 
+                if ruler_mode.startswith("5度前ルール適用なし") 
+                else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
+            )
+            
+            for r_line in target_rulers_for_copy:
+                copy_lines.append(f"- {r_line.replace('**', '').replace('`', '').replace('➡️', '->')}")
 
         copy_lines.append("\n[主要アスペクト]")
         clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
