@@ -322,6 +322,6 @@ if "chart_data" in st.session_state:
                 copy_lines.append(f"- {pat}")
 
         st.code("\n".join(copy_lines), language="text")
-                copy_lines.append(f"- {pat}")
+            copy_lines.append(f"- {pat}")
 
         st.code("\n".join(copy_lines), language="text")
