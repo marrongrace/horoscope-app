@@ -315,4 +315,12 @@ if "chart_data" in st.session_state:
             for pat in data["patterns"]:
                 copy_lines.append(f"- {pat}")
 
+        # ミッドポイントの項目を一括コピーにも追加
+        midpoints_data = data.get("midpoints", [])
+        if midpoints_data:
+            copy_lines.append("\n[ミッドポイント]")
+            for m_line in midpoints_data:
+                clean_m = m_line.replace("**", "").replace("`", "")
+                copy_lines.append(f"- {clean_m}")
+
         st.code("\n".join(copy_lines), language="text")
