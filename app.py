@@ -233,7 +233,12 @@ if "chart_data" in st.session_state:
     # 🌟 ハウスルーラーのタブ（5度前ルール適用の切り替え機能付き）
     with tab5:
         if data.get("house_rulers"):
-            ruler_mode = st.radio(...)
+            # st.radio の中の記述（"ラベル", [...] など）は元々お使いのコードのままでOKです！
+            ruler_mode = st.radio(
+                "表示モードを選択",
+                ["5度前ルール適用なし", "5度前ルール適用あり"],
+                key="ruler_mode_radio" # 元のコードの記述に合わせてください
+            )
             st.write("")
 
             if ruler_mode.startswith("5度前ルール適用なし"):
@@ -249,7 +254,7 @@ if "chart_data" in st.session_state:
                     r_line.replace("->", "→").replace("➡️", "→").strip()
                 )
 
-                # 最初の「 → 」だけを「：」に置換して視認性を上げる
+                # 最初の「 → 」だけを「：」に置換する
                 if " → " in formatted_line:
                     formatted_line = formatted_line.replace(" → ", "：", 1)
 
