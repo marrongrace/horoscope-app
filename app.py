@@ -22,7 +22,7 @@ BASE_PREFECTURES = [
 ]
 
 # 1. 言語選択はサイドバーで1つにまとめる
-st.sidebar.markdown("### 🌐 Language / 言語")
+st.sidebar.markdown("### 🌐 言語 / Language")
 lang = st.sidebar.radio("言語選択", ["日本語", "English"], label_visibility="collapsed", key="lang_radio")
 
 # 2. 辞書の定義
@@ -37,8 +37,8 @@ ui_texts = {
         "pref_select": "都道府県",
         "pref_default": "県名を選択してください",
         "city_input": "市区町村・地名 (例: 古河市)",
-        "lat_input": "緯度 (Latitude)",
-        "lng_input": "経度 (Longitude)",
+        "lat_input": "緯度",
+        "lng_input": "経度",
         "settings_header": "⚙️ 表示設定",
         "aspect_view_label": "アスペクト表示形式:",
         "aspect_view_options": ["ペア別", "アスペクト別"],
@@ -64,6 +64,7 @@ ui_texts = {
         "city_input": "City / Location Name",
         "lat_input": "Latitude",
         "lng_input": "Longitude",
+        "lat_caption": "💡 Auto-fetched or from Google Maps",
         "settings_header": "⚙️ Display Settings",
         "aspect_view_label": "Aspect View:",
         "aspect_view_options": ["By Pair", "By Aspect"],
@@ -86,6 +87,7 @@ t = ui_texts[lang]
 st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
+# 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
 
 def convert_to_dms(text):
@@ -107,63 +109,10 @@ with st.sidebar:
     st.header(t["sidebar_header"])
     user_name = st.text_input(t["name_input"], value="TestUser", key="user_name_input")
     
-    st.markdown(f"<label style='font-size: 14px; font-weight: 600;'>{t['birth_date']}</label>", unsafe_allow_html=True)
-    
-    col_y, col_m, col_d = st.columns([1.2, 1.1, 1.1])
-    
-    with col_y:
-        years = list(range(1900, 2101))
-        default_year_idx = years.index(2000) if 2000 in years else 0
-        selected_year = st.selectbox("年", years, index=default_year_idx, label_visibility="collapsed", key="birth_year_sel")
-        st.caption("年" if lang=="日本語" else "Year")
-        
-    with col_m:
-        if lang == "日本語":
-            months = [f"{m}月" for m in range(1, 13)]
-        else:
-            months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-        selected_month_idx = st.selectbox("月", range(1, 13), format_func=lambda x: months[x-1], index=0, label_visibility="collapsed", key="birth_month_sel")
-        st.caption("月" if lang=="日本語" else "Month")
-        
-    with col_d:
-        if selected_month_idx in [1, 3, 5, 7, 8, 10, 12]:
-            max_days = 31
-        elif selected_month_idx in [4, 6, 9, 11]:
-            max_days = 30
-        else:
-            y = selected_year
-            is_leap = (y % 4 == 0 and y % 100 != 0) or (y % 400 == 0)
-            max_days = 29 if is_leap else 28
-            
-        days = list(range(1, max_days + 1))
-        
-        # 🌟 月や年の変更時に日数が最大値を超えていたらセッションを安全な値に補正
-        if st.session_state.get("birth_day_sel", 1) > max_days:
-            st.session_state["birth_day_sel"] = max_days
-            
-        current_d_val = st.session_state.get("birth_day_sel", 1)
-        
-        weekdays_jp = ["日", "月", "火", "水", "木", "金", "土"]
-        weekdays_en = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-        
-        def format_day_label(d_num):
-            try:
-                dt_obj = datetime.date(selected_year, selected_month_idx, d_num)
-                w_idx = dt_obj.weekday()
-                w_idx_sun = (w_idx + 1) % 7
-                if lang == "日本語":
-                    return f"{d_num}日 ({weekdays_jp[w_idx_sun]})"
-                else:
-                    return f"{d_num} ({weekdays_en[w_idx_sun]})"
-            except:
-                return str(d_num)
-
-        selected_day = st.selectbox("日", days, index=min(current_d_val-1, len(days)-1), format_func=format_day_label, label_visibility="collapsed", key="birth_day_sel")
-        st.caption("日" if lang=="日本語" else "Day")
-
-    birth_date = datetime.date(selected_year, selected_month_idx, selected_day)
-
+    now_date = datetime.date.today()
     default_birth_time = datetime.time(12, 0)
+
+    birth_date = st.date_input(t["birth_date"], value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date(2100, 12, 31), key="birth_date_input")
     birth_time = st.time_input(t["birth_time"], value=default_birth_time, key="birth_time_input")
 
     selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=0, key="pref_select_input")
@@ -280,7 +229,7 @@ if "chart_data" in st.session_state:
         else:
             st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
-    # 🌟 ハウスルーラーのタブ
+    # 🌟 ハウスルーラーのタブ（5度前ルール適用の切り替え機能付き）
     with tab5:
         if data.get("house_rulers"):
             ruler_mode = st.radio(
@@ -298,13 +247,17 @@ if "chart_data" in st.session_state:
                 )
 
             for r_line in target_rulers:
-                formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
-                formatted_line = re.sub(r'^(第\d+ハウス)\s*→\s*\1\s*→\s*', r'\1 → ', formatted_line)
+                formatted_line = (
+                    r_line.replace("->", "→").replace("➡️", "→").strip()
+                )
+                if " → " in formatted_line:
+                    formatted_line = formatted_line.replace(" → ", "：", 1)
+
                 st.markdown(f"- {formatted_line}")
         else:
             st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
 
-    # 🌟 ミッドポイントのタブ
+    # 🌟 ミッドポイントのタブ（ハイフン重複防止）
     with tab6:
         st.caption("主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
         midpoints_data = data.get("midpoints", [])
@@ -320,10 +273,13 @@ if "chart_data" in st.session_state:
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
         u_name = st.session_state.get("user_name", "TestUser")
         
+        # HTMLタグなどを安全に除去するヘルパー関数
         def clean_html(text):
             if not isinstance(text, str):
                 return str(text)
+            # <span ...> や </span> などのHTMLタグを削除
             text = re.sub(r'<[^>]+>', '', text)
+            # Markdownの装飾（**や`）も除去
             text = text.replace('**', '').replace('`', '')
             return text
 
@@ -360,8 +316,7 @@ if "chart_data" in st.session_state:
             )
             
             for r_line in target_rulers_for_copy:
-                formatted_r = clean_html(r_line).replace('➡️', '->').replace('->', '→')
-                formatted_r = re.sub(r'^(第\d+ハウス)\s*→\s*\1\s*→\s*', r'\1 → ', formatted_r)
+                formatted_r = clean_html(r_line).replace('➡️', '->')
                 copy_lines.append(f"- {formatted_r}")
 
         copy_lines.append("\n[主要アスペクト]")
@@ -373,6 +328,7 @@ if "chart_data" in st.session_state:
             for pat in data["patterns"]:
                 copy_lines.append(f"- {clean_html(pat)}")
 
+        # ミッドポイント
         midpoints_data = data.get("midpoints", [])
         if midpoints_data:
             copy_lines.append("\n[ミッドポイント]")
