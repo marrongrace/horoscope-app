@@ -233,7 +233,7 @@ if "chart_data" in st.session_state:
     # 🌟 ハウスルーラーのタブ（5度前ルール適用の切り替え機能付き）
     with tab5:
         if data.get("house_rulers"):
-            # 画面で今選択されているモード名に合わせてタイトルとデータを動的に切り替える
+            # 画面で今選択されているモード（ruler_mode）に合わせて、片方だけをコピーに出力する
             copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
             
             target_rulers_for_copy = (
