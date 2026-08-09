@@ -274,11 +274,14 @@ if "chart_data" in st.session_state:
     st.divider()
 
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
-        copy_lines = [
-            f"【ホロスコープ鑑定データ: {u_name}】",
-            f"日時: {data['date_str']}",
-            f"場所: {data['loc_str']}\n"
-        ]
+        u_name = st.session_state.get("user_name", "TestUser")
+        
+        # 変数を安全に初期化
+        copy_lines = []
+        copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
+        copy_lines.append(f"日時: {data['date_str']}")
+        copy_lines.append(f"場所: {data['loc_str']}\n")
+
         if data["angles"]:
             copy_lines.append("[アングル]")
             for a in data["angles"]:
@@ -295,7 +298,7 @@ if "chart_data" in st.session_state:
             copy_lines.append(f"- {h.replace('**', '').replace('`', '')}")
 
         if data.get("house_rulers"):
-            # セッションから現在の選択状態を安全に取得する
+            # セッションから現在の選択状態を安全に取得
             ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
             
             copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
@@ -316,6 +319,9 @@ if "chart_data" in st.session_state:
         if data["patterns"]:
             copy_lines.append("\n[複合アスペクト]")
             for pat in data["patterns"]:
+                copy_lines.append(f"- {pat}")
+
+        st.code("\n".join(copy_lines), language="text")
                 copy_lines.append(f"- {pat}")
 
         st.code("\n".join(copy_lines), language="text")
