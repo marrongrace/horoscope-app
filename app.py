@@ -203,7 +203,11 @@ if submit_button:
 
             # タブの作成（全5タブ）
             ruler_tab_label = "ハウスルーラー" if lang == "日本語" else "House Rulers"
-            tab1, tab2, tab3, tab4, tab5 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"], ruler_tab_label])
+            midpoint_tab_label = "ミッドポイント" if lang == "日本語" else "Midpoints"
+            tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+                t["bodies_tab"], t["houses_tab"], t["aspects_tab"], 
+                t["patterns_tab"], ruler_tab_label, midpoint_tab_label
+            ])
 
             with tab1:
                 for p in data["bodies"]:
