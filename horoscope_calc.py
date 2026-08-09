@@ -202,6 +202,117 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
         chain_results.append(display_text)
         
     return chain_results
+
+def calculate_midpoints(bodies, chart_angles, mode="日本語"):
+    """
+    指定された条件に特化したミッドポイント（ハーフサム）を計算する
+    対象軸: 太陽, 月, 太陽/月, ASC, MC, ASC/MC, ドラゴンヘッド・テイル(ノード軸), ノーアスペクト天体
+    条件: ノード軸や特定軸において天体を一切含まない無意味な組み合わせは除外。
+    """
+    body_map = {b["key"]: b["abs_pos"] for b in bodies}
+    
+    # 天体リスト（純粋な星。感受点やアングルを除く）
+    planet_keys = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
+    
+    # ユーザー様が定義された「ノーアスペクト」の天体を特定する（必要に応じて外部から渡すか、ここで簡易判定）
+    # ※ここでは例として、アスペクト数が極端に少ない、または主要アスペクトを持たない天体を抽出するロジックのベース
+    # （既存のアスペクト計算結果からノーアスペクトを判定するか、簡易的に判定します）
+    
+    # 2点間のミッドポイント度数を計算するヘルパー
+    def get_midpoint_pos(pos1, pos2):
+        diff = abs(pos1 - pos2)
+        if diff > 180:
+            mp = (pos1 + pos2 + 360) / 2
+        else:
+            mp = (pos1 + pos2) / 2
+        return mp % 360
+
+    hit_results = []
+    aspect_angles = [0, 90, 180]  # ハードアスペクト（コンジャンクション、スクエア、オポジション）
+    orb_limit = 1.5                # タイトなオーブ 1.5°以内
+
+    all_points = list(body_map.items())
+    n = len(all_points)
+
+    # 1. すべての2点間ペアのミッドポイントを計算し、主要軸（太陽、月、ASC、MC、ノード等）へのヒットを調べる
+    for i in range(n):
+        for j in range(i, n):
+            k1, pos1 = all_points[i]
+            k2, pos2 = all_points[j]
+            
+            # 条件：ドラゴンヘッド・テイル（Node軸）に絡む場合、または全般で「天体を一切含まない組み合わせ」をチェック
+            is_node_involved = (k1 in ["North Node", "South Node"] or k2 in ["North Node", "South Node"])
+            if is_node_involved:
+                # ノード軸に限り、天体を一切含まない組み合わせ（例: ヘッド/テイル同士、または感受点同士）は除外
+                if not (k1 in planet_keys or k2 in planet_keys):
+                    continue
+
+            # 一般的な「天体を一切含まない組み合わせ」の除外（両方とも天体ではない場合）
+            if not (k1 in planet_keys or k2 in planet_keys) and not is_node_involved:
+                # 太陽/月 や ASC/MC などの指定された主要複合軸以外はスキップ
+                allowed_pairs = {("Sun", "Moon"), ("Moon", "Sun"), ("ASC", "MC"), ("MC", "ASC")}
+                if (k1, k2) not in allowed_pairs and (k2, k1) not in allowed_pairs:
+                    continue
+
+            mp_pos = get_midpoint_pos(pos1, pos2)
+            mp_name = f"{get_p_name(k1, mode)}/{get_p_name(k2, mode)}"
+
+            # このミッドポイントに対して、他の天体や軸がヒットしているか？
+            for target_k, target_pos in all_points:
+                if target_k == k1 or target_k == k2:
+                    continue
+                
+                diff = min(abs(mp_pos - target_pos), 360 - abs(mp_pos - target_pos))
+                for ang in aspect_angles:
+                    orb = abs(diff - ang)
+                    if orb <= orb_limit:
+                        asp_label = "0°" if ang == 0 else ("90°" if ang == 90 else "180°")
+                        hit_results.append({
+                            "axis": mp_name,
+                            "target": get_p_name(target_k, mode),
+                            "aspect": asp_label,
+                            "orb": orb
+                        })
+
+    # 2. 単体軸（太陽、月、ASC、MC、ドラゴンヘッド等）に対する他の天体のヒットもチェック
+    single_axes = ["Sun", "Moon", "ASC", "MC", "North Node", "South Node"]
+    for axis_k in single_axes:
+        if axis_k not in body_map:
+            continue
+        axis_pos = body_map[axis_k]
+        
+        for target_k, target_pos in all_points:
+            if target_k == axis_k:
+                continue
+            
+            diff = min(abs(axis_pos - target_pos), 360 - abs(axis_pos - target_pos))
+            for ang in aspect_angles:
+                orb = abs(diff - ang)
+                if orb <= orb_limit:
+                    asp_label = "0°" if ang == 0 else ("90°" if ang == 90 else "180°")
+                    hit_results.append({
+                        "axis": get_p_name(axis_k, mode),
+                        "target": get_p_name(target_k, mode),
+                        "aspect": asp_label,
+                        "orb": orb
+                    })
+
+    # 重複の整理
+    unique_hits = {}
+    for h in hit_results:
+        key = (h["axis"], h["target"], h["aspect"])
+        if key not in unique_hits or h["orb"] < unique_hits[key]["orb"]:
+            unique_hits[key] = h
+
+    formatted_lines = []
+    for h in sorted(unique_hits.values(), key=lambda x: (x["axis"], x["orb"])):
+        line = f"- **{h['axis']}** ＝ **{h['target']}** `({h['aspect']} / orb: {h['orb']:.2f}°)`"
+        formatted_lines.append(line)
+
+    if not formatted_lines:
+        return ["*(該当するミッドポイントヒットはありません)*" if mode == "日本語" else "*(No midpoint hits found)*"]
+        
+    return formatted_lines
     
 def to_dms(val, is_lat=True, mode="日本語"):
     abs_val = abs(val)
