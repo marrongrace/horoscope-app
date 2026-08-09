@@ -270,9 +270,19 @@ if "chart_data" in st.session_state:
 
     st.divider()
 
-    with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+   with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
         u_name = st.session_state.get("user_name", "TestUser")
         
+        # HTMLタグなどを安全に除去するヘルパー関数
+        def clean_html(text):
+            if not isinstance(text, str):
+                return str(text)
+            # <span ...> や </span> などのHTMLタグを削除
+            text = re.sub(r'<[^>]+>', '', text)
+            # Markdownの装飾（**や`）も除去
+            text = text.replace('**', '').replace('`', '')
+            return text
+
         copy_lines = []
         copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
         copy_lines.append(f"日時: {data['date_str']}")
@@ -281,17 +291,18 @@ if "chart_data" in st.session_state:
         if data["angles"]:
             copy_lines.append("[アングル]")
             for a in data["angles"]:
-                copy_lines.append(f"- {a.replace('**', '').replace('`', '')}")
+                copy_lines.append(f"- {clean_html(a)}")
             copy_lines.append("")
         
         copy_lines.append("[天体配置]")
         for b in data["bodies"]:
-            clean_b = b.replace("**", "").replace("<br>", "").replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
+            clean_b = clean_html(b)
+            clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
             copy_lines.append(f"- {clean_b}")
             
         copy_lines.append("\n[12ハウス]")
         for h in data["houses"]:
-            copy_lines.append(f"- {h.replace('**', '').replace('`', '')}")
+            copy_lines.append(f"- {clean_html(h)}")
 
         if data.get("house_rulers"):
             ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
@@ -305,23 +316,24 @@ if "chart_data" in st.session_state:
             )
             
             for r_line in target_rulers_for_copy:
-                copy_lines.append(f"- {r_line.replace('**', '').replace('`', '').replace('➡️', '->')}")
+                formatted_r = clean_html(r_line).replace('➡️', '->')
+                copy_lines.append(f"- {formatted_r}")
 
         copy_lines.append("\n[主要アスペクト]")
-        clean_aspects = data["aspects"].replace("**", "").replace("`", "").replace("■ ", "")
+        clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
         copy_lines.append(clean_aspects)
 
         if data["patterns"]:
             copy_lines.append("\n[複合アスペクト]")
             for pat in data["patterns"]:
-                copy_lines.append(f"- {pat}")
+                copy_lines.append(f"- {clean_html(pat)}")
 
-        # ミッドポイント（ハイフン重複をきれいにならして追加）
+        # ミッドポイント
         midpoints_data = data.get("midpoints", [])
         if midpoints_data:
             copy_lines.append("\n[ミッドポイント]")
             for m_line in midpoints_data:
-                clean_m = m_line.replace("**", "").replace("`", "").lstrip("- ").strip()
+                clean_m = clean_html(m_line).lstrip("- ").strip()
                 copy_lines.append(f"- {clean_m}")
 
         st.code("\n".join(copy_lines), language="text")
