@@ -146,7 +146,7 @@ with st.sidebar:
     input_lat = st.number_input(t["lat_input"], value=st.session_state.input_lat_val, format="%.4f", key="lat_number_input")
     input_lng = st.number_input(t["lng_input"], value=st.session_state.input_lng_val, format="%.4f", key="lng_number_input")
 
-    st.caption("※1 緯度・経度は十進数表記です" if lang == "日本語" else "* Please enter coordinates in decimal degrees")
+    st.caption("※ 緯度・経度は十進数表記です" if lang == "日本語" else "* Please enter coordinates in decimal degrees")
 
     st.markdown("---")
     st.header(t["settings_header"])
