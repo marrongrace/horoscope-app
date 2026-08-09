@@ -132,93 +132,63 @@ def validate_and_get_coords(pref, city_name):
 def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
     """
     各ハウスのカスプのルーラーをたどる連鎖（チェーン）を計算する
-    形式例:
-    - 第1ハウス → 第11ハウス (ドミサイル)
-    - 第2ハウス → 第9ハウス → 第12ハウス → 第10ハウス → 第1ハウス → 第11ハウス (ドミサイル)
     """
-    # 1. 各天体がどのハウスにいるかのマップを作成 (Body Key -> House Number 1~12)
     body_house_map = {}
     for key, p in bodies_meta:
         h_raw = p.get('house', 'First_House') if isinstance(p, dict) else getattr(p, 'house', 'First_House')
         h_num = house_name_map.get(str(h_raw), 1)
         body_house_map[key] = h_num
 
-    # 2. 各ハウス(1~12)のルーラーが着地するハウスのマッピングを作成
     house_links = {}
     for i, h in enumerate(houses_list, 1):
         sign = h.get('sign', 'Aries') if isinstance(h, dict) else getattr(h, 'sign', 'Aries')
         norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
-        
-        # サインの支配星キー
         ruler_key = SIGN_RULERS.get(norm_sign, "Sun")
-        
-        # その支配星がどのハウスにいるか
         target_house = body_house_map.get(ruler_key, i)
         house_links[i] = target_house
 
-    # 3. 各ハウスを起点にしてチェーンをトレース
     chain_results = []
     for start_h in range(1, 13):
         path = [start_h]
         visited = set([start_h])
         current = start_h
-        
         status = "end"
         loop_target = None
         
         while current in house_links:
             next_house = house_links[current]
-            
-            # ★ 1. まず「自分自身に戻ってきた（その場で完結＝ドミサイル）」の判定を優先
             if next_house == current:
                 status = "domicile"
                 break
-                
-            # ★ 2. すでに訪れた他のハウスに戻ってきた場合（真のループ）
             if next_house in visited:
                 path.append(next_house)
                 status = "loop"
                 loop_target = next_house
                 break
-                
             visited.add(next_house)
             path.append(next_house)
             current = next_house
-            
-            # 無限ループ防止の安全装置
             if len(path) > 15:
                 break
         
-        # 文字列の組み立て
         path_str = " → ".join([f"第{h}ハウス" for h in path])
-        
         if status == "domicile":
             display_text = f"**第{start_h}ハウス** ➡️ {path_str} (ドミサイル)"
         elif status == "loop":
             display_text = f"**第{start_h}ハウス** ➡️ {path_str} (以降 第{loop_target}ハウスとのループ)"
         else:
             display_text = f"**第{start_h}ハウス** ➡️ {path_str}"
-            
         chain_results.append(display_text)
         
     return chain_results
 
-def calculate_midpoints(bodies, chart_angles, mode="日本語"):
+def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     """
     指定された条件に特化したミッドポイント（ハーフサム）を計算する
-    対象軸: 太陽, 月, 太陽/月, ASC, MC, ASC/MC, ドラゴンヘッド・テイル(ノード軸), ノーアスペクト天体
-    条件: ノード軸や特定軸において天体を一切含まない無意味な組み合わせは除外。
     """
     body_map = {b["key"]: b["abs_pos"] for b in bodies}
-    
-    # 天体リスト（純粋な星。感受点やアングルを除く）
     planet_keys = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
     
-    # ユーザー様が定義された「ノーアスペクト」の天体を特定する（必要に応じて外部から渡すか、ここで簡易判定）
-    # ※ここでは例として、アスペクト数が極端に少ない、または主要アスペクトを持たない天体を抽出するロジックのベース
-    # （既存のアスペクト計算結果からノーアスペクトを判定するか、簡易的に判定します）
-    
-    # 2点間のミッドポイント度数を計算するヘルパー
     def get_midpoint_pos(pos1, pos2):
         diff = abs(pos1 - pos2)
         if diff > 180:
@@ -228,28 +198,24 @@ def calculate_midpoints(bodies, chart_angles, mode="日本語"):
         return mp % 360
 
     hit_results = []
-    aspect_angles = [0, 90, 180]  # ハードアスペクト（コンジャンクション、スクエア、オポジション）
+    aspect_angles = [0, 90, 180]  # ハードアスペクト（0°, 90°, 180°）
     orb_limit = 1.5                # タイトなオーブ 1.5°以内
 
     all_points = list(body_map.items())
     n = len(all_points)
 
-    # 1. すべての2点間ペアのミッドポイントを計算し、主要軸（太陽、月、ASC、MC、ノード等）へのヒットを調べる
+    # 1. 2点間ペアのミッドポイント
     for i in range(n):
         for j in range(i, n):
             k1, pos1 = all_points[i]
             k2, pos2 = all_points[j]
             
-            # 条件：ドラゴンヘッド・テイル（Node軸）に絡む場合、または全般で「天体を一切含まない組み合わせ」をチェック
             is_node_involved = (k1 in ["North Node", "South Node"] or k2 in ["North Node", "South Node"])
             if is_node_involved:
-                # ノード軸に限り、天体を一切含まない組み合わせ（例: ヘッド/テイル同士、または感受点同士）は除外
                 if not (k1 in planet_keys or k2 in planet_keys):
                     continue
 
-            # 一般的な「天体を一切含まない組み合わせ」の除外（両方とも天体ではない場合）
             if not (k1 in planet_keys or k2 in planet_keys) and not is_node_involved:
-                # 太陽/月 や ASC/MC などの指定された主要複合軸以外はスキップ
                 allowed_pairs = {("Sun", "Moon"), ("Moon", "Sun"), ("ASC", "MC"), ("MC", "ASC")}
                 if (k1, k2) not in allowed_pairs and (k2, k1) not in allowed_pairs:
                     continue
@@ -257,7 +223,6 @@ def calculate_midpoints(bodies, chart_angles, mode="日本語"):
             mp_pos = get_midpoint_pos(pos1, pos2)
             mp_name = f"{get_p_name(k1, mode)}/{get_p_name(k2, mode)}"
 
-            # このミッドポイントに対して、他の天体や軸がヒットしているか？
             for target_k, target_pos in all_points:
                 if target_k == k1 or target_k == k2:
                     continue
@@ -274,7 +239,7 @@ def calculate_midpoints(bodies, chart_angles, mode="日本語"):
                             "orb": orb
                         })
 
-    # 2. 単体軸（太陽、月、ASC、MC、ドラゴンヘッド等）に対する他の天体のヒットもチェック
+    # 2. 単体軸に対するヒット
     single_axes = ["Sun", "Moon", "ASC", "MC", "North Node", "South Node"]
     for axis_k in single_axes:
         if axis_k not in body_map:
@@ -297,7 +262,6 @@ def calculate_midpoints(bodies, chart_angles, mode="日本語"):
                         "orb": orb
                     })
 
-    # 重複の整理
     unique_hits = {}
     for h in hit_results:
         key = (h["axis"], h["target"], h["aspect"])
@@ -320,12 +284,11 @@ def format_deg_min(decimal_deg):
     """
     deg = int(decimal_deg)
     minutes = round((decimal_deg - deg) * 60)
-    # 分が60になった場合の繰り上げ処理
     if minutes == 60:
         deg += 1
         minutes = 0
     return f"{deg}°{minutes:02d}′"
-    
+
 def to_dms(val, is_lat=True, mode="日本語"):
     abs_val = abs(val)
     deg = int(abs_val)
@@ -359,7 +322,8 @@ def get_p_name(key, mode="日本語"):
     jp_names = {
         "Sun": "太陽", "Moon": "月", "Mercury": "水星", "Venus": "金星", "Mars": "火星",
         "Jupiter": "木星", "Saturn": "土星", "Uranus": "天王星", "Neptune": "海王星", "Pluto": "冥王星",
-        "North Node": "ドラゴンヘッド", "South Node": "ドラゴンテイル", "Chiron": "キロン"
+        "North Node": "ドラゴンヘッド", "South Node": "ドラゴンテイル", "Chiron": "キロン",
+        "ASC": "ASC", "MC": "MC"
     }
     return jp_names.get(key, key) if mode == "日本語" else key
 
@@ -557,9 +521,6 @@ def detect_patterns(bodies, mode="日本語"):
             unique.append(pat)
     return unique
 
-def format_to_dot_notation(deg, minute=0):
-    return f"{int(deg)}.{int(minute):02d}"
-
 def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_name, mode, view_type, is_unknown_time):
     calc_h, calc_m = (12, 0) if is_unknown_time else (hour, minute)
     with warnings.catch_warnings():
@@ -618,9 +579,10 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         all_aspect_objs.append({"key": key, "abs_pos": abs_p_pos})
         
         p_name, s_name = get_p_name(key, mode), get_s_name(sign, mode)
+        formatted_pos = format_deg_min(pos)
         
         if is_unknown_time:
-            p_lines.append(f"**{p_name}** : {s_name} `({pos:.2f}°)`")
+            p_lines.append(f"**{p_name}** : {s_name} `({formatted_pos})`")
         else:
             base_h_label = format_house_name(h_num, mode)
             rule_str = ""
@@ -634,9 +596,9 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
                     rule_str = f" (5度前ルール適用 ➡️ {eff_label})" if mode == "日本語" else f" (5-degree rule applied ➡️ {eff_label})"
             
             if rule_str:
-                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({pos:.2f}°)`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_str.strip()}")
+                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({formatted_pos})`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_str.strip()}")
             else:
-                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({pos:.2f}°)`")
+                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({formatted_pos})`")
 
     angles_list, h_lines = [], []
     ruler_list = []
@@ -646,14 +608,40 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         mc_s = get_s_name(chart.tenth_house.sign, mode)
         asc_lbl = "ASC (アセンダント)" if mode == "日本語" else "ASC (Ascendant)"
         mc_lbl = "MC (ミッドヘブン)" if mode == "日本語" else "MC (Midheaven)"
-        angles_list = [
-            f"**{asc_lbl}** : {asc_s} `({chart.first_house.position:.2f}°)`",
-            f"**{mc_lbl}** : {mc_s} `({chart.tenth_house.position:.2f}°)`"
-        ]
-        for i, h in enumerate(houses_list, 1):
-            h_lines.append(f"**{format_house_name(i, mode)}** : {get_s_name(h.sign, mode)} `({h.position:.2f}°)`")
         
-        # 🌟 ここで新しくチェーン計算関数を呼び出し
+        asc_pos_str = format_deg_min(chart.first_house.position)
+        mc_pos_str = format_deg_min(chart.tenth_house.position)
+        
+        angles_list = [
+            f"**{asc_lbl}** : {asc_s} `({asc_pos_str})`",
+            f"**{mc_lbl}** : {mc_s} `({mc_pos_str})`"
+        ]
+        
+        # ASC, MC をミッドポイント計算用に追加
+        all_aspect_objs.append({"key": "ASC", "abs_pos": s_idx * 30 + chart.first_house.position if 's_idx' in locals() else chart.first_house.position})
+        # 正確なASC/MCの絶対座標を付与
+        asc_abs_pos = 0 # 安全確保
+        for h_idx, h in enumerate(houses_list):
+            if h_idx == 0: # 1ハウスがASC
+                s_norm = SIGN_NORM_MAP.get(str(h.sign), "Aries")
+                s_idx_asc = list(SIGN_DATA.keys()).index(s_norm) if s_norm in SIGN_DATA else 0
+                asc_abs_pos = s_idx_asc * 30 + h.position
+            if h_idx == 9: # 10ハウスがMC
+                s_norm = SIGN_NORM_MAP.get(str(h.sign), "Aries")
+                s_idx_mc = list(SIGN_DATA.keys()).index(s_norm) if s_norm in SIGN_DATA else 0
+                mc_abs_pos = s_idx_mc * 30 + h.position
+
+        # リスト内の感受点に正確な絶対位置を設定
+        for item in all_aspect_objs:
+            if item["key"] == "ASC":
+                item["abs_pos"] = asc_abs_pos
+            elif item["key"] == "MC":
+                item["abs_pos"] = mc_abs_pos
+
+        for i, h in enumerate(houses_list, 1):
+            h_pos_str = format_deg_min(h.position)
+            h_lines.append(f"**{format_house_name(i, mode)}** : {get_s_name(h.sign, mode)} `({h_pos_str})`")
+        
         ruler_list = get_house_ruler_chains(houses_list, bodies_meta, house_name_map)
     else:
         h_lines.append("*(出生時間不明のためハウス除外)*" if mode == "日本語" else "*(Houses excluded due to unknown birth time)*")
@@ -665,10 +653,14 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
     lng_str = to_dms(chart.lng, is_lat=False, mode=mode)
     loc_str = f"[{city_display_name}] [{lat_str}, {lng_str} (十進: {chart.lat:.4f}, {chart.lng:.4f})]"
 
+    # ミッドポイントデータの計算実行
+    midpoints_data = calculate_midpoints(all_aspect_objs, chart_angles=None, mode=mode)
+
     return {
         "error": None, "date_str": date_str, "loc_str": loc_str,
         "angles": angles_list, "bodies": p_lines, "houses": h_lines,
         "house_rulers": ruler_list,
+        "midpoints": midpoints_data,
         "aspects": calculate_aspects(all_aspect_objs, mode, view_type),
         "patterns": detect_patterns(all_aspect_objs, mode)
     }
