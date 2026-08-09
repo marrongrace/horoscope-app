@@ -207,7 +207,7 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
 
     # 1. 2点間ペアのミッドポイント（〇/△ ＝ ◇）のみを計算
     for i in range(n):
-        for j in range(i, n):
+        for j in range(i + 1, n):
             k1, pos1 = all_points[i]
             k2, pos2 = all_points[j]
             
