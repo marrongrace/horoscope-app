@@ -69,6 +69,36 @@ SIGN_RULERS = {
     "Pisces": "Neptune"      # 伝統的には Jupiter
 }
 
+# 天体とサインのディグニティ対応表（主要7天体）
+DIGNITIES = {
+    "太陽": {"domicile": ["獅子座"], "exaltation": ["牡羊座"], "detriment": ["水瓶座"], "fall": ["天秤座"]},
+    "月":   {"domicile": ["蟹座"],   "exaltation": ["牡牛座"], "detriment": ["山羊座"], "fall": ["蠍座"]},
+    "水星": {"domicile": ["双子座", "乙女座"], "exaltation": ["乙女座"], "detriment": ["射手座", "魚座"], "fall": ["魚座"]},
+    "金星": {"domicile": ["牡牛座", "天秤座"], "exaltation": ["魚座"], "detriment": ["蠍座", "牡羊座"], "fall": ["乙女座"]},
+    "火星": {"domicile": ["牡羊座", "蠍座"],   "exaltation": ["山羊座"], "detriment": ["天秤座", "牡牛座"], "fall": ["蟹座"]},
+    "木星": {"domicile": ["射手座", "魚座"],   "exaltation": ["蟹座"], "detriment": ["双子座", "乙女座"], "fall": ["山羊座"]},
+    "土星": {"domicile": ["山羊座", "水瓶座"], "exaltation": ["天秤座"], "detriment": ["蟹座", "獅子座"], "fall": ["牡羊座"]}
+}
+
+def apply_dignity_color(planet_name, body_str):
+    """
+    天体名と出力文字列（例: "太陽 : 蠍座 (第4ハウス)..."）を受け取り、
+    品位に応じてHTMLカラータグとラベルを付与する関数
+    """
+    for p, dign in DIGNITIES.items():
+        if p in planet_name:
+            if any(s in body_str for s in dign.get("domicile", [])):
+                return f'<span style="color: #ff4b4b; font-weight: bold;">{body_str}</span> <span style="font-size: 0.85em; color: #ff4b4b;">🔴 [Domicile]</span>'
+            elif any(s in body_str for s in dign.get("exaltation", [])):
+                return f'<span style="color: #ff69b4; font-weight: bold;">{body_str}</span> <span style="font-size: 0.85em; color: #ff69b4;">🩷 [Exaltation]</span>'
+            elif any(s in body_str for s in dign.get("detriment", [])):
+                return f'<span style="color: #1e90ff; font-weight: bold;">{body_str}</span> <span style="font-size: 0.85em; color: #1e90ff;">🔵 [Detriment]</span>'
+            elif any(s in body_str for s in dign.get("fall", [])):
+                return f'<span style="color: #00bfff; font-weight: bold;">{body_str}</span> <span style="font-size: 0.85em; color: #00bfff;">🩵 [Fall]</span>'
+    
+    # 品位に該当しない（ペレグリン等）の場合はそのまま返す
+    return body_str
+    
 def get_cities_for_prefecture(pref):
     """指定された都道府県の市区町村リストを返す"""
     if pref == "海外・その他":
