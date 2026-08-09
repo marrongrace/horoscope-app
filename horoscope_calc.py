@@ -313,6 +313,18 @@ def calculate_midpoints(bodies, chart_angles, mode="日本語"):
         return ["*(該当するミッドポイントヒットはありません)*" if mode == "日本語" else "*(No midpoint hits found)*"]
         
     return formatted_lines
+
+def format_deg_min(decimal_deg):
+    """
+    10進数の度数（例: 22.27）を 「22°16′」 のような度・分形式に変換する
+    """
+    deg = int(decimal_deg)
+    minutes = round((decimal_deg - deg) * 60)
+    # 分が60になった場合の繰り上げ処理
+    if minutes == 60:
+        deg += 1
+        minutes = 0
+    return f"{deg}°{minutes:02d}′"
     
 def to_dms(val, is_lat=True, mode="日本語"):
     abs_val = abs(val)
