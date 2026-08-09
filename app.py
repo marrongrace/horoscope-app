@@ -233,20 +233,17 @@ if "chart_data" in st.session_state:
     # 🌟 ハウスルーラーのタブ（5度前ルール適用の切り替え機能付き）
     with tab5:
         if data.get("house_rulers"):
-            # st.radio の中の記述（"ラベル", [...] など）は元々お使いのコードのままでOKです！
-            ruler_mode = st.radio(
-                "表示モードを選択",
-                ["5度前ルール適用なし", "5度前ルール適用あり"],
-                key="ruler_mode_radio" # 元のコードの記述に合わせてください
+            # 画面で今選択されているモード名に合わせてタイトルとデータを動的に切り替える
+            copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
+            
+            target_rulers_for_copy = (
+                data.get("house_rulers", []) 
+                if ruler_mode.startswith("5度前ルール適用なし") 
+                else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
             )
-            st.write("")
-
-            if ruler_mode.startswith("5度前ルール適用なし"):
-                target_rulers = data.get("house_rulers", [])
-            else:
-                target_rulers = data.get(
-                    "house_rulers_with_5deg", data.get("house_rulers", [])
-                )
+            
+            for r_line in target_rulers_for_copy:
+                copy_lines.append(f"- {r_line.replace('**', '').replace('`', '').replace('➡️', '->')}")
 
             for r_line in target_rulers:
                 # 矢印記号を統一
