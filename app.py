@@ -172,11 +172,10 @@ if submit_button:
         if data.get("error"):
             st.error(data["error"])
         else:
-            # 計算結果をセッションに保存しておくことで、タブ切り替えやラジオボタン変更時に消えないようにする
             st.session_state.chart_data = data
             st.session_state.user_name = user_name
 
-# セッションにデータが存在する場合に表示（タブ操作やラジオボタン切り替えで消えないようにする）
+# セッションにデータが存在する場合に表示
 if "chart_data" in st.session_state:
     data = st.session_state.chart_data
     u_name = st.session_state.get("user_name", "TestUser")
@@ -233,27 +232,24 @@ if "chart_data" in st.session_state:
     # 🌟 ハウスルーラーのタブ（5度前ルール適用の切り替え機能付き）
     with tab5:
         if data.get("house_rulers"):
-            # ★ セッションから現在の選択状態を安全に取得する
-            ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
-            
-            copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
-            
-            target_rulers_for_copy = (
-                data.get("house_rulers", []) 
-                if ruler_mode.startswith("5度前ルール適用なし") 
-                else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
+            ruler_mode = st.radio(
+                "表示モードを選択",
+                ["5度前ルール適用なし", "5度前ルール適用あり"],
+                key="ruler_mode_radio"
             )
-            
-            for r_line in target_rulers_for_copy:
-                copy_lines.append(f"- {r_line.replace('**', '').replace('`', '').replace('➡️', '->')}")
+            st.write("")
+
+            if ruler_mode.startswith("5度前ルール適用なし"):
+                target_rulers = data.get("house_rulers", [])
+            else:
+                target_rulers = data.get(
+                    "house_rulers_with_5deg", data.get("house_rulers", [])
+                )
 
             for r_line in target_rulers:
-                # 矢印記号を統一
                 formatted_line = (
                     r_line.replace("->", "→").replace("➡️", "→").strip()
                 )
-
-                # 最初の「 → 」だけを「：」に置換する
                 if " → " in formatted_line:
                     formatted_line = formatted_line.replace(" → ", "：", 1)
 
@@ -276,7 +272,6 @@ if "chart_data" in st.session_state:
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
         u_name = st.session_state.get("user_name", "TestUser")
         
-        # 変数を安全に初期化
         copy_lines = []
         copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
         copy_lines.append(f"日時: {data['date_str']}")
@@ -298,7 +293,6 @@ if "chart_data" in st.session_state:
             copy_lines.append(f"- {h.replace('**', '').replace('`', '')}")
 
         if data.get("house_rulers"):
-            # セッションから現在の選択状態を安全に取得
             ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
             
             copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
@@ -320,8 +314,5 @@ if "chart_data" in st.session_state:
             copy_lines.append("\n[複合アスペクト]")
             for pat in data["patterns"]:
                 copy_lines.append(f"- {pat}")
-
-        st.code("\n".join(copy_lines), language="text")
-            copy_lines.append(f"- {pat}")
 
         st.code("\n".join(copy_lines), language="text")
