@@ -269,9 +269,10 @@ if "chart_data" in st.session_state:
             st.info("*(該当するミッドポイントデータはありません)*" if lang == "日本語" else "*(No midpoint data)*")
 
     st.divider()
-    
+
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
-       u_name = st.session_state.get("user_name", "TestUser")
+        u_name = st.session_state.get("user_name", "TestUser")
+        
         # HTMLタグなどを安全に除去するヘルパー関数
         def clean_html(text):
             if not isinstance(text, str):
