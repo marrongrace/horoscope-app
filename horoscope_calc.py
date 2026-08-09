@@ -80,23 +80,23 @@ DIGNITIES = {
     "土星": {"domicile": ["山羊座", "水瓶座"], "exaltation": ["天秤座"], "detriment": ["蟹座", "獅子座"], "fall": ["牡羊座"]}
 }
 
-def apply_dignity_color(planet_name, body_str):
+def apply_dignity_color(planet_name, sign_name):
     """
-    天体名と出力文字列を受け取り、品位に応じてHTMLカラータグとラベルを付与する関数
+    天体名とサイン名を受け取り、品位に応じて星座部分のみにHTMLカラーとラベルを付与する
     """
     for p, dign in DIGNITIES.items():
         if p in planet_name:
-            if any(s in body_str for s in dign.get("domicile", [])):
-                return f'<span style="color: #ff4b4b; font-weight: bold;">{body_str}</span> <span style="font-size: 0.85em; color: #ff4b4b;">🔴 [Domicile]</span>'
-            elif any(s in body_str for s in dign.get("exaltation", [])):
-                return f'<span style="color: #ff69b4; font-weight: bold;">{body_str}</span> <span style="font-size: 0.85em; color: #ff69b4;">🩷 [Exaltation]</span>'
-            elif any(s in body_str for s in dign.get("detriment", [])):
-                return f'<span style="color: #1e90ff; font-weight: bold;">{body_str}</span> <span style="font-size: 0.85em; color: #1e90ff;">🔵 [Detriment]</span>'
-            elif any(s in body_str for s in dign.get("fall", [])):
-                return f'<span style="color: #00bfff; font-weight: bold;">{body_str}</span> <span style="font-size: 0.85em; color: #00bfff;">🩵 [Fall]</span>'
+            if any(s == sign_name for s in dign.get("domicile", [])):
+                return f'<span style="color: #ff4b4b; font-weight: bold;">{sign_name}</span> <span style="font-size: 0.85em; color: #ff4b4b;">🔴 [Domicile]</span>'
+            elif any(s == sign_name for s in dign.get("exaltation", [])):
+                return f'<span style="color: #ff69b4; font-weight: bold;">{sign_name}</span> <span style="font-size: 0.85em; color: #ff69b4;">🩷 [Exaltation]</span>'
+            elif any(s == sign_name for s in dign.get("detriment", [])):
+                return f'<span style="color: #1e90ff; font-weight: bold;">{sign_name}</span> <span style="font-size: 0.85em; color: #1e90ff;">🔵 [Detriment]</span>'
+            elif any(s == sign_name for s in dign.get("fall", [])):
+                return f'<span style="color: #00bfff; font-weight: bold;">{sign_name}</span> <span style="font-size: 0.85em; color: #00bfff;">🩵 [Fall]</span>'
     
-    # 品位に該当しない場合はそのまま返す
-    return body_str
+    # 品位に該当しない場合はそのままのサイン名を返す
+    return sign_name
     
 def get_cities_for_prefecture(pref):
     """指定された都道府県の市区町村リストを返す"""
@@ -622,8 +622,11 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         p_name, s_name = get_p_name(key, mode), get_s_name(sign, mode)
         formatted_pos = format_deg_min(pos)
         
+        # 品位を考慮した色付きサイン名を取得
+        colored_sign = apply_dignity_color(p_name, s_name)
+        
         if is_unknown_time:
-            base_str = f"**{p_name}** : {s_name} `({formatted_pos})`"
+            base_str = f"**{p_name}** : {colored_sign} `({formatted_pos})`"
         else:
             base_h_label = format_house_name(h_num, mode)
             rule_str = ""
@@ -637,13 +640,11 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
                     rule_str = f" (5度前ルール適用 ➡️ {eff_label})" if mode == "日本語" else f" (5-degree rule applied ➡️ {eff_label})"
             
             if rule_str:
-                base_str = f"**{p_name}** : {s_name} ({base_h_label}) `({formatted_pos})`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_str.strip()}"
+                base_str = f"**{p_name}** : {colored_sign} ({base_h_label}) `({formatted_pos})`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_str.strip()}"
             else:
-                base_str = f"**{p_name}** : {s_name} ({base_h_label}) `({formatted_pos})`"
+                base_str = f"**{p_name}** : {colored_sign} ({base_h_label}) `({formatted_pos})`"
 
-        # 品位（ディグニティ）の色・ラベルを適用して追加
-        colored_body_str = apply_dignity_color(p_name, base_str)
-        p_lines.append(colored_body_str)
+        p_lines.append(base_str)
 
     angles_list, h_lines = [], []
     ruler_list = []
