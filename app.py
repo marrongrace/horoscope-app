@@ -136,10 +136,13 @@ with st.sidebar:
             max_days = 29 if is_leap else 28
             
         days = list(range(1, max_days + 1))
-        current_d_val = st.session_state.get("birth_day_sel", 1)
-        if current_d_val > max_days:
-            current_d_val = 1
+        
+        # 🌟 月や年の変更時に日数が最大値を超えていたらセッションを安全な値に補正
+        if st.session_state.get("birth_day_sel", 1) > max_days:
+            st.session_state["birth_day_sel"] = max_days
             
+        current_d_val = st.session_state.get("birth_day_sel", 1)
+        
         weekdays_jp = ["日", "月", "火", "水", "木", "金", "土"]
         weekdays_en = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
         
@@ -277,7 +280,7 @@ if "chart_data" in st.session_state:
         else:
             st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
-    # 🌟 ハウスルーラーのタブ（重複を解消し「第1ハウス → 第11ハウス (ドミサイル)」の形に整形）
+    # 🌟 ハウスルーラーのタブ
     with tab5:
         if data.get("house_rulers"):
             ruler_mode = st.radio(
@@ -296,7 +299,6 @@ if "chart_data" in st.session_state:
 
             for r_line in target_rulers:
                 formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
-                # 「第1ハウス → 第1ハウス →」のような重複がある場合、「第1ハウス →」にスッキリ整理する
                 formatted_line = re.sub(r'^(第\d+ハウス)\s*→\s*\1\s*→\s*', r'\1 → ', formatted_line)
                 st.markdown(f"- {formatted_line}")
         else:
