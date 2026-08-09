@@ -197,11 +197,11 @@ if submit_button:
 
             if data["angles"]:
                 col_a1, col_a2 = st.columns(2)
-                col_a1.info(data["angles"][0])
-                col_a2.info(data["angles"][1])
+                col_a1.info(convert_to_dms(data["angles"][0]))
+                col_a2.info(convert_to_dms(data["angles"][1]))
                 st.write("")
 
-            # タブの作成（全5タブ）
+            # タブの作成（全6タブ）
             ruler_tab_label = "ハウスルーラー" if lang == "日本語" else "House Rulers"
             midpoint_tab_label = "ミッドポイント" if lang == "日本語" else "Midpoints"
             tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -215,7 +215,7 @@ if submit_button:
 
             with tab2:
                 for h in data["houses"]:
-                    st.markdown(f"- {h}")
+                    st.markdown(f"- {convert_to_dms(h)}")
 
             with tab3:
                 converted_aspects = convert_to_dms(data["aspects"])
@@ -245,18 +245,17 @@ if submit_button:
                 else:
                     st.info("*(出生時間不明のためハウスルーラー除外)*" if lang=="日本語" else "*(House rulers excluded due to unknown birth time)*")
 
-            st.divider()
-
-            # horoscope_calc から渡ってきた midpoints データを取得
+            # 🌟 ミッドポイントのタブ
             with tab6:
                 st.caption("主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
                 midpoints_data = data.get("midpoints", [])
-                
                 if midpoints_data:
                     for m_line in midpoints_data:
                         st.markdown(m_line)
                 else:
                     st.info("*(該当するミッドポイントデータはありません)*" if lang == "日本語" else "*(No midpoint data)*")
+
+            st.divider()
 
             with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
                 copy_lines = [
@@ -279,7 +278,6 @@ if submit_button:
                 for h in data["houses"]:
                     copy_lines.append(f"- {h.replace('**', '').replace('`', '')}")
 
-                # ハウスルーラー情報もコピーに追加
                 if data.get("house_rulers"):
                     copy_lines.append("\n[ハウスルーラー]")
                     for r_line in data["house_rulers"]:
