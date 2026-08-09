@@ -277,7 +277,7 @@ if "chart_data" in st.session_state:
         else:
             st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
-    # 🌟 ハウスルーラーのタブ（重複をスッキリ整理）
+    # 🌟 ハウスルーラーのタブ（重複を解消し「第1ハウス → 第11ハウス (ドミサイル)」の形に整形）
     with tab5:
         if data.get("house_rulers"):
             ruler_mode = st.radio(
@@ -296,11 +296,8 @@ if "chart_data" in st.session_state:
 
             for r_line in target_rulers:
                 formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
-                # 1. 「第1ハウス → 第1ハウス → 第11ハウス」のような重複を「第1ハウス → 第11ハウス」に整理
+                # 「第1ハウス → 第1ハウス →」のような重複がある場合、「第1ハウス →」にスッキリ整理する
                 formatted_line = re.sub(r'^(第\d+ハウス)\s*→\s*\1\s*→\s*', r'\1 → ', formatted_line)
-                # 2. 「第8ハウス → 第8ハウス (ドミサイル)」のような1回で完結するものを「第8ハウス (ドミサイル)」に整理
-                formatted_line = re.sub(r'^(第\d+ハウス)\s*→\s*\1(\s*\(.*\))$', r'\1\2', formatted_line)
-                
                 st.markdown(f"- {formatted_line}")
         else:
             st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
@@ -363,7 +360,6 @@ if "chart_data" in st.session_state:
             for r_line in target_rulers_for_copy:
                 formatted_r = clean_html(r_line).replace('➡️', '->').replace('->', '→')
                 formatted_r = re.sub(r'^(第\d+ハウス)\s*→\s*\1\s*→\s*', r'\1 → ', formatted_r)
-                formatted_r = re.sub(r'^(第\d+ハウス)\s*→\s*\1(\s*\(.*\))$', r'\1\2', formatted_r)
                 copy_lines.append(f"- {formatted_r}")
 
         copy_lines.append("\n[主要アスペクト]")
