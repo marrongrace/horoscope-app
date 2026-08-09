@@ -82,8 +82,7 @@ DIGNITIES = {
 
 def apply_dignity_color(planet_name, body_str):
     """
-    天体名と出力文字列（例: "太陽 : 蠍座 (第4ハウス)..."）を受け取り、
-    品位に応じてHTMLカラータグとラベルを付与する関数
+    天体名と出力文字列を受け取り、品位に応じてHTMLカラータグとラベルを付与する関数
     """
     for p, dign in DIGNITIES.items():
         if p in planet_name:
@@ -96,7 +95,7 @@ def apply_dignity_color(planet_name, body_str):
             elif any(s in body_str for s in dign.get("fall", [])):
                 return f'<span style="color: #00bfff; font-weight: bold;">{body_str}</span> <span style="font-size: 0.85em; color: #00bfff;">🩵 [Fall]</span>'
     
-    # 品位に該当しない（ペレグリン等）の場合はそのまま返す
+    # 品位に該当しない場合はそのまま返す
     return body_str
     
 def get_cities_for_prefecture(pref):
@@ -624,7 +623,7 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         formatted_pos = format_deg_min(pos)
         
         if is_unknown_time:
-            p_lines.append(f"**{p_name}** : {s_name} `({formatted_pos})`")
+            base_str = f"**{p_name}** : {s_name} `({formatted_pos})`"
         else:
             base_h_label = format_house_name(h_num, mode)
             rule_str = ""
@@ -638,9 +637,13 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
                     rule_str = f" (5度前ルール適用 ➡️ {eff_label})" if mode == "日本語" else f" (5-degree rule applied ➡️ {eff_label})"
             
             if rule_str:
-                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({formatted_pos})`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_str.strip()}")
+                base_str = f"**{p_name}** : {s_name} ({base_h_label}) `({formatted_pos})`<br>&nbsp;&nbsp;&nbsp;&nbsp;↳{rule_str.strip()}"
             else:
-                p_lines.append(f"**{p_name}** : {s_name} ({base_h_label}) `({formatted_pos})`")
+                base_str = f"**{p_name}** : {s_name} ({base_h_label}) `({formatted_pos})`"
+
+        # 品位（ディグニティ）の色・ラベルを適用して追加
+        colored_body_str = apply_dignity_color(p_name, base_str)
+        p_lines.append(colored_body_str)
 
     angles_list, h_lines = [], []
     ruler_list = []
@@ -701,7 +704,7 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         "error": None, "date_str": date_str, "loc_str": loc_str,
         "angles": angles_list, "bodies": p_lines, "houses": h_lines,
         "house_rulers": ruler_list,
-        "house_rulers_with_5deg": ruler_list_with_5deg,  # ★ 5度前適用ありの結果を追加
+        "house_rulers_with_5deg": ruler_list_with_5deg,
         "midpoints": midpoints_data,
         "aspects": calculate_aspects(all_aspect_objs, mode, view_type),
         "patterns": detect_patterns(all_aspect_objs, mode)
