@@ -247,33 +247,13 @@ if "chart_data" in st.session_state:
                 )
 
             for r_line in target_rulers:
-                line = r_line.replace("->", "→").replace("➡️", "→").strip()
-                if " → " in line:
-                    parts = line.split(" → ")
-                    house_sign = parts[0].strip()
-                    rulers = parts[1].strip()
-                    
-                    # 蠍座、水瓶座、魚座などのデュアルルーラー（伝統・現代）を個別に追いかけられるように展開
-                    if "(副:" in rulers:
-                        main_part = rulers.split("(副:")[0].strip()
-                        sub_part = rulers.split("(副:")[1].replace(")", "").strip()
-                        st.markdown(f"- **{house_sign}**")
-                        st.markdown(f"  - ➔ **支配星 (主):** {main_part}")
-                        st.markdown(f"  - ➔ **支配星 (副):** {sub_part}")
-                    elif "," in rulers:
-                        sub_rulers = [r.strip() for r in rulers.split(",")]
-                        st.markdown(f"- **{house_sign}**")
-                        for sr in sub_rulers:
-                            st.markdown(f"  - ➔ {sr}")
-                    elif " と " in rulers:
-                        sub_rulers = [r.strip() for r in rulers.split(" と ")]
-                        st.markdown(f"- **{house_sign}**")
-                        for sr in sub_rulers:
-                            st.markdown(f"  - ➔ {sr}")
-                    else:
-                        st.markdown(f"- **{house_sign}** ➔ **支配星:** {rulers}")
-                else:
-                    st.markdown(f"- {line}")
+                formatted_line = (
+                    r_line.replace("->", "→").replace("➡️", "→").strip()
+                )
+                if " → " in formatted_line:
+                    formatted_line = formatted_line.replace(" → ", "：", 1)
+
+                st.markdown(f"- {formatted_line}")
         else:
             st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
 
@@ -297,7 +277,9 @@ if "chart_data" in st.session_state:
         def clean_html(text):
             if not isinstance(text, str):
                 return str(text)
+            # <span ...> や </span> などのHTMLタグを削除
             text = re.sub(r'<[^>]+>', '', text)
+            # Markdownの装飾（**や`）も除去
             text = text.replace('**', '').replace('`', '')
             return text
 
@@ -334,33 +316,8 @@ if "chart_data" in st.session_state:
             )
             
             for r_line in target_rulers_for_copy:
-                line = r_line.replace("->", "→").replace("➡️", "→").strip()
-                if " → " in line:
-                    parts = line.split(" → ")
-                    house_sign = parts[0].strip()
-                    rulers = parts[1].strip()
-                    
-                    if "(副:" in rulers:
-                        main_part = clean_html(rulers.split("(副:")[0].strip())
-                        sub_part = clean_html(rulers.split("(副:")[1].replace(")", "").strip())
-                        copy_lines.append(f"- {house_sign}")
-                        copy_lines.append(f"   - 支配星(主): {main_part}")
-                        copy_lines.append(f"   - 支配星(副): {sub_part}")
-                    elif "," in rulers:
-                        sub_rulers = [clean_html(r.strip()) for r in rulers.split(",")]
-                        copy_lines.append(f"- {house_sign}")
-                        for sr in sub_rulers:
-                            copy_lines.append(f"   - {sr}")
-                    elif " と " in rulers:
-                        sub_rulers = [clean_html(r.strip()) for r in rulers.split(" と ")]
-                        copy_lines.append(f"- {house_sign}")
-                        for sr in sub_rulers:
-                            copy_lines.append(f"   - {sr}")
-                    else:
-                        formatted_r = f"{house_sign} ➔ 支配星: {clean_html(rulers)}"
-                        copy_lines.append(f"- {formatted_r}")
-                else:
-                    copy_lines.append(f"- {clean_html(r_line).replace('➡️', '->')}")
+                formatted_r = clean_html(r_line).replace('➡️', '->')
+                copy_lines.append(f"- {formatted_r}")
 
         copy_lines.append("\n[主要アスペクト]")
         clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
