@@ -247,6 +247,17 @@ if submit_button:
 
             st.divider()
 
+            # horoscope_calc から渡ってきた midpoints データを取得
+            with tab6:
+                st.caption("主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
+                midpoints_data = data.get("midpoints", [])
+                
+                if midpoints_data:
+                    for m_line in midpoints_data:
+                        st.markdown(m_line)
+                else:
+                    st.info("*(該当するミッドポイントデータはありません)*" if lang == "日本語" else "*(No midpoint data)*")
+
             with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
                 copy_lines = [
                     f"【ホロスコープ鑑定データ: {user_name}】",
