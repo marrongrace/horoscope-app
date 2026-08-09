@@ -257,13 +257,14 @@ if "chart_data" in st.session_state:
         else:
             st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
 
-    # 🌟 ミッドポイントのタブ
+    # 🌟 ミッドポイントのタブ（ハイフン重複防止）
     with tab6:
         st.caption("主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
         midpoints_data = data.get("midpoints", [])
         if midpoints_data:
             for m_line in midpoints_data:
-                st.markdown(m_line)
+                clean_m = m_line.lstrip("- ").strip()
+                st.markdown(f"- {clean_m}")
         else:
             st.info("*(該当するミッドポイントデータはありません)*" if lang == "日本語" else "*(No midpoint data)*")
 
@@ -315,12 +316,12 @@ if "chart_data" in st.session_state:
             for pat in data["patterns"]:
                 copy_lines.append(f"- {pat}")
 
-        # ミッドポイントの項目を一括コピーにも追加
+        # ミッドポイント（ハイフン重複をきれいにならして追加）
         midpoints_data = data.get("midpoints", [])
         if midpoints_data:
             copy_lines.append("\n[ミッドポイント]")
             for m_line in midpoints_data:
-                clean_m = m_line.replace("**", "").replace("`", "")
+                clean_m = m_line.replace("**", "").replace("`", "").lstrip("- ").strip()
                 copy_lines.append(f"- {clean_m}")
 
         st.code("\n".join(copy_lines), language="text")
