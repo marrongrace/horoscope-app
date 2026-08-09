@@ -129,14 +129,32 @@ def validate_and_get_coords(pref, city_name):
     
     return False, "地名が見つからないか、通信エラーが発生しました", None, None
 
-def get_house_ruler_chains(houses_list, bodies_meta, house_name_map):
+def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_rule=False, house_cusp_abs=None):
     """
     各ハウスのカスプのルーラーをたどる連鎖（チェーン）を計算する
+    use_5_deg_rule=True の場合は、5度前ルール適用後の天体ハウス位置を採用する
     """
     body_house_map = {}
+    major_bodies = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
+
     for key, p in bodies_meta:
         h_raw = p.get('house', 'First_House') if isinstance(p, dict) else getattr(p, 'house', 'First_House')
         h_num = house_name_map.get(str(h_raw), 1)
+        
+        # 5度前ルールが有効、かつ主要天体で条件を満たす場合は次のハウスにスライド
+        if use_5_deg_rule and key in major_bodies and house_cusp_abs:
+            sign = p.get('sign', 'Aries') if isinstance(p, dict) else getattr(p, 'sign', 'Aries')
+            pos = p.get('position', 0.0) if isinstance(p, dict) else getattr(p, 'position', 0.0)
+            norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
+            s_idx = list(SIGN_DATA.keys()).index(norm_sign) if norm_sign in SIGN_DATA else 0
+            abs_p_pos = s_idx * 30 + pos
+            
+            next_idx = (h_num % 12)
+            cusp_next = house_cusp_abs[next_idx]
+            dist = (cusp_next - abs_p_pos) % 360
+            if 0.0 <= dist <= 5.0:
+                h_num = next_idx + 1
+
         body_house_map[key] = h_num
 
     house_links = {}
@@ -189,11 +207,8 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     """
     body_map = {b["key"]: b["abs_pos"] for b in bodies}
     planet_keys = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
-    
-    # 木星以降の大天体（社会天体・トランスサタニアン）の定義
     outer_planets = {"Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
     
-    # 太陽始まり、周期が早い順のプライオリティ定義
     priority = [
         "Sun", "Moon", "Mercury", "Venus", "Mars",
         "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto",
@@ -212,19 +227,17 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
         return mp % 360
 
     hit_results = []
-    aspect_angles = [0, 90, 180]  # ハードアスペクト（0°, 90°, 180°）
-    orb_limit = 1.5                # タイトなオーブ 1.5°以内
+    aspect_angles = [0, 90, 180]
+    orb_limit = 1.5
 
     all_points = list(body_map.items())
     n = len(all_points)
 
-    # 1. 異なる2点間ペアのミッドポイントを計算
     for i in range(n):
         for j in range(i + 1, n):
             k1, pos1 = all_points[i]
             k2, pos2 = all_points[j]
             
-            # 木星以降の大天体同士のペア（例: 木星/冥王星など）は除外
             if k1 in outer_planets and k2 in outer_planets:
                 continue
             
@@ -238,7 +251,6 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
                 if (k1, k2) not in allowed_pairs and (k2, k1) not in allowed_pairs:
                     continue
 
-            # 優先度が高い方を左側に正規化
             if get_prio(k1) > get_prio(k2):
                 k1, k2 = k2, k1
                 pos1, pos2 = pos2, pos1
@@ -270,7 +282,6 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
         if key not in unique_hits or h["orb"] < unique_hits[key]["orb"]:
             unique_hits[key] = h
 
-    # プライオリティ順（太陽始まり）かつオーブの小ささでソート
     formatted_lines = []
     sorted_hits = sorted(unique_hits.values(), key=lambda x: (x["prio1"], x["prio2"], x["orb"]))
     for h in sorted_hits:
@@ -283,9 +294,6 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     return formatted_lines
 
 def format_deg_min(decimal_deg):
-    """
-    10進数の度数（例: 22.27）を 「22°16′」 のような度・分形式に変換する
-    """
     deg = int(decimal_deg)
     minutes = round((decimal_deg - deg) * 60)
     if minutes == 60:
@@ -606,6 +614,7 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
 
     angles_list, h_lines = [], []
     ruler_list = []
+    ruler_list_with_5deg = []
     
     if not is_unknown_time:
         asc_s = get_s_name(chart.first_house.sign, mode)
@@ -621,21 +630,17 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
             f"**{mc_lbl}** : {mc_s} `({mc_pos_str})`"
         ]
         
-        # ASC, MC をミッドポイント計算用に追加
-        all_aspect_objs.append({"key": "ASC", "abs_pos": s_idx * 30 + chart.first_house.position if 's_idx' in locals() else chart.first_house.position})
-        # 正確なASC/MCの絶対座標を付与
-        asc_abs_pos = 0 # 安全確保
+        asc_abs_pos = 0
         for h_idx, h in enumerate(houses_list):
-            if h_idx == 0: # 1ハウスがASC
+            if h_idx == 0:
                 s_norm = SIGN_NORM_MAP.get(str(h.sign), "Aries")
                 s_idx_asc = list(SIGN_DATA.keys()).index(s_norm) if s_norm in SIGN_DATA else 0
                 asc_abs_pos = s_idx_asc * 30 + h.position
-            if h_idx == 9: # 10ハウスがMC
+            if h_idx == 9:
                 s_norm = SIGN_NORM_MAP.get(str(h.sign), "Aries")
                 s_idx_mc = list(SIGN_DATA.keys()).index(s_norm) if s_norm in SIGN_DATA else 0
                 mc_abs_pos = s_idx_mc * 30 + h.position
 
-        # リスト内の感受点に正確な絶対位置を設定
         for item in all_aspect_objs:
             if item["key"] == "ASC":
                 item["abs_pos"] = asc_abs_pos
@@ -646,7 +651,10 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
             h_pos_str = format_deg_min(h.position)
             h_lines.append(f"**{format_house_name(i, mode)}** : {get_s_name(h.sign, mode)} `({h_pos_str})`")
         
-        ruler_list = get_house_ruler_chains(houses_list, bodies_meta, house_name_map)
+        # ハウスルーラー（5度前適用なし）
+        ruler_list = get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_rule=False)
+        # ハウスルーラー（5度前適用あり）
+        ruler_list_with_5deg = get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_rule=True, house_cusp_abs=house_cusp_abs)
     else:
         h_lines.append("*(出生時間不明のためハウス除外)*" if mode == "日本語" else "*(Houses excluded due to unknown birth time)*")
 
@@ -657,13 +665,13 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
     lng_str = to_dms(chart.lng, is_lat=False, mode=mode)
     loc_str = f"[{city_display_name}] [{lat_str}, {lng_str} (十進: {chart.lat:.4f}, {chart.lng:.4f})]"
 
-    # ミッドポイントデータの計算実行
     midpoints_data = calculate_midpoints(all_aspect_objs, chart_angles=None, mode=mode)
 
     return {
         "error": None, "date_str": date_str, "loc_str": loc_str,
         "angles": angles_list, "bodies": p_lines, "houses": h_lines,
         "house_rulers": ruler_list,
+        "house_rulers_with_5deg": ruler_list_with_5deg,  # ★ 5度前適用ありの結果を追加
         "midpoints": midpoints_data,
         "aspects": calculate_aspects(all_aspect_objs, mode, view_type),
         "patterns": detect_patterns(all_aspect_objs, mode)
