@@ -218,19 +218,9 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
             if len(path) > 15:
                 break
         
-        # 重複するハウス名の連続をきれいに整形（例: 第1ハウス → 第1ハウス → 第11ハウス を 第1ハウス → 第11ハウス に）
-        cleaned_path = []
-        for h in path:
-            if not cleaned_path or cleaned_path[-1] != h:
-                cleaned_path.append(h)
-
-        path_str = " → ".join([f"第{h}ハウス" for h in cleaned_path])
-        
+        path_str = " → ".join([f"第{h}ハウス" for h in path])
         if status == "domicile":
-            if len(cleaned_path) == 1:
-                display_text = f"**第{start_h}ハウス** ➡️ 第{start_h}ハウス (ドミサイル)"
-            else:
-                display_text = f"**第{start_h}ハウス** ➡️ {path_str} (ドミサイル)"
+            display_text = f"**第{start_h}ハウス** ➡️ {path_str} (ドミサイル)"
         elif status == "loop":
             display_text = f"**第{start_h}ハウス** ➡️ {path_str} (以降 第{loop_target}ハウスとのループ)"
         else:
