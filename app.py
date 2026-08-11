@@ -298,56 +298,108 @@ if "chart_data" in st.session_state:
             return text
 
         copy_lines = []
-        copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
-        copy_lines.append(f"日時: {data['date_str']}")
-        copy_lines.append(f"場所: {data['loc_str']}\n")
+        if lang == "日本語":
+            copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
+            copy_lines.append(f"日時: {data['date_str']}")
+            copy_lines.append(f"場所: {data['loc_str']}\n")
 
-        if data["angles"]:
-            copy_lines.append("[アングル]")
-            for a in data["angles"]:
-                copy_lines.append(f"- {clean_html(a)}")
-            copy_lines.append("")
-        
-        copy_lines.append("[天体配置]")
-        for b in data["bodies"]:
-            clean_b = clean_html(b)
-            clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
-            copy_lines.append(f"- {clean_b}")
+            if data["angles"]:
+                copy_lines.append("[アングル]")
+                for a in data["angles"]:
+                    copy_lines.append(f"- {clean_html(a)}")
+                copy_lines.append("")
             
-        copy_lines.append("\n[12ハウス]")
-        for h in data["houses"]:
-            copy_lines.append(f"- {clean_html(h)}")
+            copy_lines.append("[天体配置]")
+            for b in data["bodies"]:
+                clean_b = clean_html(b)
+                clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
+                copy_lines.append(f"- {clean_b}")
+                
+            copy_lines.append("\n[12ハウス]")
+            for h in data["houses"]:
+                copy_lines.append(f"- {clean_html(h)}")
 
-        if data.get("house_rulers"):
-            ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
+            if data.get("house_rulers"):
+                ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
+                copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
+                
+                is_without = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
+                target_rulers_for_copy = (
+                    data.get("house_rulers", []) 
+                    if is_without 
+                    else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
+                )
+                
+                for r_line in target_rulers_for_copy:
+                    formatted_r = clean_html(r_line).replace('➡️', '->')
+                    copy_lines.append(f"- {formatted_r}")
+
+            copy_lines.append("\n[主要アスペクト]")
+            clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
+            copy_lines.append(clean_aspects)
+
+            if data["patterns"]:
+                copy_lines.append("\n[複合アスペクト]")
+                for pat in data["patterns"]:
+                    copy_lines.append(f"- {clean_html(pat)}")
+
+            midpoints_data = data.get("midpoints", [])
+            if midpoints_data:
+                copy_lines.append("\n[ミッドポイント]")
+                for m_line in midpoints_data:
+                    clean_m = clean_html(m_line).lstrip("- ").strip()
+                    copy_lines.append(f"- {clean_m}")
+        else:
+            # 英語モード用のヘッダー・ラベル
+            copy_lines.append(f"[Horoscope Reading Data: {u_name}]")
+            copy_lines.append(f"Date & Time: {data['date_str']}")
+            copy_lines.append(f"Location: {data['loc_str']}\n")
+
+            if data["angles"]:
+                copy_lines.append("[Angles]")
+                for a in data["angles"]:
+                    copy_lines.append(f"- {clean_html(a)}")
+                copy_lines.append("")
             
-            copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
-            
-            target_rulers_for_copy = (
-                data.get("house_rulers", []) 
-                if ruler_mode.startswith("5度前ルール適用なし") 
-                else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
-            )
-            
-            for r_line in target_rulers_for_copy:
-                formatted_r = clean_html(r_line).replace('➡️', '->')
-                copy_lines.append(f"- {formatted_r}")
+            copy_lines.append("[Celestial Bodies]")
+            for b in data["bodies"]:
+                clean_b = clean_html(b)
+                clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
+                copy_lines.append(f"- {clean_b}")
+                
+            copy_lines.append("\n[12 Houses]")
+            for h in data["houses"]:
+                copy_lines.append(f"- {clean_html(h)}")
 
-        copy_lines.append("\n[主要アスペクト]")
-        clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
-        copy_lines.append(clean_aspects)
+            if data.get("house_rulers"):
+                ruler_mode = st.session_state.get("ruler_mode_radio", "Without 5-degree rule")
+                copy_lines.append(f"\n[House Rulers ({ruler_mode})]")
+                
+                is_without = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
+                target_rulers_for_copy = (
+                    data.get("house_rulers", []) 
+                    if is_without 
+                    else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
+                )
+                
+                for r_line in target_rulers_for_copy:
+                    formatted_r = clean_html(r_line).replace('➡️', '->')
+                    copy_lines.append(f"- {formatted_r}")
 
-        if data["patterns"]:
-            copy_lines.append("\n[複合アスペクト]")
-            for pat in data["patterns"]:
-                copy_lines.append(f"- {clean_html(pat)}")
+            copy_lines.append("\n[Main Aspects]")
+            clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
+            copy_lines.append(clean_aspects)
 
-        # ミッドポイント
-        midpoints_data = data.get("midpoints", [])
-        if midpoints_data:
-            copy_lines.append("\n[ミッドポイント]")
-            for m_line in midpoints_data:
-                clean_m = clean_html(m_line).lstrip("- ").strip()
-                copy_lines.append(f"- {clean_m}")
+            if data["patterns"]:
+                copy_lines.append("\n[Complex Patterns]")
+                for pat in data["patterns"]:
+                    copy_lines.append(f"- {clean_html(pat)}")
+
+            midpoints_data = data.get("midpoints", [])
+            if midpoints_data:
+                copy_lines.append("\n[Midpoints]")
+                for m_line in midpoints_data:
+                    clean_m = clean_html(m_line).lstrip("- ").strip()
+                    copy_lines.append(f"- {clean_m}")
 
         st.code("\n".join(copy_lines), language="text")
