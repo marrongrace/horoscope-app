@@ -235,14 +235,24 @@ if "chart_data" in st.session_state:
     # 🌟 ハウスルーラーのタブ（5度前ルール適用の切り替え機能付き）
     with tab5:
         if data.get("house_rulers"):
+            ruler_mode_options = (
+                ["5度前ルール適用なし", "5度前ルール適用あり"] 
+                if lang == "日本語" 
+                else ["Without 5-degree rule", "With 5-degree rule"]
+            )
+            ruler_mode_label = "表示モードを選択" if lang == "日本語" else "Select Display Mode"
+            
             ruler_mode = st.radio(
-                "表示モードを選択",
-                ["5度前ルール適用なし", "5度前ルール適用あり"],
+                ruler_mode_label,
+                ruler_mode_options,
                 key="ruler_mode_radio"
             )
             st.write("")
 
-            if ruler_mode.startswith("5度前ルール適用なし"):
+            # 内部判定用の判定キー
+            is_without_5deg = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
+
+            if is_without_5deg:
                 target_rulers = data.get("house_rulers", [])
             else:
                 target_rulers = data.get(
@@ -254,12 +264,12 @@ if "chart_data" in st.session_state:
                     r_line.replace("->", "→").replace("➡️", "→").strip()
                 )
                 if " → " in formatted_line:
-                    formatted_line = formatted_line.replace(" → ", "：", 1)
+                    separator = "：" if lang == "日本語" else ": "
+                    formatted_line = formatted_line.replace(" → ", separator, 1)
 
                 st.markdown(f"- {formatted_line}")
         else:
             st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
-
     # 🌟 ミッドポイントのタブ（ハイフン重複防止）
     with tab6:
         st.caption("※1 主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
