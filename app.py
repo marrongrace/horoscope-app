@@ -276,9 +276,24 @@ if "chart_data" in st.session_state:
                     separator = "：" if lang == "日本語" else ": "
                     formatted_line = formatted_line.replace(" → ", separator, 1)
 
+                # 💡 英語モードのときにハウスルーラー内の日本語表記（第Xハウス・ドミサイル等）を英語に置換
+                if lang != "日本語":
+                    for i in range(12, 0, -1):
+                        suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
+                        formatted_line = formatted_line.replace(f"第{i}ハウス", f"{i}{suffix} House")
+                    
+                    formatted_line = (
+                        formatted_line
+                        .replace("ドミサイル", "Domicile")
+                        .replace("エグザルテーション", "Exaltation")
+                        .replace("デトリメント", "Detriment")
+                        .replace("フォール", "Fall")
+                    )
+
                 st.markdown(f"- {formatted_line}")
         else:
             st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
+            
     # 🌟 ミッドポイントのタブ（ハイフン重複防止）
     with tab6:
         st.caption("※1 主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
