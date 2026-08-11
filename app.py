@@ -391,10 +391,15 @@ if "chart_data" in st.session_state:
                 copy_lines.append(f"- {clean_html(h)}")
 
             if data.get("house_rulers"):
-                ruler_mode = st.session_state.get("ruler_mode_radio", "Without 5-degree rule")
-                copy_lines.append(f"\n[House Rulers ({ruler_mode})]")
+                ruler_mode_raw = st.session_state.get("ruler_mode_radio", "Without 5-degree rule")
+                if ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]:
+                    ruler_mode_en = "Without 5-degree rule"
+                else:
+                    ruler_mode_en = "With 5-degree rule"
                 
-                is_without = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
+                copy_lines.append(f"\n[House Rulers ({ruler_mode_en})]")
+                
+                is_without = ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]
                 target_rulers_for_copy = (
                     data.get("house_rulers", []) 
                     if is_without 
@@ -403,6 +408,20 @@ if "chart_data" in st.session_state:
                 
                 for r_line in target_rulers_for_copy:
                     formatted_r = clean_html(r_line).replace('➡️', '->')
+                    
+                    # 💡 ハウスルーラー内の日本語表記（第Xハウス・ドミサイル等）を英語に置換
+                    for i in range(12, 0, -1):
+                        suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
+                        formatted_r = formatted_r.replace(f"第{i}ハウス", f"{i}{suffix} House")
+                    
+                    formatted_r = (
+                        formatted_r
+                        .replace("ドミサイル", "Domicile")
+                        .replace("エグザルテーション", "Exaltation")
+                        .replace("デトリメント", "Detriment")
+                        .replace("フォール", "Fall")
+                    )
+                    
                     copy_lines.append(f"- {formatted_r}")
 
             copy_lines.append("\n[Main Aspects]")
