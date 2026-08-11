@@ -229,14 +229,18 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
         
     return chain_results
 
-def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
+def calculate_midpoints(bodies, chart_angles=None, mode="日本語", is_unknown_time=False):
     """
     指定された条件に特化したミッドポイント（ハーフサム）を計算する
     ※ 同一天体ペア、および木星以降の大天体同士のペアを除外
+    ※ is_unknown_time が True の場合、Moon, ASC, MC を除外
     """
     body_map = {b["key"]: b["abs_pos"] for b in bodies}
     planet_keys = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
     outer_planets = {"Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
+    
+    # 出生時間不明時に除外するキー
+    unknown_exclude_keys = {"Moon", "ASC", "MC"}
     
     priority = [
         "Sun", "Moon", "Mercury", "Venus", "Mars",
@@ -259,7 +263,13 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
     aspect_angles = [0, 90, 180]
     orb_limit = 1.5
 
-    all_points = list(body_map.items())
+    # ★ ここで is_unknown_time に応じて Moon, ASC, MC を除外する
+    all_points = []
+    for k, pos in body_map.items():
+        if is_unknown_time and k in unknown_exclude_keys:
+            continue
+        all_points.append((k, pos))
+
     n = len(all_points)
 
     for i in range(n):
@@ -276,6 +286,7 @@ def calculate_midpoints(bodies, chart_angles=None, mode="日本語"):
                     continue
 
             if not (k1 in planet_keys or k2 in planet_keys) and not is_node_involved:
+                # ※ もし Moon, ASC, MC が除外された場合、ここでの ASC/MC ペアの扱いも自動的に安全になります
                 allowed_pairs = {("Sun", "Moon"), ("Moon", "Sun"), ("ASC", "MC"), ("MC", "ASC")}
                 if (k1, k2) not in allowed_pairs and (k2, k1) not in allowed_pairs:
                     continue
