@@ -710,15 +710,14 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
     lng_str = to_dms(chart.lng, is_lat=False, mode=mode)
     loc_str = f"[{city_display_name}] [{lat_str}, {lng_str} (十進: {chart.lat:.4f}, {chart.lng:.4f})]"
 
-    # get_chart_data 内での呼び出し例
-    midpoints = calculate_midpoints(planet_list, chart_angles=angles, mode=lang, is_unknown_time=unknown_time)
+    midpoints = calculate_midpoints(all_aspect_objs, chart_angles=angles_list, mode=mode, is_unknown_time=is_unknown_time)
 
     return {
         "error": None, "date_str": date_str, "loc_str": loc_str,
         "angles": angles_list, "bodies": p_lines, "houses": h_lines,
         "house_rulers": ruler_list,
         "house_rulers_with_5deg": ruler_list_with_5deg,
-        "midpoints": midpoints_data,
+        "midpoints": midpoints,  # 変数名を合わせる
         "aspects": calculate_aspects(all_aspect_objs, mode, view_type),
         "patterns": detect_patterns(all_aspect_objs, mode)
     }
