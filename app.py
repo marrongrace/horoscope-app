@@ -31,7 +31,7 @@ ui_texts = {
         "page_title": "🔮 ホロスコープ作成システム",
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
-        "name_input": "お名前 / ラベル",
+        "name_input": "お名前 / ニックネーム",
         "birth_date": "生年月日",
         "birth_time": "出生時間（日本時間）",
         "pref_select": "都道府県",
