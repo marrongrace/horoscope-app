@@ -139,6 +139,9 @@ with st.sidebar:
     if is_valid and lat_res is not None and lng_res is not None:
         st.session_state.input_lat_val = lat_res
         st.session_state.input_lng_val = lng_res
+        # 👇【追加】number_inputのキーに紐づくステートも強制的に更新する
+        st.session_state.lat_number_input = lat_res
+        st.session_state.lng_number_input = lng_res
     
     if "input_lat_val" not in st.session_state: st.session_state.input_lat_val = 36.1243
     if "input_lng_val" not in st.session_state: st.session_state.input_lng_val = 139.5983
