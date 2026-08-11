@@ -259,7 +259,8 @@ if "chart_data" in st.session_state:
 
     # 🌟 ミッドポイントのタブ（ハイフン重複防止）
     with tab6:
-        st.caption("主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
+        st.caption("※1 主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
+        st.caption("※2 出生時間不明の場合、月・Asc・Mcを含む組み合わせは除外してあります。")
         midpoints_data = data.get("midpoints", [])
         if midpoints_data:
             for m_line in midpoints_data:
