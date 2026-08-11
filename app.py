@@ -183,6 +183,15 @@ if "chart_data" in st.session_state:
     data = st.session_state.chart_data
     u_name = st.session_state.get("user_name", "TestUser")
 
+    display_loc_str = data['loc_str']
+    if lang != "日本語":
+        display_loc_str = (
+            display_loc_str
+            .replace("北緯", "N")
+            .replace("東経", "E")
+            .replace("十進:", "Decimal:")
+        )
+
     st.markdown(f"""
     <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
         <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
@@ -287,6 +296,16 @@ if "chart_data" in st.session_state:
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
         u_name = st.session_state.get("user_name", "TestUser")
         
+        # 英語モード時に位置情報の日本語表記（北緯・東経・十進）を英語に置換
+        display_loc_str = data['loc_str']
+        if lang != "日本語":
+            display_loc_str = (
+                display_loc_str
+                .replace("北緯", "N")
+                .replace("東経", "E")
+                .replace("十進:", "Decimal:")
+            )
+        
         # HTMLタグなどを安全に除去するヘルパー関数
         def clean_html(text):
             if not isinstance(text, str):
@@ -353,7 +372,7 @@ if "chart_data" in st.session_state:
             # 英語モード用のヘッダー・ラベル
             copy_lines.append(f"[Horoscope Reading Data: {u_name}]")
             copy_lines.append(f"Date & Time: {data['date_str']}")
-            copy_lines.append(f"Location: {data['loc_str']}\n")
+            copy_lines.append(f"Location: {display_loc_str}\n")
 
             if data["angles"]:
                 copy_lines.append("[Angles]")
