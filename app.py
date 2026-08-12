@@ -456,3 +456,11 @@ if "chart_data" in st.session_state:
                     copy_lines.append(f"- {clean_m}")
 
         st.code("\n".join(copy_lines), language="text")
+        
+        # 💡 ダウンロードボタンを追加
+        st.download_button(
+            label="💾 テキストファイルとしてダウンロード / Download as text",
+            data="\n".join(copy_lines),
+            file_name=f"horoscope_{u_name}.txt",
+            mime="text/plain"
+        )
