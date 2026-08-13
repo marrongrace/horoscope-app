@@ -464,17 +464,10 @@ if "chart_data" in st.session_state:
             file_name=f"horoscope_{u_name}.txt",
             mime="text/plain"
         )
-
-# 1. テキストデータを結合して完成させる
-full_text = "\n".join(copy_lines)
-
-# 2. 先頭にBOM（\ufeff）を付与して、スマホやタブレットでも文字化けしないようにする
-boms_text = "\ufeff" + full_text
-
-# 3. ダウンロードボタンを設置
-st.download_button(
-    label="💾 テキストファイルとしてダウンロード / Download as text",
-    data=boms_text,  # ← ここにBOM付きのテキストを渡す
-    file_name=f"horoscope_{u_name}.txt",
-    mime="text/plain;charset=utf-8"  # ← 文字コードを明示
-)
+        # 💡 文字コードを明示してダウンロードボタンを設置
+        st.download_button(
+            label="💾 テキストファイルとしてダウンロード / Download as text",
+            data=boms_text,
+            file_name=f"horoscope_{u_name}.txt",
+            mime="text/plain;charset=utf-8"
+        )
