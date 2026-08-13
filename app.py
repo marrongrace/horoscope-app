@@ -464,6 +464,7 @@ if "chart_data" in st.session_state:
             file_name=f"horoscope_{u_name}.txt",
             mime="text/plain"
         )
+        
         # 💡 文字コードを明示してダウンロードボタンを設置
         st.download_button(
             label="💾 テキストファイルとしてダウンロード / Download as text",
