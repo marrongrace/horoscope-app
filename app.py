@@ -464,6 +464,10 @@ if "chart_data" in st.session_state:
             file_name=f"horoscope_{u_name}.txt",
             mime="text/plain"
         )
+
+        # 💡 スマホやタブレットでも文字化けしないようにBOM付きテキストを生成
+        full_text = "\n".join(copy_lines)
+        boms_text = "\ufeff" + full_text
         
         # 💡 文字コードを明示してダウンロードボタンを設置
         st.download_button(
