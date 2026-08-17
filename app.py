@@ -439,6 +439,18 @@ if "chart_data" in st.session_state:
                 st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
 
         st.divider()
+        st.markdown(f"""
+        <div style="background-color: #f0f4f8; padding: 20px; border-radius: 10px; text-align: center;">
+            <h3 style="margin-top: 0;">❕ 何かお気づきの点がありましたら</h3>
+            <p>今回のホロスコープのより詳しい解説は、noteで発信しています。</p>
+            <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none;">
+                <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                    noteをチェックする / Visit Note
+                </button>
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
+        st.write("") # スペース調整
 
         with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
             u_name = st.session_state.get("user_name", "TestUser")
@@ -753,9 +765,3 @@ if "chart_data" in st.session_state:
                 file_name=f"synastry_{u_name}_{p2_name}.txt",
                 mime="text/plain;charset=utf-8"
             )
-            st.divider()
-            st.markdown("""
-            ### ❕ 何かお気づきの点がありましたら...
-            noteの質問箱で受け付けております。こちらは匿名でご利用いただけます。
-            [👉 詳細はこちら(https://note.com/marroscorps)]
-            """)
