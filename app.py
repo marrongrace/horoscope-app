@@ -38,7 +38,7 @@ ui_texts = {
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
         "mode_select": "🔮 鑑定モード",
-        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）"],
+        "mode_options": ["シングルホロスコープ", "シナストリー（相性）"],
         "p1_header": "1人目",
         "p2_header": "2人目",
         "name_input": "お名前 / ニックネーム",
@@ -118,12 +118,52 @@ def convert_to_dms(text):
         if min_val == 60:
             deg += 1
             min_val = 0
-        return f"({deg}°{min_val:02d})"
+        return f"({deg}°{min_val:02d}')"
     
     return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
 
+def localize_text(text, lang):
+    """
+    英語モードの際に、占星術用語（星座、天体、ハウス、アスペクト等）を英語に翻訳する関数
+    """
+    if lang == "日本語" or not isinstance(text, str):
+        return text
+    
+    translations = {
+        # Zodiac Signs
+        "牡羊座": "Aries", "牡牛座": "Taurus", "双子座": "Gemini", "蟹座": "Cancer",
+        "獅子座": "Leo", "乙女座": "Virgo", "天秤座": "Libra", "蠍座": "Scorpio",
+        "射手座": "Sagittarius", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces",
+        
+        # Planets & Points
+        "太陽": "Sun", "月": "Moon", "水星": "Mercury", "金星": "Venus",
+        "火星": "Mars", "木星": "Jupiter", "土星": "Saturn", "天王星": "Uranus",
+        "海王星": "Neptune", "冥王星": "Pluto", "ドラゴンヘッド": "North Node",
+        "ドラゴンテイル": "South Node", "キロン": "Chiron",
+        
+        # Aspects
+        "コンジャンクション": "Conjunction", "オポジション": "Opposition",
+        "トライン": "Trine", "スクエア": "Square", "セクスタイル": "Sextile",
+        "クインカンクス": "Quincunx",
+        
+        # Dignities
+        "ドミサイル": "Domicile", "エグザルテーション": "Exaltation",
+        "デトリメント": "Detriment", "フォール": "Fall",
+        
+        # Misc
+        "5度前ルール適用": "5-degree rule applied",
+    }
+    
+    for i in range(12, 0, -1):
+        suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
+        translations[f"第{i}ハウス"] = f"{i}{suffix} House"
+        
+    for jp, en in translations.items():
+        text = text.replace(jp, en)
+        
+    return text
+
 # 💡 1人分の入力フォームを関数化
-# 引数 show_header を追加して、見出しの表示/非表示を制御できるようにしました
 def render_user_input_form(prefix, default_name, show_header=True):
     if show_header:
         header_text = t["p1_header"] if prefix == "p1" else t["p2_header"]
@@ -193,13 +233,12 @@ with st.sidebar:
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
     st.markdown("---")
 
-    # 💡 ここを修正：show_header=is_synastry を追加
+    # 1人目の入力
     p1_data = render_user_input_form("p1", "TestUser1", show_header=is_synastry)
 
     # 2人目の入力（シナストリー選択時のみ表示）
     p2_data = None
     if is_synastry:
-        # 💡 ここを修正：show_header=True を追加
         p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
 
     st.header(t["settings_header"])
@@ -302,14 +341,14 @@ if "chart_data" in st.session_state:
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
             <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
-            <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data['date_str']}<br>📍 {data['loc_str']}</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data['date_str']}<br>📍 {display_loc_str}</p>
         </div>
         """, unsafe_allow_html=True)
 
         if data["angles"]:
             col_a1, col_a2 = st.columns(2)
-            col_a1.info(convert_to_dms(data["angles"][0]))
-            col_a2.info(convert_to_dms(data["angles"][1]))
+            col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
+            col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
             st.write("")
 
         # タブの作成（全6タブ）
@@ -322,14 +361,14 @@ if "chart_data" in st.session_state:
 
         with tab1:
             for p in data["bodies"]:
-                st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
+                st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
         with tab2:
             for h in data["houses"]:
-                st.markdown(f"- {convert_to_dms(h)}")
+                st.markdown(f"- {localize_text(convert_to_dms(h), lang)}")
 
         with tab3:
-            converted_aspects = convert_to_dms(data["aspects"])
+            converted_aspects = localize_text(convert_to_dms(data["aspects"]), lang)
             aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
             current_planet = None
             for line in aspect_lines:
@@ -338,13 +377,14 @@ if "chart_data" in st.session_state:
                     planet = raw_target.split(" & ")[0].strip()
                     if planet != current_planet:
                         current_planet = planet
-                        st.markdown(f"\n#### 🌟 {current_planet} のアスペクト")
+                        heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
+                        st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
                 st.markdown(line)
 
         with tab4:
             if data["patterns"]:
                 for pat in data["patterns"]:
-                    st.success(convert_to_dms(pat))
+                    st.success(localize_text(convert_to_dms(pat), lang))
             else:
                 st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
@@ -381,33 +421,21 @@ if "chart_data" in st.session_state:
                         separator = "：" if lang == "日本語" else ": "
                         formatted_line = formatted_line.replace(" → ", separator, 1)
 
-                    if lang != "日本語":
-                        for i in range(12, 0, -1):
-                            suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
-                            formatted_line = formatted_line.replace(f"第{i}ハウス", f"{i}{suffix} House")
-                        
-                        formatted_line = (
-                            formatted_line
-                            .replace("ドミサイル", "Domicile")
-                            .replace("エグザルテーション", "Exaltation")
-                            .replace("デトリメント", "Detriment")
-                            .replace("フォール", "Fall")
-                        )
-
+                    formatted_line = localize_text(formatted_line, lang)
                     st.markdown(f"- {formatted_line}")
             else:
                 st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
                 
         with tab6:
-            st.caption("※1 主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
-            st.caption("※2 出生時間不明の場合、月・Asc・Mcを含む組み合わせは除外してあります。")
+            st.caption("※1 主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。" if lang=="日本語" else "*1 Displays midpoint hits to major points/axes (orb within 1.5°).")
+            st.caption("※2 出生時間不明の場合、月・Asc・Mcを含む組み合わせは除外してあります。" if lang == "日本語" else "*2 Combinations including Moon, Asc, and MC are excluded if birth time is unknown.")
             midpoints_data = data.get("midpoints", [])
             if midpoints_data:
                 for m_line in midpoints_data:
                     clean_m = m_line.lstrip("- ").strip()
-                    st.markdown(f"- {clean_m}")
+                    st.markdown(f"- {localize_text(clean_m, lang)}")
             else:
-                st.info("*(該当するミッドポイントデータはありません)*" if lang == "日本語" else "*(No midpoint data)*")
+                st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
 
         st.divider()
 
@@ -420,21 +448,13 @@ if "chart_data" in st.session_state:
                 key="copy_hide_dt_loc"
             )
             
-            display_loc_str = data['loc_str']
-            if lang != "日本語":
-                display_loc_str = (
-                    display_loc_str
-                    .replace("北緯", "N")
-                    .replace("東経", "E")
-                    .replace("十進:", "Decimal:")
-                )
-            
             def clean_html(text):
                 if not isinstance(text, str):
                     return str(text)
                 text = re.sub(r'<[^>]+>', '', text)
                 text = text.replace('&nbsp;', '')
                 text = text.replace('**', '').replace('`', '')
+                text = localize_text(text, lang)
                 return text
 
             copy_lines = []
@@ -536,19 +556,6 @@ if "chart_data" in st.session_state:
                     
                     for r_line in target_rulers_for_copy:
                         formatted_r = clean_html(r_line).replace('➡️', '->')
-                        
-                        for i in range(12, 0, -1):
-                            suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
-                            formatted_r = formatted_r.replace(f"第{i}ハウス", f"{i}{suffix} House")
-                        
-                        formatted_r = (
-                            formatted_r
-                            .replace("ドミサイル", "Domicile")
-                            .replace("エグザルテーション", "Exaltation")
-                            .replace("デトリメント", "Detriment")
-                            .replace("フォール", "Fall")
-                        )
-                        
                         copy_lines.append(f"- {formatted_r}")
 
                 copy_lines.append("\n[Main Aspects]")
@@ -600,18 +607,18 @@ if "chart_data" in st.session_state:
                 st.markdown(f"#### 👤 {u_name}")
                 p1_bodies = data.get("person1", {}).get("bodies", data.get("bodies", []))
                 for p in p1_bodies:
-                    st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
+                    st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
             with col_r:
                 st.markdown(f"#### 👤 {p2_name}")
                 p2_bodies = data.get("person2", {}).get("bodies", data.get("person2_bodies", []))
                 for p in p2_bodies:
-                    st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
+                    st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
         with stab2:
             col_l, col_r = st.columns(2)
             
             def render_aspect_column(name, aspects_data):
-                st.markdown(f"#### 👤 {name} のアスペクト")
+                st.markdown(f"#### 👤 {name} " + ("のアスペクト" if lang=="日本語" else "'s Aspects"))
                 if aspects_data and aspects_data is not Ellipsis:
                     if isinstance(aspects_data, str):
                         lines = [l.strip() for l in aspects_data.split("\n") if l.strip()]
@@ -630,13 +637,14 @@ if "chart_data" in st.session_state:
                     if valid_lines:
                         current_planet = None
                         for line in valid_lines:
-                            converted_line = convert_to_dms(line)
+                            converted_line = localize_text(convert_to_dms(line), lang)
                             if " & " in converted_line:
                                 raw_target = converted_line.lstrip("-* ").strip()
                                 planet = raw_target.split(" & ")[0].strip()
                                 if planet != current_planet:
                                     current_planet = planet
-                                    st.markdown(f"\n#### 🌟 {current_planet} のアスペクト")
+                                    heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
+                                    st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
                             st.markdown(converted_line if converted_line.startswith("-") else f"- {converted_line}")
                     else:
                         st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
@@ -660,6 +668,7 @@ if "chart_data" in st.session_state:
                 text = re.sub(r'<[^>]+>', '', text)
                 text = text.replace('&nbsp;', '')
                 text = text.replace('**', '').replace('`', '')
+                text = localize_text(text, lang)
                 return text
 
             copy_lines = []
