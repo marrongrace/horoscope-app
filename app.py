@@ -108,7 +108,6 @@ def convert_to_dms(text):
     """
     (16.30°) のような10進数の度数表記を (16°18') の60進数表記に変換する関数
     """
-    # 💡 文字列以外（辞書やリスト、数値など）が渡された場合のガード処理
     if not isinstance(text, str):
         text = str(text)
 
@@ -575,7 +574,7 @@ if "chart_data" in st.session_state:
             )
 
     else:
-        # 🌟 シナストリーモード用の表示（天体とアスペクトに絞る）
+        # 🌟 シナストリーモード用の表示（左右に分ける）
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
             <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
@@ -590,21 +589,27 @@ if "chart_data" in st.session_state:
         stab1, stab2 = st.tabs(synastry_tabs_labels)
 
         with stab1:
-            st.markdown(f"#### 👤 {u_name} の天体")
-            p1_bodies = data.get("person1", {}).get("bodies", data.get("bodies", []))
-            for p in p1_bodies:
-                st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
-            
-            st.markdown(f"\n#### 👤 {p2_name} の天体")
-            p2_bodies = data.get("person2", {}).get("bodies", [])
-            for p in p2_bodies:
-                st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
+            col_l, col_r = st.columns(2)
+            with col_l:
+                st.markdown(f"#### 👤 {u_name}")
+                p1_bodies = data.get("person1", {}).get("bodies", data.get("bodies", []))
+                for p in p1_bodies:
+                    st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
+            with col_r:
+                st.markdown(f"#### 👤 {p2_name}")
+                p2_bodies = data.get("person2", {}).get("bodies", data.get("person2_bodies", []))
+                for p in p2_bodies:
+                    st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
 
         with stab2:
             st.markdown("#### 🔗 シナストリーアスペクト（相性）")
             syn_aspects = data.get("synastry_aspects", data.get("aspects", []))
-            if syn_aspects:
-                for a in syn_aspects:
-                    st.markdown(f"- {convert_to_dms(a)}")
+            if syn_aspects and syn_aspects is not Ellipsis:
+                valid_aspects = [a for a in syn_aspects if a is not Ellipsis and str(a) != "Ellipsis"]
+                if valid_aspects:
+                    for a in valid_aspects:
+                        st.markdown(f"- {convert_to_dms(a)}")
+                else:
+                    st.info("*(シナストリーアスペクトのデータがありません)*" if lang=="日本語" else "*(No synastry aspect data)*")
             else:
                 st.info("*(該当するアスペクトはありません)*" if lang=="日本語" else "*(No aspects found)*")
