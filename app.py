@@ -589,26 +589,29 @@ if "chart_data" in st.session_state:
             
             st.divider()
             st.markdown(f"""
+            
         <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
             <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
             <p style="color: var(--text-color);">今回のホロスコープのより詳しい解説は、noteの方で発信しています。</p>
-            <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none; margin-top: 15px;">
-                <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+            
+            <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none; display: inline-block; margin-top: 15px;">
+                <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
                     noteをチェックする / Visit Note
                 </button>
-                <br>
-                <br>
-            <p style="color: var(--text-color);">匿名での質問も可能です。詳しくは以下からどうぞ</p>
-            <a href="https://note.com/qa/marroscorps" target="_blank" style="text-decoration: none;">
+            </a>
+            
+            <br><br>
+            
+            <p style="color: var(--text-color); margin-bottom: 10px;">匿名での質問も可能です。詳しくは以下からどうぞ</p>
+            
+            <a href="https://note.com/qa/marroscorps" target="_blank" style="text-decoration: none; display: inline-block;">
                 <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
                     匿名で質問する / Ask anonymously
                 </button>
             </a>
-            </a>
-            </a>
         </div>
         """, unsafe_allow_html=True)
-        st.write("") # スペース調整
+        st.write("")
 
     else:
         # 🌟 シナストリーモード用の表示（左右に分ける）
