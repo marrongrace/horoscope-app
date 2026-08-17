@@ -118,7 +118,7 @@ def convert_to_dms(text):
         if min_val == 60:
             deg += 1
             min_val = 0
-        return f"({deg}°{min_val:02d})"
+        return f"({deg}°{min_val:02d}')"
     
     return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
 
@@ -603,28 +603,44 @@ if "chart_data" in st.session_state:
 
         with stab2:
             col_l, col_r = st.columns(2)
-            with col_l:
-                st.markdown(f"#### 👤 {u_name} のアスペクト")
-                p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", []))
-                if p1_aspects and p1_aspects is not Ellipsis:
-                    valid_p1_asp = [a for a in p1_aspects if a is not Ellipsis and str(a) != "Ellipsis"]
-                    if valid_p1_asp:
-                        for a in valid_p1_asp:
-                            st.markdown(f"- {convert_to_dms(a)}")
+            
+            def render_aspect_column(name, aspects_data):
+                st.markdown(f"#### 👤 {name} のアスペクト")
+                if aspects_data and aspects_data is not Ellipsis:
+                    if isinstance(aspects_data, str):
+                        lines = [l.strip() for l in aspects_data.split("\n") if l.strip()]
+                    elif isinstance(aspects_data, list):
+                        lines = []
+                        for item in aspects_data:
+                            if item is not Ellipsis and str(item) != "Ellipsis":
+                                if isinstance(item, str):
+                                    lines.extend([l.strip() for l in item.split("\n") if l.strip()])
+                                else:
+                                    lines.append(str(item))
+                    else:
+                        lines = [str(aspects_data)]
+
+                    valid_lines = [l for l in lines if l and str(l) != "Ellipsis"]
+                    if valid_lines:
+                        current_planet = None
+                        for line in valid_lines:
+                            converted_line = convert_to_dms(line)
+                            if " & " in converted_line:
+                                raw_target = converted_line.lstrip("-* ").strip()
+                                planet = raw_target.split(" & ")[0].strip()
+                                if planet != current_planet:
+                                    current_planet = planet
+                                    st.markdown(f"\n#### 🌟 {current_planet} のアスペクト")
+                            st.markdown(converted_line if converted_line.startswith("-") else f"- {converted_line}")
                     else:
                         st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
                 else:
                     st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
 
+            with col_l:
+                p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", data.get("aspects", [])))
+                render_aspect_column(u_name, p1_aspects)
+
             with col_r:
-                st.markdown(f"#### 👤 {p2_name} のアスペクト")
                 p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
-                if p2_aspects and p2_aspects is not Ellipsis:
-                    valid_p2_asp = [a for a in p2_aspects if a is not Ellipsis and str(a) != "Ellipsis"]
-                    if valid_p2_asp:
-                        for a in valid_p2_asp:
-                            st.markdown(f"- {convert_to_dms(a)}")
-                    else:
-                        st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
-                else:
-                    st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
+                render_aspect_column(p2_name, p2_aspects)
