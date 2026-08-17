@@ -235,12 +235,12 @@ with st.sidebar:
     is_transit = chart_mode_raw in ["トランジット", "Transit"]
 
     if is_transit:
-    with st.expander("トランジット日時設定", expanded=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            transit_date = st.date_input("トランジット日付", value=datetime.date.today())
-        with col2:
-            transit_time = st.time_input("トランジット時刻", value=datetime.datetime.now().time())
+        with st.expander("トランジット日時設定", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                transit_date = st.date_input("トランジット日付", value=datetime.date.today())
+            with col2:
+                transit_time = st.time_input("トランジット時刻", value=datetime.datetime.now().time())
         
         # 緯度経度はとりあえずネイタルと同じ場所を使うか、別の入力を作るか
         # 今回はシンプルにネイタルの場所を流用する形が良いかもしれません
