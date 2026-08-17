@@ -123,9 +123,11 @@ def convert_to_dms(text):
     return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
 
 # 💡 1人分の入力フォームを関数化
-def render_user_input_form(prefix, default_name):
-    header_text = t["p1_header"] if prefix == "p1" else t["p2_header"]
-    st.subheader(header_text)
+# 引数 show_header を追加して、見出しの表示/非表示を制御できるようにしました
+def render_user_input_form(prefix, default_name, show_header=True):
+    if show_header:
+        header_text = t["p1_header"] if prefix == "p1" else t["p2_header"]
+        st.subheader(header_text)
     
     user_name = st.text_input(t["name_input"], value=default_name, key=f"{prefix}_user_name_input")
     
@@ -191,13 +193,14 @@ with st.sidebar:
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
     st.markdown("---")
 
-    # 1人目の入力
-    p1_data = render_user_input_form("p1", "TestUser1")
+    # 💡 ここを修正：show_header=is_synastry を追加
+    p1_data = render_user_input_form("p1", "TestUser1", show_header=is_synastry)
 
     # 2人目の入力（シナストリー選択時のみ表示）
     p2_data = None
     if is_synastry:
-        p2_data = render_user_input_form("p2", "TestUser2")
+        # 💡 ここを修正：show_header=True を追加
+        p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
 
     st.header(t["settings_header"])
     toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"], key="aspect_view_radio")
