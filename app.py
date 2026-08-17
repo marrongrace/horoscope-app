@@ -596,6 +596,12 @@ if "chart_data" in st.session_state:
                 <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
                     noteをチェックする / Visit Note
                 </button>
+                <br> 
+                <a href="https://note.com/qa/marroscorps" target="_blank" style="text-decoration: none;">
+                <button style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 250px;">
+                    匿名質問箱はこちら / Ask me anything
+                </button>
+            </a>
             </a>
         </div>
         """, unsafe_allow_html=True)
