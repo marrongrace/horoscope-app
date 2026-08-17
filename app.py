@@ -236,14 +236,16 @@ with st.sidebar:
 
     if is_transit:
         with st.expander("トランジット日時設定", expanded=True):
-            col1, col2 = st.columns(2)
-            with col1:
-                transit_date = st.date_input("トランジット日付", value=datetime.date.today())
-            with col2:
-                transit_time = st.time_input("トランジット時刻", value=datetime.datetime.now().time())
+            transit_date = st.date_input("トランジット日付", value=datetime.date.today())
+            transit_time = st.time_input("トランジット時刻", value=datetime.datetime.now().time()
+                
+        # 場所入力の代わりに、日本（東京）の緯度経度を強制的にセットする
+        # （計算ロジック側で現在地として扱えるようになります）
+        transit_lat = 35.6895
+        transit_lng = 139.6917
         
         # 緯度経度はとりあえずネイタルと同じ場所を使うか、別の入力を作るか
-        # 今回はシンプルにネイタルの場所を流用する形が良いかもしれません
+        # 今回はシンプルにネイタルの場所を流用する形が良いかも
     
     st.markdown("---")
 
@@ -293,8 +295,8 @@ if submit_button:
                     "day": transit_date.day,
                     "hour": transit_time.hour,
                     "minute": transit_time.minute,
-                    "lat": p1_data["input_lat"],
-                    "lng": p1_data["input_lng"]
+                    "lat": 35.6895,  # 東京の緯度
+                    "lng": 139.6917  # 東京の経度
                 }
 
         # 2. シナストリー（2人分）か、シングル/トランジットかで分岐
