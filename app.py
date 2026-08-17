@@ -481,3 +481,4 @@ if "chart_data" in st.session_state:
             data=boms_text,
             file_name=f"horoscope_{u_name}.txt",
             mime="text/plain;charset=utf-8"
+        )
