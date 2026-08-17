@@ -233,6 +233,18 @@ with st.sidebar:
     chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select",filter_mode=None)
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
     is_transit = chart_mode_raw in ["トランジット", "Transit"]
+
+    if is_transit:
+    with st.expander("トランジット日時設定", expanded=True):
+        col1, col2 = st.columns(2)
+        with col1:
+            transit_date = st.date_input("トランジット日付", value=datetime.date.today())
+        with col2:
+            transit_time = st.time_input("トランジット時刻", value=datetime.datetime.now().time())
+        
+        # 緯度経度はとりあえずネイタルと同じ場所を使うか、別の入力を作るか
+        # 今回はシンプルにネイタルの場所を流用する形が良いかもしれません
+    
     st.markdown("---")
 
     # 1人目の入力
@@ -271,48 +283,66 @@ if submit_button:
 
     if not p1_error and not p2_error:
         with st.spinner(t["loading"]):
-            if not is_synastry:
-                # 1人分（シングル）の計算
-                data = get_chart_data(
-                    p1_data["user_name"], p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
-                    p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
-                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
-                )
+        
+        # 1. まずトランジット情報を準備する
+        transit_info = None
+        if is_transit:
+            transit_info = {
+                "year": transit_date.year,
+                "month": transit_date.month,
+                "day": transit_date.day,
+                "hour": transit_time.hour,
+                "minute": transit_time.minute,
+                "lat": p1_data["input_lat"],
+                "lng": p1_data["input_lng"]
+            }
+
+        # 2. シナストリー（2人分）か、シングル/トランジットかで分岐
+        if is_synastry:
+            # シナストリー（2人分）の計算
+            if get_synastry_data is not None:
+                p1_info = {
+                    "name": p1_data["user_name"],
+                    "year": p1_data["birth_date"].year,
+                    "month": p1_data["birth_date"].month,
+                    "day": p1_data["birth_date"].day,
+                    "hour": p1_data["birth_time"].hour,
+                    "minute": p1_data["birth_time"].minute,
+                    "lat": p1_data["input_lat"],
+                    "lng": p1_data["input_lng"],
+                    "city": p1_data["input_city_name"],
+                    "is_unknown_time": unknown_checkbox
+                }
+                p2_info = {
+                    "name": p2_data["user_name"],
+                    "year": p2_data["birth_date"].year,
+                    "month": p2_data["birth_date"].month,
+                    "day": p2_data["birth_date"].day,
+                    "hour": p2_data["birth_time"].hour,
+                    "minute": p2_data["birth_time"].minute,
+                    "lat": p2_data["input_lat"],
+                    "lng": p2_data["input_lng"],
+                    "city": p2_data["input_city_name"],
+                    "is_unknown_time": unknown_checkbox
+                }
+                data = get_synastry_data(p1_info, p2_info, mode=lang)
             else:
-                # シナストリー（2人分）の計算
-                if get_synastry_data is not None:
-                    p1_info = {
-                        "name": p1_data["user_name"],
-                        "year": p1_data["birth_date"].year,
-                        "month": p1_data["birth_date"].month,
-                        "day": p1_data["birth_date"].day,
-                        "hour": p1_data["birth_time"].hour,
-                        "minute": p1_data["birth_time"].minute,
-                        "lat": p1_data["input_lat"],
-                        "lng": p1_data["input_lng"],
-                        "city": p1_data["input_city_name"],
-                        "is_unknown_time": unknown_checkbox
-                    }
-                    p2_info = {
-                        "name": p2_data["user_name"],
-                        "year": p2_data["birth_date"].year,
-                        "month": p2_data["birth_date"].month,
-                        "day": p2_data["birth_date"].day,
-                        "hour": p2_data["birth_time"].hour,
-                        "minute": p2_data["birth_time"].minute,
-                        "lat": p2_data["input_lat"],
-                        "lng": p2_data["input_lng"],
-                        "city": p2_data["input_city_name"],
-                        "is_unknown_time": unknown_checkbox
-                    }
-                    data = get_synastry_data(p1_info, p2_info, mode=lang)
-                else:
-                    data = get_chart_data(
-                        f"{p1_data['user_name']} & {p2_data['user_name']}", 
-                        p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
-                        p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
-                        p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
-                    )
+                data = get_chart_data(
+                    f"{p1_data['user_name']} & {p2_data['user_name']}", 
+                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                    p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
+                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox,
+                    transit_info=transit_info
+                )
+        else:
+            # 1人分（シングル または トランジット）の計算
+            data = get_chart_data(
+                p1_data["user_name"], 
+                p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
+                p1_data["input_city_name"], lang, toggle_view, unknown_checkbox,
+                transit_info=transit_info
+            )
 
         if data.get("error"):
             st.error(data["error"])
@@ -352,6 +382,14 @@ if "chart_data" in st.session_state:
             col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
             col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
             st.write("")
+
+        if data.get("transit"):
+        st.subheader("トランジット分析結果")
+        st.write(f"対象日時: {data['transit']['transit_date']}")
+        
+        # リスト形式でアスペクトを表示
+        for aspect in data["transit"]["transit_aspects"]:
+            st.markdown(aspect)
 
         # タブの作成（全6タブ）
         ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
