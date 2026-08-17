@@ -229,6 +229,33 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
         
     return chain_results
 
+def get_synastry_data(p1_info, p2_info, mode="日本語"):
+    """
+    2人分の生年月日等からそれぞれのチャートを計算し、
+    個人間のアスペクト（シナストリー）を計算して返す関数
+    """
+    # 1人目のチャート計算
+    chart1 = get_chart_data(
+        p1_info["name"], p1_info["year"], p1_info["month"], p1_info["day"],
+        p1_info["hour"], p1_info["minute"], p1_info["lat"], p1_info["lng"],
+        p1_info["city"], mode, "ペア別", p1_info["is_unknown_time"]
+    )
+    
+    # 2人目のチャート計算
+    chart2 = get_chart_data(
+        p2_info["name"], p2_info["year"], p2_info["month"], p2_info["day"],
+        p2_info["hour"], p2_info["minute"], p2_info["lat"], p2_info["lng"],
+        p2_info["city"], mode, "ペア別", p2_info["is_unknown_time"]
+    )
+    
+    # ここで2人分の天体位置同士のアスペクト（Person1の天体 × Person2の天体）を計算する処理を追加...
+    
+    return {
+        "person1": chart1,
+        "person2": chart2,
+        "synastry_aspects": [...] # シナストリーの結果
+    }
+    
 def calculate_midpoints(bodies, chart_angles=None, mode="日本語", is_unknown_time=False):
     """
     指定された条件に特化したミッドポイント（ハーフサム）を計算する
