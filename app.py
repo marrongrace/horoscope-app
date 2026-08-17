@@ -5,6 +5,12 @@ import pytz
 import streamlit as st
 from horoscope_calc import validate_and_get_coords, get_chart_data, EPHE_PATH, get_cities_for_prefecture
 
+# get_synastry_data が horoscope_calc に無い場合の安全対策
+try:
+    from horoscope_calc import get_synastry_data
+except ImportError:
+    get_synastry_data = None
+
 st.set_page_config(
     page_title="🔮 ホロスコープ鑑定書 / Horoscope Reading",
     page_icon="🔮",
@@ -224,162 +230,58 @@ if submit_button:
                     p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
                 )
             else:
-                # シナストリー（2人分）の計算：必要に応じて `get_synastry_data` などの関数に書き換えてください
-                # 例として現状は1人目のデータを取得するか、お持ちのシナストリー用関数をここで呼び出します
-                data = get_chart_data(
-                    f"{p1_data['user_name']} & {p2_data['user_name']}", 
-                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
-                    p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
-                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
-                )
+                # シナストリー（2人分）の計算
+                if get_synastry_data is not None:
+                    p1_info = {
+                        "name": p1_data["user_name"],
+                        "year": p1_data["birth_date"].year,
+                        "month": p1_data["birth_date"].month,
+                        "day": p1_data["birth_date"].day,
+                        "hour": p1_data["birth_time"].hour,
+                        "minute": p1_data["birth_time"].minute,
+                        "lat": p1_data["input_lat"],
+                        "lng": p1_data["input_lng"],
+                        "city": p1_data["input_city_name"],
+                        "is_unknown_time": unknown_checkbox
+                    }
+                    p2_info = {
+                        "name": p2_data["user_name"],
+                        "year": p2_data["birth_date"].year,
+                        "month": p2_data["birth_date"].month,
+                        "day": p2_data["birth_date"].day,
+                        "hour": p2_data["birth_time"].hour,
+                        "minute": p2_data["birth_time"].minute,
+                        "lat": p2_data["input_lat"],
+                        "lng": p2_data["input_lng"],
+                        "city": p2_data["input_city_name"],
+                        "is_unknown_time": unknown_checkbox
+                    }
+                    data = get_synastry_data(p1_info, p2_info, mode=lang)
+                else:
+                    data = get_chart_data(
+                        f"{p1_data['user_name']} & {p2_data['user_name']}", 
+                        p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                        p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
+                        p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
+                    )
 
         if data.get("error"):
             st.error(data["error"])
         else:
             st.session_state.chart_data = data
             st.session_state.user_name = p1_data["user_name"]
+            st.session_state.is_synastry = is_synastry
+            if is_synastry and p2_data:
+                st.session_state.p2_name = p2_data["user_name"]
 
 # セッションにデータが存在する場合に表示
 if "chart_data" in st.session_state:
     data = st.session_state.chart_data
     u_name = st.session_state.get("user_name", "TestUser")
+    current_is_synastry = st.session_state.get("is_synastry", False)
+    p2_name = st.session_state.get("p2_name", "TestUser2")
 
-    display_loc_str = data['loc_str']
-    if lang != "日本語":
-        display_loc_str = (
-            display_loc_str
-            .replace("北緯", "N")
-            .replace("東経", "E")
-            .replace("十進:", "Decimal:")
-        )
-
-    st.markdown(f"""
-    <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-        <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
-        <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data['date_str']}<br>📍 {data['loc_str']}</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if data["angles"]:
-        col_a1, col_a2 = st.columns(2)
-        col_a1.info(convert_to_dms(data["angles"][0]))
-        col_a2.info(convert_to_dms(data["angles"][1]))
-        st.write("")
-
-    # タブの作成（全6タブ）
-    ruler_tab_label = "ハウスルーラー" if lang == "日本語" else "House Rulers"
-    midpoint_tab_label = "ミッドポイント" if lang == "日本語" else "Midpoints"
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        t["bodies_tab"], t["houses_tab"], t["aspects_tab"], 
-        t["patterns_tab"], ruler_tab_label, midpoint_tab_label
-    ])
-
-    with tab1:
-        for p in data["bodies"]:
-            st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
-
-    with tab2:
-        for h in data["houses"]:
-            st.markdown(f"- {convert_to_dms(h)}")
-
-    with tab3:
-        converted_aspects = convert_to_dms(data["aspects"])
-        aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
-        current_planet = None
-        for line in aspect_lines:
-            if " & " in line:
-                raw_target = line.lstrip("-* ").strip()
-                planet = raw_target.split(" & ")[0].strip()
-                if planet != current_planet:
-                    current_planet = planet
-                    st.markdown(f"\n#### 🌟 {current_planet} のアスペクト")
-            st.markdown(line)
-
-    with tab4:
-        if data["patterns"]:
-            for pat in data["patterns"]:
-                st.success(convert_to_dms(pat))
-        else:
-            st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
-
-    # 🌟 ハウスルーラーのタブ（5度前ルール適用の切り替え機能付き）
-    with tab5:
-        if data.get("house_rulers"):
-            ruler_mode_options = (
-                ["5度前ルール適用なし", "5度前ルール適用あり"] 
-                if lang == "日本語" 
-                else ["Without 5-degree rule", "With 5-degree rule"]
-            )
-            ruler_mode_label = "表示モードを選択" if lang == "日本語" else "Select Display Mode"
-            
-            ruler_mode = st.radio(
-                ruler_mode_label,
-                ruler_mode_options,
-                key="ruler_mode_radio"
-            )
-            st.write("")
-
-            # 内部判定用の判定キー
-            is_without_5deg = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
-
-            if is_without_5deg:
-                target_rulers = data.get("house_rulers", [])
-            else:
-                target_rulers = data.get(
-                    "house_rulers_with_5deg", data.get("house_rulers", [])
-                )
-
-            for r_line in target_rulers:
-                formatted_line = (
-                    r_line.replace("->", "→").replace("➡️", "→").strip()
-                )
-                if " → " in formatted_line:
-                    separator = "：" if lang == "日本語" else ": "
-                    formatted_line = formatted_line.replace(" → ", separator, 1)
-
-                # 💡 英語モードのときにハウスルーラー内の日本語表記（第Xハウス・ドミサイル等）を英語に置換
-                if lang != "日本語":
-                    for i in range(12, 0, -1):
-                        suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
-                        formatted_line = formatted_line.replace(f"第{i}ハウス", f"{i}{suffix} House")
-                    
-                    formatted_line = (
-                        formatted_line
-                        .replace("ドミサイル", "Domicile")
-                        .replace("エグザルテーション", "Exaltation")
-                        .replace("デトリメント", "Detriment")
-                        .replace("フォール", "Fall")
-                    )
-
-                st.markdown(f"- {formatted_line}")
-        else:
-            st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
-            
-    # 🌟 ミッドポイントのタブ（ハイフン重複防止）
-    with tab6:
-        st.caption("※1 主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
-        st.caption("※2 出生時間不明の場合、月・Asc・Mcを含む組み合わせは除外してあります。")
-        midpoints_data = data.get("midpoints", [])
-        if midpoints_data:
-            for m_line in midpoints_data:
-                clean_m = m_line.lstrip("- ").strip()
-                st.markdown(f"- {clean_m}")
-        else:
-            st.info("*(該当するミッドポイントデータはありません)*" if lang == "日本語" else "*(No midpoint data)*")
-
-    st.divider()
-
-    with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
-        u_name = st.session_state.get("user_name", "TestUser")
-        
-        # 💡 日時と場所をコピーから除外するチェックボックス
-        hide_dt_loc = st.checkbox(
-            "日時と場所を非表示にする（除外する）" if lang == "日本語" else "Exclude Date, Time & Location",
-            value=False,
-            key="copy_hide_dt_loc"
-        )
-        
-        # 英語モード時に位置情報の日本語表記（北緯・東経・十進）を英語に置換
+    if not current_is_synastry:
         display_loc_str = data['loc_str']
         if lang != "日本語":
             display_loc_str = (
@@ -388,158 +290,317 @@ if "chart_data" in st.session_state:
                 .replace("東経", "E")
                 .replace("十進:", "Decimal:")
             )
-        
-        # HTMLタグなどを安全に除去するヘルパー関数
-        def clean_html(text):
-            if not isinstance(text, str):
-                return str(text)
-            text = re.sub(r'<[^>]+>', '', text)
-            text = text.replace('**', '').replace('`', '')
-            return text
 
-        copy_lines = []
-        if lang == "日本語":
-            copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
-            
-            # 💡 チェックボックスがオフの場合のみ日時・場所を追加
-            if not hide_dt_loc:
-                copy_lines.append(f"日時: {data['date_str']}")
-                copy_lines.append(f"場所: {data['loc_str']}\n")
-            else:
-                copy_lines.append("") # 改行調整
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
+            <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data['date_str']}<br>📍 {data['loc_str']}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-            if data["angles"]:
-                copy_lines.append("[アングル]")
-                for a in data["angles"]:
-                    copy_lines.append(f"- {clean_html(a)}")
-                copy_lines.append("")
-            
-            copy_lines.append("[天体配置]")
-            for b in data["bodies"]:
-                clean_b = clean_html(b)
-                clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
-                copy_lines.append(f"- {clean_b}")
-                
-            copy_lines.append("\n[12ハウス]")
+        if data["angles"]:
+            col_a1, col_a2 = st.columns(2)
+            col_a1.info(convert_to_dms(data["angles"][0]))
+            col_a2.info(convert_to_dms(data["angles"][1]))
+            st.write("")
+
+        # タブの作成（全6タブ）
+        ruler_tab_label = "ハウスルーラー" if lang == "日本語" else "House Rulers"
+        midpoint_tab_label = "ミッドポイント" if lang == "日本語" else "Midpoints"
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+            t["bodies_tab"], t["houses_tab"], t["aspects_tab"], 
+            t["patterns_tab"], ruler_tab_label, midpoint_tab_label
+        ])
+
+        with tab1:
+            for p in data["bodies"]:
+                st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
+
+        with tab2:
             for h in data["houses"]:
-                copy_lines.append(f"- {clean_html(h)}")
+                st.markdown(f"- {convert_to_dms(h)}")
 
-            if data.get("house_rulers"):
-                ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
-                copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
-                
-                is_without = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
-                target_rulers_for_copy = (
-                    data.get("house_rulers", []) 
-                    if is_without 
-                    else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
-                )
-                
-                for r_line in target_rulers_for_copy:
-                    formatted_r = clean_html(r_line).replace('➡️', '->')
-                    copy_lines.append(f"- {formatted_r}")
+        with tab3:
+            converted_aspects = convert_to_dms(data["aspects"])
+            aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
+            current_planet = None
+            for line in aspect_lines:
+                if " & " in line:
+                    raw_target = line.lstrip("-* ").strip()
+                    planet = raw_target.split(" & ")[0].strip()
+                    if planet != current_planet:
+                        current_planet = planet
+                        st.markdown(f"\n#### 🌟 {current_planet} のアスペクト")
+                st.markdown(line)
 
-            copy_lines.append("\n[主要アスペクト]")
-            clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
-            copy_lines.append(clean_aspects)
-
+        with tab4:
             if data["patterns"]:
-                copy_lines.append("\n[複合アスペクト]")
                 for pat in data["patterns"]:
-                    copy_lines.append(f"- {clean_html(pat)}")
+                    st.success(convert_to_dms(pat))
+            else:
+                st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
+        with tab5:
+            if data.get("house_rulers"):
+                ruler_mode_options = (
+                    ["5度前ルール適用なし", "5度前ルール適用あり"] 
+                    if lang == "日本語" 
+                    else ["Without 5-degree rule", "With 5-degree rule"]
+                )
+                ruler_mode_label = "表示モードを選択" if lang == "日本語" else "Select Display Mode"
+                
+                ruler_mode = st.radio(
+                    ruler_mode_label,
+                    ruler_mode_options,
+                    key="ruler_mode_radio"
+                )
+                st.write("")
+
+                is_without_5deg = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
+
+                if is_without_5deg:
+                    target_rulers = data.get("house_rulers", [])
+                else:
+                    target_rulers = data.get(
+                        "house_rulers_with_5deg", data.get("house_rulers", [])
+                    )
+
+                for r_line in target_rulers:
+                    formatted_line = (
+                        r_line.replace("->", "→").replace("➡️", "→").strip()
+                    )
+                    if " → " in formatted_line:
+                        separator = "：" if lang == "日本語" else ": "
+                        formatted_line = formatted_line.replace(" → ", separator, 1)
+
+                    if lang != "日本語":
+                        for i in range(12, 0, -1):
+                            suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
+                            formatted_line = formatted_line.replace(f"第{i}ハウス", f"{i}{suffix} House")
+                        
+                        formatted_line = (
+                            formatted_line
+                            .replace("ドミサイル", "Domicile")
+                            .replace("エグザルテーション", "Exaltation")
+                            .replace("デトリメント", "Detriment")
+                            .replace("フォール", "Fall")
+                        )
+
+                    st.markdown(f"- {formatted_line}")
+            else:
+                st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
+                
+        with tab6:
+            st.caption("※1 主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。")
+            st.caption("※2 出生時間不明の場合、月・Asc・Mcを含む組み合わせは除外してあります。")
             midpoints_data = data.get("midpoints", [])
             if midpoints_data:
-                copy_lines.append("\n[ミッドポイント]")
                 for m_line in midpoints_data:
-                    clean_m = clean_html(m_line).lstrip("- ").strip()
-                    copy_lines.append(f"- {clean_m}")
-        else:
-            # 英語モード用のヘッダー・ラベル
-            copy_lines.append(f"[Horoscope Reading Data: {u_name}]")
-            
-            # 💡 チェックボックスがオフの場合のみ日時・場所を追加
-            if not hide_dt_loc:
-                copy_lines.append(f"Date & Time: {data['date_str']}")
-                copy_lines.append(f"Location: {display_loc_str}\n")
+                    clean_m = m_line.lstrip("- ").strip()
+                    st.markdown(f"- {clean_m}")
             else:
-                copy_lines.append("") # 改行調整
+                st.info("*(該当するミッドポイントデータはありません)*" if lang == "日本語" else "*(No midpoint data)*")
 
-            if data["angles"]:
-                copy_lines.append("[Angles]")
-                for a in data["angles"]:
-                    copy_lines.append(f"- {clean_html(a)}")
-                copy_lines.append("")
+        st.divider()
+
+        with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+            u_name = st.session_state.get("user_name", "TestUser")
             
-            copy_lines.append("[Celestial Bodies]")
-            for b in data["bodies"]:
-                clean_b = clean_html(b)
-                clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
-                copy_lines.append(f"- {clean_b}")
-                
-            copy_lines.append("\n[12 Houses]")
-            for h in data["houses"]:
-                copy_lines.append(f"- {clean_html(h)}")
-
-            if data.get("house_rulers"):
-                ruler_mode_raw = st.session_state.get("ruler_mode_radio", "Without 5-degree rule")
-                if ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]:
-                    ruler_mode_en = "Without 5-degree rule"
-                else:
-                    ruler_mode_en = "With 5-degree rule"
-                
-                copy_lines.append(f"\n[House Rulers ({ruler_mode_en})]")
-                
-                is_without = ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]
-                target_rulers_for_copy = (
-                    data.get("house_rulers", []) 
-                    if is_without 
-                    else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
+            hide_dt_loc = st.checkbox(
+                "日時と場所を非表示にする（除外する）" if lang == "日本語" else "Exclude Date, Time & Location",
+                value=False,
+                key="copy_hide_dt_loc"
+            )
+            
+            display_loc_str = data['loc_str']
+            if lang != "日本語":
+                display_loc_str = (
+                    display_loc_str
+                    .replace("北緯", "N")
+                    .replace("東経", "E")
+                    .replace("十進:", "Decimal:")
                 )
+            
+            def clean_html(text):
+                if not isinstance(text, str):
+                    return str(text)
+                text = re.sub(r'<[^>]+>', '', text)
+                text = text.replace('**', '').replace('`', '')
+                return text
+
+            copy_lines = []
+            if lang == "日本語":
+                copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
                 
-                for r_line in target_rulers_for_copy:
-                    formatted_r = clean_html(r_line).replace('➡️', '->')
+                if not hide_dt_loc:
+                    copy_lines.append(f"日時: {data['date_str']}")
+                    copy_lines.append(f"場所: {data['loc_str']}\n")
+                else:
+                    copy_lines.append("")
+
+                if data["angles"]:
+                    copy_lines.append("[アングル]")
+                    for a in data["angles"]:
+                        copy_lines.append(f"- {clean_html(a)}")
+                    copy_lines.append("")
+                
+                copy_lines.append("[天体配置]")
+                for b in data["bodies"]:
+                    clean_b = clean_html(b)
+                    clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
+                    copy_lines.append(f"- {clean_b}")
                     
-                    for i in range(12, 0, -1):
-                        suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
-                        formatted_r = formatted_r.replace(f"第{i}ハウス", f"{i}{suffix} House")
+                copy_lines.append("\n[12ハウス]")
+                for h in data["houses"]:
+                    copy_lines.append(f"- {clean_html(h)}")
+
+                if data.get("house_rulers"):
+                    ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
+                    copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
                     
-                    formatted_r = (
-                        formatted_r
-                        .replace("ドミサイル", "Domicile")
-                        .replace("エグザルテーション", "Exaltation")
-                        .replace("デトリメント", "Detriment")
-                        .replace("フォール", "Fall")
+                    is_without = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
+                    target_rulers_for_copy = (
+                        data.get("house_rulers", []) 
+                        if is_without 
+                        else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
                     )
                     
-                    copy_lines.append(f"- {formatted_r}")
+                    for r_line in target_rulers_for_copy:
+                        formatted_r = clean_html(r_line).replace('➡️', '->')
+                        copy_lines.append(f"- {formatted_r}")
 
-            copy_lines.append("\n[Main Aspects]")
-            clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
-            copy_lines.append(clean_aspects)
+                copy_lines.append("\n[主要アスペクト]")
+                clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
+                copy_lines.append(clean_aspects)
 
-            if data["patterns"]:
-                copy_lines.append("\n[Complex Patterns]")
-                for pat in data["patterns"]:
-                    copy_lines.append(f"- {clean_html(pat)}")
+                if data["patterns"]:
+                    copy_lines.append("\n[複合アスペクト]")
+                    for pat in data["patterns"]:
+                        copy_lines.append(f"- {clean_html(pat)}")
 
-            midpoints_data = data.get("midpoints", [])
-            if midpoints_data:
-                copy_lines.append("\n[Midpoints]")
-                for m_line in midpoints_data:
-                    clean_m = clean_html(m_line).lstrip("- ").strip()
-                    copy_lines.append(f"- {clean_m}")
+                midpoints_data = data.get("midpoints", [])
+                if midpoints_data:
+                    copy_lines.append("\n[ミッドポイント]")
+                    for m_line in midpoints_data:
+                        clean_m = clean_html(m_line).lstrip("- ").strip()
+                        copy_lines.append(f"- {clean_m}")
+            else:
+                copy_lines.append(f"[Horoscope Reading Data: {u_name}]")
+                
+                if not hide_dt_loc:
+                    copy_lines.append(f"Date & Time: {data['date_str']}")
+                    copy_lines.append(f"Location: {display_loc_str}\n")
+                else:
+                    copy_lines.append("")
 
-        st.code("\n".join(copy_lines), language="text")
-        
-        # 💡 スマホやタブレットでも文字化けしないようにBOM付きテキストを生成
-        full_text = "\n".join(copy_lines)
-        boms_text = "\ufeff" + full_text
-        
-        # 💡 文字コードを明示してダウンロードボタンを設置
-        st.download_button(
-            label="💾 テキストファイルとしてダウンロード / Download as text",
-            data=boms_text,
-            file_name=f"horoscope_{u_name}.txt",
-            mime="text/plain;charset=utf-8"
+                if data["angles"]:
+                    copy_lines.append("[Angles]")
+                    for a in data["angles"]:
+                        copy_lines.append(f"- {clean_html(a)}")
+                    copy_lines.append("")
+                
+                copy_lines.append("[Celestial Bodies]")
+                for b in data["bodies"]:
+                    clean_b = clean_html(b)
+                    clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
+                    copy_lines.append(f"- {clean_b}")
+                    
+                copy_lines.append("\n[12 Houses]")
+                for h in data["houses"]:
+                    copy_lines.append(f"- {clean_html(h)}")
+
+                if data.get("house_rulers"):
+                    ruler_mode_raw = st.session_state.get("ruler_mode_radio", "Without 5-degree rule")
+                    if ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]:
+                        ruler_mode_en = "Without 5-degree rule"
+                    else:
+                        ruler_mode_en = "With 5-degree rule"
+                    
+                    copy_lines.append(f"\n[House Rulers ({ruler_mode_en})]")
+                    
+                    is_without = ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]
+                    target_rulers_for_copy = (
+                        data.get("house_rulers", []) 
+                        if is_without 
+                        else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
+                    )
+                    
+                    for r_line in target_rulers_for_copy:
+                        formatted_r = clean_html(r_line).replace('➡️', '->')
+                        
+                        for i in range(12, 0, -1):
+                            suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
+                            formatted_r = formatted_r.replace(f"第{i}ハウス", f"{i}{suffix} House")
+                        
+                        formatted_r = (
+                            formatted_r
+                            .replace("ドミサイル", "Domicile")
+                            .replace("エグザルテーション", "Exaltation")
+                            .replace("デトリメント", "Detriment")
+                            .replace("フォール", "Fall")
+                        )
+                        
+                        copy_lines.append(f"- {formatted_r}")
+
+                copy_lines.append("\n[Main Aspects]")
+                clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
+                copy_lines.append(clean_aspects)
+
+                if data["patterns"]:
+                    copy_lines.append("\n[Complex Patterns]")
+                    for pat in data["patterns"]:
+                        copy_lines.append(f"- {clean_html(pat)}")
+
+                midpoints_data = data.get("midpoints", [])
+                if midpoints_data:
+                    copy_lines.append("\n[Midpoints]")
+                    for m_line in midpoints_data:
+                        clean_m = clean_html(m_line).lstrip("- ").strip()
+                        copy_lines.append(f"- {clean_m}")
+
+            st.code("\n".join(copy_lines), language="text")
+            
+            full_text = "\n".join(copy_lines)
+            boms_text = "\ufeff" + full_text
+            
+            st.download_button(
+                label="💾 テキストファイルとしてダウンロード / Download as text",
+                data=boms_text,
+                file_name=f"horoscope_{u_name}.txt",
+                mime="text/plain;charset=utf-8"
+            )
+
+    else:
+        # 🌟 シナストリーモード用の表示（天体とアスペクトに絞る）
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
+        synastry_tabs_labels = (
+            ["🌟 2人分の天体配置", "🔗 シナストリーアスペクト"] 
+            if lang == "日本語" 
+            else ["🌟 Celestial Bodies", "🔗 Synastry Aspects"]
         )
+        stab1, stab2 = st.tabs(synastry_tabs_labels)
+
+        with stab1:
+            st.markdown(f"#### 👤 {u_name} の天体")
+            p1_bodies = data.get("person1", {}).get("bodies", data.get("bodies", []))
+            for p in p1_bodies:
+                st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
+            
+            st.markdown(f"\n#### 👤 {p2_name} の天体")
+            p2_bodies = data.get("person2", {}).get("bodies", [])
+            for p in p2_bodies:
+                st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
+
+        with stab2:
+            st.markdown("#### 🔗 シナストリーアスペクト（相性）")
+            syn_aspects = data.get("synastry_aspects", data.get("aspects", []))
+            if syn_aspects:
+                for a in syn_aspects:
+                    st.markdown(f"- {convert_to_dms(a)}")
+            else:
+                st.info("*(該当するアスペクトはありません)*" if lang=="日本語" else "*(No aspects found)*")
