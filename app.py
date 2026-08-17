@@ -55,7 +55,7 @@ ui_texts = {
         "unknown_time_checkbox": "出生時間が分からない（12:00仮定 / ハウス除外）",
         "submit_btn": "✨ ホロスコープを作る",
         "loading": "星々の配置を精密に計算中... 🌌✨",
-        "bodies_tab": "🌟 天体 ＋ 感受点",
+        "bodies_tab": "🌟 天体＋感受点",
         "houses_tab": "🏠 12ハウス",
         "aspects_tab": "🔗 アスペクト",
         "patterns_tab": "💎 複合アスペクト",
