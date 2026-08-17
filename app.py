@@ -731,6 +731,7 @@ if "chart_data" in st.session_state:
 
             st.code("\n".join(copy_lines), language="text")
             
+             # 💡 スマホやタブレットでも文字化けしないようにBOM付きテキストを生成
             full_text = "\n".join(copy_lines)
             boms_text = "\ufeff" + full_text
             
