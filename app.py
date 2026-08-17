@@ -753,3 +753,9 @@ if "chart_data" in st.session_state:
                 file_name=f"synastry_{u_name}_{p2_name}.txt",
                 mime="text/plain;charset=utf-8"
             )
+            st.divider()
+            st.markdown("""
+            ### ❕ 何かお気づきの点がありましたら...
+            noteの質問箱で受け付けております。こちらは匿名でご利用いただけます。
+            [👉 詳細はこちら(https://note.com/marroscorps)]
+            """)
