@@ -283,19 +283,19 @@ if submit_button:
 
     if not p1_error and not p2_error:
         with st.spinner(t["loading"]):
-        
-        # 1. まずトランジット情報を準備する
-        transit_info = None
-        if is_transit:
-            transit_info = {
-                "year": transit_date.year,
-                "month": transit_date.month,
-                "day": transit_date.day,
-                "hour": transit_time.hour,
-                "minute": transit_time.minute,
-                "lat": p1_data["input_lat"],
-                "lng": p1_data["input_lng"]
-            }
+            
+            # 1. まずトランジット情報を準備する
+            transit_info = None
+            if is_transit:
+                transit_info = {
+                    "year": transit_date.year,
+                    "month": transit_date.month,
+                    "day": transit_date.day,
+                    "hour": transit_time.hour,
+                    "minute": transit_time.minute,
+                    "lat": p1_data["input_lat"],
+                    "lng": p1_data["input_lng"]
+                }
 
         # 2. シナストリー（2人分）か、シングル/トランジットかで分岐
         if is_synastry:
