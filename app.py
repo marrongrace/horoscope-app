@@ -470,3 +470,14 @@ if "chart_data" in st.session_state:
                     copy_lines.append(f"- {clean_m}")
 
         st.code("\n".join(copy_lines), language="text")
+        
+        # 💡 スマホやタブレットでも文字化けしないようにBOM付きテキストを生成
+        full_text = "\n".join(copy_lines)
+        boms_text = "\ufeff" + full_text
+        
+        # 💡 文字コードを明示してダウンロードボタンを設置
+        st.download_button(
+            label="💾 テキストファイルとしてダウンロード / Download as text",
+            data=boms_text,
+            file_name=f"horoscope_{u_name}.txt",
+            mime="text/plain;charset=utf-8"
