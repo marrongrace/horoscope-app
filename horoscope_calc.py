@@ -255,6 +255,92 @@ def get_synastry_data(p1_info, p2_info, mode="日本語"):
         "person2": chart2,
         "synastry_aspects": [...] # シナストリーの結果
     }
+
+def get_transit_chart_data(transit_info, natal_bodies, mode="日本語"):
+    """
+    指定されたトランジット日時における天体位置を計算し、
+    ネイタル天体との間のトランジット・アスペクトを計算して返す
+    """
+    # 1. トランジット用のチャート計算 (位置・時間は現在地や任意の指定地、通常は出生地やGMT/ローカル)
+    # ここでは例として natal と同じ緯度経度・TZ、または指定のトランジット日時を使用
+    t_year = transit_info.get("year", 2026)
+    t_month = transit_info.get("month", 1)
+    t_day = transit_info.get("day", 1)
+    t_hour = transit_info.get("hour", 12)
+    t_minute = transit_info.get("minute", 0)
+    
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            transit_subject = AstrologicalSubject(
+                name="Transit", year=t_year, month=t_month, day=t_day,
+                hour=t_hour, minute=t_minute, lat=transit_info.get("lat", 35.6812), lng=transit_info.get("lng", 139.7671), 
+                tz_str="Asia/Tokyo", city="Tokyo"
+            )
+        except Exception as e:
+            return {"error": f"トランジット計算エラー: {str(e)}"}
+
+    transit_bodies_meta = [
+        ("Sun", transit_subject.sun), ("Moon", transit_subject.moon), ("Mercury", transit_subject.mercury),
+        ("Venus", transit_subject.venus), ("Mars", transit_subject.mars), ("Jupiter", transit_subject.jupiter),
+        ("Saturn", transit_subject.saturn), ("Uranus", transit_subject.uranus), ("Neptune", transit_subject.neptune), ("Pluto", transit_subject.pluto)
+    ]
+
+    transit_bodies = []
+    for key, p in transit_bodies_meta:
+        sign = p.get('sign', 'Aries') if isinstance(p, dict) else getattr(p, 'sign', 'Aries')
+        pos = p.get('position', 0.0) if isinstance(p, dict) else getattr(p, 'position', 0.0)
+        norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
+        s_idx = list(SIGN_DATA.keys()).index(norm_sign) if norm_sign in SIGN_DATA else 0
+        abs_p_pos = s_idx * 30 + pos
+        transit_bodies.append({"key": "T_" + key, "original_key": key, "abs_pos": abs_p_pos, "sign": s_name, "position": pos})
+
+    # ネイタル天体とトランジット天体のアスペクト計算
+    transit_aspects = calculate_transit_aspects(natal_bodies, transit_bodies, mode=mode)
+
+    return {
+        "transit_date": f"{t_year}年{t_month}月{t_day}日 {t_hour}:{t_minute:02d}",
+        "transit_aspects": transit_aspects
+    }
+
+def calculate_transit_aspects(natal_bodies, transit_bodies, mode="日本語"):
+    """
+    ネイタル天体（N）とトランジット天体（T）の間のアスペクトを計算する
+    """
+    aspect_defs = [
+        ("Conjunction", 0, 7.0, "コンジャンクション (0°)", "Conjunction"),
+        ("Opposition", 180, 7.0, "オポジション (180°)", "Opposition"),
+        ("Trine", 120, 6.0, "トライン (120°)", "Trine"),
+        ("Square", 90, 6.0, "スクエア (90°)", "Square"),
+        ("Sextile", 60, 5.0, "セクスタイル (60°)", "Sextile")
+    ]
+    
+    results = []
+    for b1 in natal_bodies:
+        for b2 in transit_bodies:
+            diff = min(abs(b1["abs_pos"] - b2["abs_pos"]), 360 - abs(b1["abs_pos"] - b2["abs_pos"]))
+            for _, target_ang, orb_limit, jp_lbl, en_lbl in aspect_defs:
+                orb = abs(diff - target_ang)
+                if orb <= orb_limit:
+                    lbl = jp_lbl if mode == "日本語" else en_lbl
+                    results.append({
+                        "label": lbl, 
+                        "natal": b1["key"], 
+                        "transit": b2["original_key"], 
+                        "orb": orb
+                    })
+                    
+    if not results:
+        return ["*(トランジットアスペクトなし)*" if mode == "日本語" else "*(No transit aspects)*"]
+        
+    lines = []
+    sorted_res = sorted(results, key=lambda x: x["orb"])
+    for item in sorted_res:
+        n_name = get_p_name(item["natal"], mode)
+        t_name = get_p_name(item["transit"], mode)
+        lines.append(f"- **T {t_name}** ☌/△等 **N {n_name}** : {item['label']} `(orb: {item['orb']:.2f}°)`")
+        
+    return lines
     
 def calculate_midpoints(bodies, chart_angles=None, mode="日本語", is_unknown_time=False):
     """
@@ -636,6 +722,11 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         chart.fifth_house, chart.sixth_house, chart.seventh_house, chart.eighth_house,
         chart.ninth_house, chart.tenth_house, chart.eleventh_house, chart.twelfth_house
     ] if not is_unknown_time else []
+    
+    # トランジット情報の計算（transit_info が渡された場合）
+    transit_results = None
+    if transit_info:
+        transit_results = get_transit_chart_data(transit_info, all_aspect_objs, mode=mode)
 
     house_cusp_abs = []
     if not is_unknown_time:
@@ -745,6 +836,7 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         "house_rulers": ruler_list,
         "house_rulers_with_5deg": ruler_list_with_5deg,
         "midpoints": midpoints,  # 変数名を合わせる
+        "transit": transit_results, # トランジットの結果
         "aspects": calculate_aspects(all_aspect_objs, mode, view_type),
         "patterns": detect_patterns(all_aspect_objs, mode)
     }
