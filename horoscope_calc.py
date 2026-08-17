@@ -722,11 +722,6 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         chart.fifth_house, chart.sixth_house, chart.seventh_house, chart.eighth_house,
         chart.ninth_house, chart.tenth_house, chart.eleventh_house, chart.twelfth_house
     ] if not is_unknown_time else []
-    
-    # トランジット情報の計算（transit_info が渡された場合）
-    transit_results = None
-    if transit_info:
-        transit_results = get_transit_chart_data(transit_info, all_aspect_objs, mode=mode)
 
     house_cusp_abs = []
     if not is_unknown_time:
@@ -829,14 +824,19 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
     loc_str = f"[{city_display_name}] [{lat_str}, {lng_str} (十進: {chart.lat:.4f}, {chart.lng:.4f})]"
 
     midpoints = calculate_midpoints(all_aspect_objs, chart_angles=angles_list, mode=mode, is_unknown_time=is_unknown_time)
+    
+    # トランジット情報の計算（transit_info が渡された場合）
+    transit_results = None
+    if transit_info:
+        transit_results = get_transit_chart_data(transit_info, all_aspect_objs, mode=mode)
 
     return {
         "error": None, "date_str": date_str, "loc_str": loc_str,
         "angles": angles_list, "bodies": p_lines, "houses": h_lines,
         "house_rulers": ruler_list,
         "house_rulers_with_5deg": ruler_list_with_5deg,
-        "midpoints": midpoints,  # 変数名を合わせる
-        "transit": transit_results, # トランジットの結果
+        "midpoints": midpoints,
+        "transit": transit_results,  # ここで渡す
         "aspects": calculate_aspects(all_aspect_objs, mode, view_type),
         "patterns": detect_patterns(all_aspect_objs, mode)
     }
