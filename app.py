@@ -401,8 +401,9 @@ if "chart_data" in st.session_state:
             
             with col2:
                 st.markdown("### 🌌 ネイタルへのトランジット影響")
-                # 高さを制限してスクロールさせる（必要に応じて）
-                with st.container(height=400):
+                
+                # if のインデントと else のインデントを正確に合わせる
+                if data["transit"]["transit_aspects"]:
                     for aspect in data["transit"]["transit_aspects"]:
                         st.markdown(f"- {aspect}")
                 else:
