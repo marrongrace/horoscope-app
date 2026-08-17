@@ -38,7 +38,7 @@ ui_texts = {
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
         "mode_select": "🔮 鑑定モード",
-        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）"],
+        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）","トランジット（現在の運気）"],
         "p1_header": "1人目",
         "p2_header": "2人目",
         "name_input": "お名前 / ニックネーム",
@@ -232,6 +232,7 @@ with st.sidebar:
     # 鑑定モードの選択
     chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select",filter_mode=None)
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
+    is_transit = chart_mode_raw in ["トランジット", "Transit"]
     st.markdown("---")
 
     # 1人目の入力
