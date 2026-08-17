@@ -592,14 +592,14 @@ if "chart_data" in st.session_state:
         <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
             <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
             <p style="color: var(--text-color);">今回のホロスコープのより詳しい解説は、noteの方で発信しています。</p>
-            <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none;">
+            <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none; margin-top: 15px;">
                 <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
                     noteをチェックする / Visit Note
                 </button>
                 <br>
                 <a href="https://note.com/qa/marroscorps" target="_blank" style="text-decoration: none;">
                 <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 260px;">
-                    匿名質問箱を送る
+                    匿名で質問する / Ask anonymously
                 </button>
             </a>
             </a>
