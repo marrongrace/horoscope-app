@@ -586,6 +586,20 @@ if "chart_data" in st.session_state:
                 file_name=f"horoscope_{u_name}.txt",
                 mime="text/plain;charset=utf-8"
             )
+            
+            st.driver()
+            st.markdown(f"""
+        <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
+            <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
+            <p style="color: var(--text-color);">今回のホロスコープのより詳しい解説は、noteの方で発信しています。</p>
+            <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none;">
+                <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                    noteをチェックする / Visit Note
+                </button>
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
+        st.write("") # スペース調整
 
     else:
         # 🌟 シナストリーモード用の表示（左右に分ける）
@@ -753,17 +767,3 @@ if "chart_data" in st.session_state:
                 file_name=f"synastry_{u_name}_{p2_name}.txt",
                 mime="text/plain;charset=utf-8"
             )
-            
-            st.driver()
-            st.markdown(f"""
-        <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
-            <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
-            <p style="color: var(--text-color);">今回のホロスコープのより詳しい解説は、noteの方で発信しています。</p>
-            <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none;">
-                <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
-                    noteをチェックする / Visit Note
-                </button>
-            </a>
-        </div>
-        """, unsafe_allow_html=True)
-        st.write("") # スペース調整
