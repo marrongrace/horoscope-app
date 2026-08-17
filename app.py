@@ -384,12 +384,12 @@ if "chart_data" in st.session_state:
             st.write("")
 
         if data.get("transit"):
-        st.subheader("トランジット分析結果")
-        st.write(f"対象日時: {data['transit']['transit_date']}")
-        
-        # リスト形式でアスペクトを表示
-        for aspect in data["transit"]["transit_aspects"]:
-            st.markdown(aspect)
+            st.subheader("トランジット分析結果")
+            st.write(f"対象日時: {data['transit']['transit_date']}")
+            
+            # リスト形式でアスペクトを表示
+            for aspect in data["transit"]["transit_aspects"]:
+                st.markdown(aspect)
 
         # タブの作成（全6タブ）
         ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
