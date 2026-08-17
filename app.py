@@ -152,6 +152,7 @@ def localize_text(text, lang):
         
         # Misc
         "5度前ルール適用": "5-degree rule applied",
+        "出生時間不明のためハウス除外": "Houses excluded due to unknown birth time",
     }
     
     for i in range(12, 0, -1):
