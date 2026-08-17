@@ -108,6 +108,10 @@ def convert_to_dms(text):
     """
     (16.30°) のような10進数の度数表記を (16°18') の60進数表記に変換する関数
     """
+    # 💡 文字列以外（辞書やリスト、数値など）が渡された場合のガード処理
+    if not isinstance(text, str):
+        text = str(text)
+
     def replace_deg(match):
         val = float(match.group(1))
         deg = int(val)
