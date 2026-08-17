@@ -754,6 +754,7 @@ if "chart_data" in st.session_state:
                 mime="text/plain;charset=utf-8"
             )
             
+            st.driver()
             st.markdown(f"""
         <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
             <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
