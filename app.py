@@ -31,6 +31,10 @@ ui_texts = {
         "page_title": "🔮 ホロスコープ作成システム",
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
+        "mode_select": "🔮 鑑定モード",
+        "mode_options": ["シングルホロスコープ", "シナストリー（相性）"],
+        "person1_header": "【 1人目（ご本人）のデータ 】",
+        "person2_header": "【 2人目（お相手）のデータ 】",
         "name_input": "お名前 / ニックネーム",
         "birth_date": "生年月日",
         "birth_time": "出生時間（日本時間）",
@@ -56,6 +60,10 @@ ui_texts = {
         "page_title": "🔮 Professional Horoscope Reading",
         "disclaimer": "※ Minor discrepancies in house degrees may occur due to calculation libraries or coordinate settings.",
         "sidebar_header": "📝 Birth Data Input",
+        "mode_select": "🔮 Reading Mode",
+        "mode_options": ["Single Horoscope", "Synastry (Compatibility)"],
+        "person1_header": "【 Person 1 Data 】",
+        "person2_header": "【 Person 2 Data 】",
         "name_input": "Name / Label",
         "birth_date": "Birth Date",
         "birth_time": "Birth Time",
@@ -104,27 +112,26 @@ def convert_to_dms(text):
         return f"({deg}°{min_val:02d}')"
     
     return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
+
+# 💡 1人分の入力フォームを関数化
+def render_user_input_form(prefix, default_name):
+    st.subheader(prefix)
+    user_name = st.text_input(t["name_input"], value=default_name, key=f"{prefix}_user_name_input")
     
-with st.sidebar:
-    st.header(t["sidebar_header"])
-    user_name = st.text_input(t["name_input"], value="TestUser", key="user_name_input")
-    
-    now_date = datetime.date.today()
     default_birth_time = datetime.time(12, 0)
+    birth_date = st.date_input(t["birth_date"], value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date(2100, 12, 31), key=f"{prefix}_birth_date_input")
+    birth_time = st.time_input(t["birth_time"], value=default_birth_time, key=f"{prefix}_birth_time_input")
 
-    birth_date = st.date_input(t["birth_date"], value=datetime.date(2000, 1, 1), min_value=datetime.date(1900, 1, 1), max_value=datetime.date(2100, 12, 31), key="birth_date_input")
-    birth_time = st.time_input(t["birth_time"], value=default_birth_time, key="birth_time_input")
-
-    selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=0, key="pref_select_input")
+    selected_pref = st.selectbox(t["pref_select"], PREFECTURES, index=0, key=f"{prefix}_pref_select_input")
     
     available_cities = get_cities_for_prefecture(selected_pref) if selected_pref != t["pref_default"] else []
     
     if selected_pref == "海外・その他":
-        input_city_name = st.text_input(t["city_input"], value="ロンドン", key="city_input_text_overseas")
+        input_city_name = st.text_input(t["city_input"], value="ロンドン", key=f"{prefix}_city_input_text_overseas")
     elif available_cities:
-        input_city_name = st.selectbox(t["city_input"], available_cities, index=0, key="city_select_jp")
+        input_city_name = st.selectbox(t["city_input"], available_cities, index=0, key=f"{prefix}_city_select_jp")
     else:
-        input_city_name = st.text_input(t["city_input"], value="", placeholder="先に都道府県を選択してください" if lang=="日本語" else "Please select a prefecture first", key="city_input_empty")
+        input_city_name = st.text_input(t["city_input"], value="", placeholder="先に都道府県を選択してください" if lang=="日本語" else "Please select a prefecture first", key=f"{prefix}_city_input_empty")
 
     is_valid, err_msg, lat_res, lng_res = False, "", None, None
     
@@ -136,22 +143,51 @@ with st.sidebar:
     elif not is_valid and selected_pref != "海外・その他":
         st.markdown(f"<p style='color: #ff4b4b; font-size: 0.82em; margin-top: -8px; margin-bottom: 8px;'>⚠️ {t['invalid_loc_error']}</p>", unsafe_allow_html=True)
 
-    if is_valid and lat_res is not None and lng_res is not None:
-        st.session_state.input_lat_val = lat_res
-        st.session_state.input_lng_val = lng_res
-        # 👇【追加】number_inputのキーに紐づくステートも強制的に更新する
-        st.session_state.lat_number_input = lat_res
-        st.session_state.lng_number_input = lng_res
-    
-    if "input_lat_val" not in st.session_state: st.session_state.input_lat_val = 36.1243
-    if "input_lng_val" not in st.session_state: st.session_state.input_lng_val = 139.5983
+    lat_key = f"{prefix}_lat_number_input"
+    lng_key = f"{prefix}_lng_number_input"
 
-    input_lat = st.number_input(t["lat_input"], value=st.session_state.input_lat_val, format="%.4f", key="lat_number_input")
-    input_lng = st.number_input(t["lng_input"], value=st.session_state.input_lng_val, format="%.4f", key="lng_number_input")
+    if is_valid and lat_res is not None and lng_res is not None:
+        st.session_state[f"{prefix}_input_lat_val"] = lat_res
+        st.session_state[f"{prefix}_input_lng_val"] = lng_res
+        st.session_state[lat_key] = lat_res
+        st.session_state[lng_key] = lng_res
+    
+    if f"{prefix}_input_lat_val" not in st.session_state: st.session_state[f"{prefix}_input_lat_val"] = 36.1243
+    if f"{prefix}_input_lng_val" not in st.session_state: st.session_state[f"{prefix}_input_lng_val"] = 139.5983
+
+    input_lat = st.number_input(t["lat_input"], value=st.session_state[f"{prefix}_input_lat_val"], format="%.4f", key=lat_key)
+    input_lng = st.number_input(t["lng_input"], value=st.session_state[f"{prefix}_input_lng_val"], format="%.4f", key=lng_key)
 
     st.caption("※1 緯度・経度は十進数表記です" if lang == "日本語" else "* Please enter coordinates in decimal degrees")
-
     st.markdown("---")
+
+    return {
+        "user_name": user_name,
+        "birth_date": birth_date,
+        "birth_time": birth_time,
+        "selected_pref": selected_pref,
+        "input_city_name": input_city_name,
+        "input_lat": input_lat,
+        "input_lng": input_lng,
+        "is_valid": is_valid
+    }
+
+with st.sidebar:
+    st.header(t["sidebar_header"])
+    
+    # 鑑定モードの選択
+    chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select")
+    is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
+    st.markdown("---")
+
+    # 1人目の入力
+    p1_data = render_user_input_form("p1", "TestUser1")
+
+    # 2人目の入力（シナストリー選択時のみ表示）
+    p2_data = None
+    if is_synastry:
+        p2_data = render_user_input_form("p2", "TestUser2")
+
     st.header(t["settings_header"])
     toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"], key="aspect_view_radio")
     toggle_view = "ペア別" if toggle_view_raw in ["ペア別", "By Pair"] else "アスペクト別"
@@ -160,23 +196,48 @@ with st.sidebar:
     submit_button = st.button(label=t["submit_btn"], type="primary", key="submit_btn_main")
 
 if submit_button:
-    if selected_pref == t["pref_default"]:
-        st.error(t["invalid_pref_error"])
-    elif not is_valid and selected_pref != "海外・その他":
-        st.error(t["invalid_loc_error"])
-    else:
+    # バリデーションチェック
+    p1_error = False
+    if p1_data["selected_pref"] == t["pref_default"]:
+        st.error(f"1人目: {t['invalid_pref_error']}")
+        p1_error = True
+    elif not p1_data["is_valid"] and p1_data["selected_pref"] != "海外・その他":
+        st.error(f"1人目: {t['invalid_loc_error']}")
+        p1_error = True
+
+    p2_error = False
+    if is_synastry and p2_data:
+        if p2_data["selected_pref"] == t["pref_default"]:
+            st.error(f"2人目: {t['invalid_pref_error']}")
+            p2_error = True
+        elif not p2_data["is_valid"] and p2_data["selected_pref"] != "海外・その他":
+            st.error(f"2人目: {t['invalid_loc_error']}")
+            p2_error = True
+
+    if not p1_error and not p2_error:
         with st.spinner(t["loading"]):
-            data = get_chart_data(
-                user_name, birth_date.year, birth_date.month, birth_date.day,
-                birth_time.hour, birth_time.minute, input_lat, input_lng,
-                input_city_name, lang, toggle_view, unknown_checkbox
-            )
+            if not is_synastry:
+                # 1人分（シングル）の計算
+                data = get_chart_data(
+                    p1_data["user_name"], p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                    p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
+                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
+                )
+            else:
+                # シナストリー（2人分）の計算：必要に応じて `get_synastry_data` などの関数に書き換えてください
+                # 例として現状は1人目のデータを取得するか、お持ちのシナストリー用関数をここで呼び出します
+                data = get_chart_data(
+                    f"{p1_data['user_name']} & {p2_data['user_name']}", 
+                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                    p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
+                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
+                )
 
         if data.get("error"):
             st.error(data["error"])
         else:
             st.session_state.chart_data = data
-            st.session_state.user_name = user_name
+            st.session_state.user_name = p1_data["user_name"]
 
 # セッションにデータが存在する場合に表示
 if "chart_data" in st.session_state:
