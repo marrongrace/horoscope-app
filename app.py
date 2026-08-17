@@ -311,6 +311,13 @@ if "chart_data" in st.session_state:
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
         u_name = st.session_state.get("user_name", "TestUser")
         
+        # 💡 日時と場所をコピーから除外するチェックボックス
+        hide_dt_loc = st.checkbox(
+            "日時と場所を非表示にする（除外する）" if lang == "日本語" else "Exclude Date, Time & Location",
+            value=False,
+            key="copy_hide_dt_loc"
+        )
+        
         # 英語モード時に位置情報の日本語表記（北緯・東経・十進）を英語に置換
         display_loc_str = data['loc_str']
         if lang != "日本語":
@@ -325,17 +332,20 @@ if "chart_data" in st.session_state:
         def clean_html(text):
             if not isinstance(text, str):
                 return str(text)
-            # <span ...> や </span> などのHTMLタグを削除
             text = re.sub(r'<[^>]+>', '', text)
-            # Markdownの装飾（**や`）も除去
             text = text.replace('**', '').replace('`', '')
             return text
 
         copy_lines = []
         if lang == "日本語":
             copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
-            copy_lines.append(f"日時: {data['date_str']}")
-            copy_lines.append(f"場所: {data['loc_str']}\n")
+            
+            # 💡 チェックボックスがオフの場合のみ日時・場所を追加
+            if not hide_dt_loc:
+                copy_lines.append(f"日時: {data['date_str']}")
+                copy_lines.append(f"場所: {data['loc_str']}\n")
+            else:
+                copy_lines.append("") # 改行調整
 
             if data["angles"]:
                 copy_lines.append("[アングル]")
@@ -386,8 +396,13 @@ if "chart_data" in st.session_state:
         else:
             # 英語モード用のヘッダー・ラベル
             copy_lines.append(f"[Horoscope Reading Data: {u_name}]")
-            copy_lines.append(f"Date & Time: {data['date_str']}")
-            copy_lines.append(f"Location: {display_loc_str}\n")
+            
+            # 💡 チェックボックスがオフの場合のみ日時・場所を追加
+            if not hide_dt_loc:
+                copy_lines.append(f"Date & Time: {data['date_str']}")
+                copy_lines.append(f"Location: {display_loc_str}\n")
+            else:
+                copy_lines.append("") # 改行調整
 
             if data["angles"]:
                 copy_lines.append("[Angles]")
@@ -424,7 +439,6 @@ if "chart_data" in st.session_state:
                 for r_line in target_rulers_for_copy:
                     formatted_r = clean_html(r_line).replace('➡️', '->')
                     
-                    # 💡 ハウスルーラー内の日本語表記（第Xハウス・ドミサイル等）を英語に置換
                     for i in range(12, 0, -1):
                         suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
                         formatted_r = formatted_r.replace(f"第{i}ハウス", f"{i}{suffix} House")
@@ -456,15 +470,3 @@ if "chart_data" in st.session_state:
                     copy_lines.append(f"- {clean_m}")
 
         st.code("\n".join(copy_lines), language="text")
-
-        # 💡 スマホやタブレットでも文字化けしないようにBOM付きテキストを生成
-        full_text = "\n".join(copy_lines)
-        boms_text = "\ufeff" + full_text
-        
-        # 💡 文字コードを明示してダウンロードボタンを設置
-        st.download_button(
-            label="💾 テキストファイルとしてダウンロード / Download as text",
-            data=boms_text,
-            file_name=f"horoscope_{u_name}.txt",
-            mime="text/plain;charset=utf-8"
-        )
