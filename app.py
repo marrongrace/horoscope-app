@@ -237,7 +237,7 @@ with st.sidebar:
     if is_transit:
         with st.expander("トランジット日時設定", expanded=True):
             transit_date = st.date_input("トランジット日付", value=datetime.date.today())
-            transit_time = st.time_input("トランジット時刻", value=datetime.datetime.now().time()
+            transit_time = st.time_input("トランジット時刻", value=datetime.datetime.now().time())
                                          
         # 場所入力の代わりに、日本（東京）の緯度経度を強制的にセットする
         # （計算ロジック側で現在地として扱えるようになります）                    
