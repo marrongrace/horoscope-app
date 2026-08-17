@@ -598,7 +598,7 @@ if "chart_data" in st.session_state:
                 </button>
                 <br>
                 <a href="https://note.com/qa/marroscorps" target="_blank" style="text-decoration: none;">
-                <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 300px;">
+                <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
                     匿名で質問する / Ask anonymously
                 </button>
             </a>
