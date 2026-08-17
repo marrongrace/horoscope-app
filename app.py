@@ -428,6 +428,8 @@ if "chart_data" in st.session_state:
                 if not isinstance(text, str):
                     return str(text)
                 text = re.sub(r'<[^>]+>', '', text)
+                # 💡 &nbsp; を削除（または半角スペースに置換）
+                text = text.replace('&nbsp;', '')
                 text = text.replace('**', '').replace('`', '')
                 return text
 
@@ -450,7 +452,7 @@ if "chart_data" in st.session_state:
                 copy_lines.append("[天体配置]")
                 for b in data["bodies"]:
                     clean_b = clean_html(b)
-                    clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
+                    clean_b = clean_b.replace("↳", " ↳ ")
                     copy_lines.append(f"- {clean_b}")
                     
                 copy_lines.append("\n[12ハウス]")
@@ -505,7 +507,7 @@ if "chart_data" in st.session_state:
                 copy_lines.append("[Celestial Bodies]")
                 for b in data["bodies"]:
                     clean_b = clean_html(b)
-                    clean_b = clean_b.replace("&nbsp;&nbsp;&nbsp;&nbsp;↳", " ↳ ")
+                    clean_b = clean_b.replace("↳", " ↳ ")
                     copy_lines.append(f"- {clean_b}")
                     
                 copy_lines.append("\n[12 Houses]")
@@ -644,7 +646,7 @@ if "chart_data" in st.session_state:
             with col_r:
                 p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
                 render_aspect_column(p2_name, p2_aspects)
-                
+
         st.divider()
 
         with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
@@ -652,6 +654,8 @@ if "chart_data" in st.session_state:
                 if not isinstance(text, str):
                     return str(text)
                 text = re.sub(r'<[^>]+>', '', text)
+                # 💡 &nbsp; を削除（または半角スペースに置換）
+                text = text.replace('&nbsp;', '')
                 text = text.replace('**', '').replace('`', '')
                 return text
 
