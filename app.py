@@ -241,8 +241,8 @@ with st.sidebar:
                                          
         # 場所入力の代わりに、日本（東京）の緯度経度を強制的にセットする
         # （計算ロジック側で現在地として扱えるようになります）                    
-        transit_lat = 35.6895
-        transit_lng = 139.6917
+        transit_lat = 35.69
+        transit_lng = 139.76
         
         # 緯度経度はとりあえずネイタルと同じ場所を使うか、別の入力を作るか
         # 今回はシンプルにネイタルの場所を流用する形が良いかも
@@ -295,8 +295,8 @@ if submit_button:
                     "day": transit_date.day,
                     "hour": transit_time.hour,
                     "minute": transit_time.minute,
-                    "lat": 35.6895,  # 東京の緯度
-                    "lng": 139.6917  # 東京の経度
+                    "lat": 35.69,  # 東京の緯度
+                    "lng": 139.76  # 東京の経度
                 }
 
         # 2. シナストリー（2人分）か、シングル/トランジットかで分岐
