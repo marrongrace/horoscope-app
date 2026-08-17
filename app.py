@@ -588,9 +588,9 @@ if "chart_data" in st.session_state:
             )
             
             st.divider()
-            st.markdown(f"""
             
-        <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
+            st.markdown(f"""
+            <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
             <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
             <p style="color: var(--text-color);">今回のホロスコープのより詳しい解説は、noteの方で発信しています。</p>
             
