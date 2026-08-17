@@ -230,7 +230,7 @@ with st.sidebar:
     st.header(t["sidebar_header"])
     
     # 鑑定モードの選択
-    chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select")
+    chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select",filter_mode=None)
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
     st.markdown("---")
 
