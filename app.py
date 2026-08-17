@@ -118,7 +118,7 @@ def convert_to_dms(text):
         if min_val == 60:
             deg += 1
             min_val = 0
-        return f"({deg}°{min_val:02d}')"
+        return f"({deg}°{min_val:02d})"
     
     return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
 
@@ -582,9 +582,9 @@ if "chart_data" in st.session_state:
         """, unsafe_allow_html=True)
 
         synastry_tabs_labels = (
-            ["🌟 2人分の天体配置", "🔗 シナストリーアスペクト"] 
+            ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
             if lang == "日本語" 
-            else ["🌟 Celestial Bodies", "🔗 Synastry Aspects"]
+            else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
         )
         stab1, stab2 = st.tabs(synastry_tabs_labels)
 
@@ -602,14 +602,29 @@ if "chart_data" in st.session_state:
                     st.markdown(f"- {convert_to_dms(p)}", unsafe_allow_html=True)
 
         with stab2:
-            st.markdown("#### 🔗 シナストリーアスペクト（相性）")
-            syn_aspects = data.get("synastry_aspects", data.get("aspects", []))
-            if syn_aspects and syn_aspects is not Ellipsis:
-                valid_aspects = [a for a in syn_aspects if a is not Ellipsis and str(a) != "Ellipsis"]
-                if valid_aspects:
-                    for a in valid_aspects:
-                        st.markdown(f"- {convert_to_dms(a)}")
+            col_l, col_r = st.columns(2)
+            with col_l:
+                st.markdown(f"#### 👤 {u_name} のアスペクト")
+                p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", []))
+                if p1_aspects and p1_aspects is not Ellipsis:
+                    valid_p1_asp = [a for a in p1_aspects if a is not Ellipsis and str(a) != "Ellipsis"]
+                    if valid_p1_asp:
+                        for a in valid_p1_asp:
+                            st.markdown(f"- {convert_to_dms(a)}")
+                    else:
+                        st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
                 else:
-                    st.info("*(シナストリーアスペクトのデータがありません)*" if lang=="日本語" else "*(No synastry aspect data)*")
-            else:
-                st.info("*(該当するアスペクトはありません)*" if lang=="日本語" else "*(No aspects found)*")
+                    st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
+
+            with col_r:
+                st.markdown(f"#### 👤 {p2_name} のアスペクト")
+                p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
+                if p2_aspects and p2_aspects is not Ellipsis:
+                    valid_p2_asp = [a for a in p2_aspects if a is not Ellipsis and str(a) != "Ellipsis"]
+                    if valid_p2_asp:
+                        for a in valid_p2_asp:
+                            st.markdown(f"- {convert_to_dms(a)}")
+                    else:
+                        st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
+                else:
+                    st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
