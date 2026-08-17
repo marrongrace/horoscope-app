@@ -39,8 +39,8 @@ ui_texts = {
         "sidebar_header": "📝 出生データ入力",
         "mode_select": "🔮 鑑定モード",
         "mode_options": ["シングルホロスコープ", "シナストリー（相性）"],
-        "person1_header": "【 1人目（ご本人）のデータ 】",
-        "person2_header": "【 2人目（お相手）のデータ 】",
+        "p1_header": "1人目",
+        "p2_header": "2人目",
         "name_input": "お名前 / ニックネーム",
         "birth_date": "生年月日",
         "birth_time": "出生時間（日本時間）",
@@ -68,8 +68,8 @@ ui_texts = {
         "sidebar_header": "📝 Birth Data Input",
         "mode_select": "🔮 Reading Mode",
         "mode_options": ["Single Horoscope", "Synastry (Compatibility)"],
-        "person1_header": "【 Person 1 Data 】",
-        "person2_header": "【 Person 2 Data 】",
+        "p1_header": "p1",
+        "p2_header": "p2",
         "name_input": "Name / Label",
         "birth_date": "Birth Date",
         "birth_time": "Birth Time",
@@ -118,13 +118,15 @@ def convert_to_dms(text):
         if min_val == 60:
             deg += 1
             min_val = 0
-        return f"({deg}°{min_val:02d}')"
+        return f"({deg}°{min_val:02d})"
     
     return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
 
 # 💡 1人分の入力フォームを関数化
 def render_user_input_form(prefix, default_name):
-    st.subheader(prefix)
+    header_text = t["p1_header"] if prefix == "p1" else t["p2_header"]
+    st.subheader(header_text)
+    
     user_name = st.text_input(t["name_input"], value=default_name, key=f"{prefix}_user_name_input")
     
     default_birth_time = datetime.time(12, 0)
@@ -428,7 +430,6 @@ if "chart_data" in st.session_state:
                 if not isinstance(text, str):
                     return str(text)
                 text = re.sub(r'<[^>]+>', '', text)
-                # 💡 &nbsp; を削除（または半角スペースに置換）
                 text = text.replace('&nbsp;', '')
                 text = text.replace('**', '').replace('`', '')
                 return text
@@ -654,7 +655,6 @@ if "chart_data" in st.session_state:
                 if not isinstance(text, str):
                     return str(text)
                 text = re.sub(r'<[^>]+>', '', text)
-                # 💡 &nbsp; を削除（または半角スペースに置換）
                 text = text.replace('&nbsp;', '')
                 text = text.replace('**', '').replace('`', '')
                 return text
@@ -731,7 +731,6 @@ if "chart_data" in st.session_state:
 
             st.code("\n".join(copy_lines), language="text")
             
-             # 💡 スマホやタブレットでも文字化けしないようにBOM付きテキストを生成
             full_text = "\n".join(copy_lines)
             boms_text = "\ufeff" + full_text
             
