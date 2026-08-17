@@ -353,8 +353,8 @@ if "chart_data" in st.session_state:
             st.write("")
 
         # タブの作成（全6タブ）
-        ruler_tab_label = "ハウスルーラー" if lang == "日本語" else "House Rulers"
-        midpoint_tab_label = "ミッドポイント" if lang == "日本語" else "Midpoints"
+        ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
+        midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
         tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
             t["bodies_tab"], t["houses_tab"], t["aspects_tab"], 
             t["patterns_tab"], ruler_tab_label, midpoint_tab_label
