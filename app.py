@@ -822,11 +822,16 @@ if "chart_data" in st.session_state:
                 for p in p2_bodies:
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
-        with stab2:
+       with stab2:
             st.markdown(f"#### 🔗 {u_name} & {p2_name} のシナストリー・アスペクト" if lang=="日本語" else f"#### 🔗 Synastry Aspects between {u_name} & {p2_name}")
             
-            # データからシナストリーアスペクトのリストを取得（キー名は実際のデータ構造に合わせて調整してください）
-            synastry_aspects = data.get("synastry_aspects", data.get("person1_to_person2_aspects", []))
+            # 各種キーのバリエーションに対応して取得
+            synastry_aspects = (
+                data.get("synastry_aspects") or 
+                data.get("person1_to_person2_aspects") or 
+                data.get("aspects") or 
+                []
+            )
             
             if synastry_aspects and synastry_aspects is not Ellipsis:
                 if isinstance(synastry_aspects, str):
@@ -872,34 +877,29 @@ if "chart_data" in st.session_state:
                 p1_bodies = data.get("person1", {}).get("bodies", data.get("bodies", []))
                 for p in p1_bodies:
                     copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
-                
-                copy_lines.append(f"\n--- 👤 {u_name} のアスペクト ---")
-                p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", data.get("aspects", [])))
-                if isinstance(p1_aspects, list):
-                    for a in p1_aspects:
-                        if a is not Ellipsis and str(a) != "Ellipsis":
-                            copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p1_aspects, str):
-                    for line in p1_aspects.split("\n"):
-                        if line.strip():
-                            copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
 
                 copy_lines.append(f"\n--- 👤 {p2_name} の天体配置 ---")
                 p2_bodies = data.get("person2", {}).get("bodies", data.get("person2_bodies", []))
                 for p in p2_bodies:
                     copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
 
-                copy_lines.append(f"\n--- 👤 {p2_name} のアスペクト ---")
-                p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
-                if isinstance(p2_aspects, list):
-                    for a in p2_aspects:
+                copy_lines.append(f"\n--- 🔗 シナストリー・アスペクト ---")
+                synastry_aspects = (
+                    data.get("synastry_aspects") or 
+                    data.get("person1_to_person2_aspects") or 
+                    data.get("aspects") or 
+                    []
+                )
+                if isinstance(synastry_aspects, list):
+                    for a in synastry_aspects:
                         if a is not Ellipsis and str(a) != "Ellipsis":
                             copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p2_aspects, str):
-                    for line in p2_aspects.split("\n"):
+                elif isinstance(synastry_aspects, str):
+                    for line in synastry_aspects.split("\n"):
                         if line.strip():
                             copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
             else:
+                # 英語用の出力も同様にシナストリー・アスペクトを反映
                 copy_lines.append(f"[Synastry Reading Data: {u_name} & {p2_name}]\n")
                 
                 copy_lines.append(f"--- 👤 {u_name}'s Celestial Bodies ---")
