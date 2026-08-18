@@ -31,7 +31,7 @@ BASE_PREFECTURES = [
 st.sidebar.markdown("### 🌐 言語 / Language")
 lang = st.sidebar.radio("言語選択", ["日本語", "English"], label_visibility="collapsed", key="lang_radio")
 
-# 2. 辞書の定義（トランジット用項目を追加）
+# 2. 辞書の定義
 ui_texts = {
     "日本語": {
         "page_title": "🔮 ホロスコープ作成システム",
@@ -49,10 +49,6 @@ ui_texts = {
         "city_input": "市区町村・地名 (例: 古河市)",
         "lat_input": "緯度",
         "lng_input": "経度",
-        "transit_header": "🌌 トランジット設定",
-        "transit_date": "トランジットの日付",
-        "transit_time": "トランジットの時間",
-        "transit_location": "📍 トランジット地（現在地など）",
         "settings_header": "⚙️ 表示設定",
         "aspect_view_label": "アスペクト表示形式:",
         "aspect_view_options": ["ペア別", "アスペクト別"],
@@ -83,10 +79,6 @@ ui_texts = {
         "lat_input": "Latitude",
         "lng_input": "Longitude",
         "lat_caption": "💡 Auto-fetched or from Google Maps",
-        "transit_header": "🌌 Transit Settings",
-        "transit_date": "Transit Date",
-        "transit_time": "Transit Time",
-        "transit_location": "📍 Transit Location",
         "settings_header": "⚙️ Display Settings",
         "aspect_view_label": "Aspect View:",
         "aspect_view_options": ["By Pair", "By Aspect"],
@@ -126,7 +118,7 @@ def convert_to_dms(text):
         if min_val == 60:
             deg += 1
             min_val = 0
-        return f"({deg}°{min_val:02d})"
+        return f"({deg}°{min_val:02d}')"
     
     return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
 
@@ -246,10 +238,10 @@ with st.sidebar:
     # 1人目の入力
     p1_data = render_user_input_form("p1", "TestUser1", show_header=is_synastry)
 
-    # 🌟 トランジットモードが選ばれた場合（日時 ＋ 独立した場所設定）
+    # 🌟 トランジットモードが選ばれた場合
     if is_transit:
         st.markdown("---")
-        st.subheader(t["transit_header"])
+        st.subheader("🌌 トランジット設定 / Transit Settings" if lang == "日本語" else "🌌 Transit Settings")
         
         import datetime
         from zoneinfo import ZoneInfo
@@ -257,56 +249,18 @@ with st.sidebar:
         # 💡 日本時間（JST）の現在日時を取得
         jst_now = datetime.datetime.now(ZoneInfo("Asia/Tokyo"))
         
+        # フォームの初期値として JST の現在の日付・時間をセット
         transit_date = st.date_input(
-            t["transit_date"],
+            "トランジットの日付 / Transit Date" if lang == "日本語" else "Transit Date",
             value=jst_now.date(),
             key="transit_date_input"
         )
         
         transit_time = st.time_input(
-            t["transit_time"],
-            value=jst_now.time().replace(second=0, microsecond=0),
+            "トランジットの時間 / Transit Time" if lang == "日本語" else "Transit Time",
+            value=jst_now.time().replace(second=0, microsecond=0), # 秒・ミリ秒は切り捨てる
             key="transit_time_input"
         )
-        
-        # 📍 トランジット用の場所設定（都道府県・市区町村・緯度経度・名前なし）
-        st.markdown(f"##### {t['transit_location']}")
-        t_prefix = "transit"
-        transit_pref = st.selectbox(t["pref_select"], PREFECTURES, index=0, key=f"{t_prefix}_pref_select_input")
-        
-        transit_available_cities = get_cities_for_prefecture(transit_pref) if transit_pref != t["pref_default"] else []
-        
-        if transit_pref == "海外・その他":
-            transit_city_name = st.text_input(t["city_input"], value="ロンドン", key=f"{t_prefix}_city_input_text_overseas")
-        elif transit_available_cities:
-            transit_city_name = st.selectbox(t["city_input"], transit_available_cities, index=0, key=f"{t_prefix}_city_select_jp")
-        else:
-            placeholder_text = "先に都道府県を選択してください" if lang=="日本語" else "Please select a prefecture first"
-            transit_city_name = st.text_input(t["city_input"], value="", placeholder=placeholder_text, key=f"{t_prefix}_city_input_empty")
-
-        t_is_valid, t_err_msg, t_lat_res, t_lng_res = False, "", None, None
-        if transit_pref != t["pref_default"]:
-            t_is_valid, t_err_msg, t_lat_res, t_lng_res = validate_and_get_coords(transit_pref, transit_city_name)
-
-        if transit_pref == t["pref_default"]:
-            st.markdown(f"<p style='color: #ff4b4b; font-size: 0.82em; margin-top: -8px; margin-bottom: 8px;'>⚠️ {t['invalid_pref_error']}</p>", unsafe_allow_html=True)
-        elif not t_is_valid and transit_pref != "海外・その他":
-            st.markdown(f"<p style='color: #ff4b4b; font-size: 0.82em; margin-top: -8px; margin-bottom: 8px;'>⚠️ {t['invalid_loc_error']}</p>", unsafe_allow_html=True)
-
-        t_lat_key = f"{t_prefix}_lat_number_input"
-        t_lng_key = f"{t_prefix}_lng_number_input"
-
-        if t_is_valid and t_lat_res is not None and t_lng_res is not None:
-            st.session_state[f"{t_prefix}_input_lat_val"] = t_lat_res
-            st.session_state[f"{t_prefix}_input_lng_val"] = t_lng_res
-            st.session_state[t_lat_key] = t_lat_res
-            st.session_state[t_lng_key] = t_lng_res
-        
-        if f"{t_prefix}_input_lat_val" not in st.session_state: st.session_state[f"{t_prefix}_input_lat_val"] = 36.1243
-        if f"{t_prefix}_input_lng_val" not in st.session_state: st.session_state[f"{t_prefix}_input_lng_val"] = 139.5983
-
-        transit_lat = st.number_input(t["lat_input"], value=st.session_state[f"{t_prefix}_input_lat_val"], format="%.4f", key=t_lat_key)
-        transit_lng = st.number_input(t["lng_input"], value=st.session_state[f"{t_prefix}_input_lng_val"], format="%.4f", key=t_lng_key)
             
         # 計算用にセッションステートへ保存
         st.session_state["transit_info"] = {
@@ -315,8 +269,8 @@ with st.sidebar:
             "day": transit_date.day,
             "hour": transit_time.hour,
             "minute": transit_time.minute,
-            "lat": transit_lat,
-            "lng": transit_lng
+            "lat": p1_data["input_lat"],
+            "lng": p1_data["input_lng"]
         }
         
     # 2人目の入力（シナストリー選択時のみ表示）
@@ -362,13 +316,15 @@ if submit_button:
                     "lat": p1_data["input_lat"], "lng": p1_data["input_lng"]
                 })
                 
+                # get_chart_data の中で transit_info を受け取って計算させる形にするか、
+                # あるいはご提示いただいたコードの通りに返すようにする
                 data = get_chart_data(
                     p1_data["user_name"],
                     p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
                     p1_data["birth_time"].hour, p1_data["birth_time"].minute,
                     p1_data["input_lat"], p1_data["input_lng"],
                     p1_data["input_city_name"], lang, toggle_view, unknown_checkbox,
-                    transit_info=transit_info
+                    transit_info=transit_info # ← もし引数で渡せるようになっているならここへ！
                 )
                 
                 st.session_state.chart_data = data
@@ -417,6 +373,7 @@ if submit_button:
                         "city": p2_data["input_city_name"],
                         "is_unknown_time": unknown_checkbox
                     }
+                    # 💡 ここに display_mode=toggle_view を追加します！
                     data = get_synastry_data(p1_info, p2_info, mode=lang, display_mode=toggle_view)
                 else:
                     data = get_chart_data(
@@ -510,6 +467,7 @@ if "chart_data" in st.session_state:
                 mime="text/plain;charset=utf-8"
             )
 
+        # 一番下に追加する note & 質問箱リンク
         st.divider()
         st.markdown(f"""
         <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
@@ -531,7 +489,7 @@ if "chart_data" in st.session_state:
         """, unsafe_allow_html=True)
         st.write("")
         
-        st.stop()
+        st.stop() # トランジットのときはここで通常の描画をストップする
 
     if not current_is_synastry:
         display_loc_str = data['loc_str']
@@ -556,6 +514,7 @@ if "chart_data" in st.session_state:
             col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
             st.write("")
 
+        # タブの作成（全6タブ）
         ruler_tab_label = "ハウスルーラー" if lang == "日本語" else "House Rulers"
         midpoint_tab_label = "ミッドポイント" if lang == "日本語" else "Midpoints"
         tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -790,7 +749,11 @@ if "chart_data" in st.session_state:
                 mime="text/plain;charset=utf-8"
             )
         
+        # ==========================================
+        # 🌟 ここから下が「一番下に追加する note & 質問箱リンク」です！
+        # ==========================================
         st.divider()
+        
         st.markdown(f"""
         <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
         <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
@@ -812,6 +775,7 @@ if "chart_data" in st.session_state:
         st.write("")
 
     else:
+        # 🌟 シナストリーモード用の表示（左右に分ける）
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
             <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
@@ -840,6 +804,7 @@ if "chart_data" in st.session_state:
         with stab2:
             st.markdown(f"#### 🔗 {u_name} & {p2_name} のシナストリー・アスペクト" if lang=="日本語" else f"#### 🔗 Synastry Aspects between {u_name} & {p2_name}")
             
+            # 各種キーのバリエーションに対応して取得
             synastry_aspects = (
                 data.get("synastry_aspects") or 
                 data.get("person1_to_person2_aspects") or 
@@ -913,6 +878,7 @@ if "chart_data" in st.session_state:
                         if line.strip():
                             copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
             else:
+                # 英語用の出力も同様にシナストリー・アスペクトを反映
                 copy_lines.append(f"[Synastry Reading Data: {u_name} & {p2_name}]\n")
                 
                 copy_lines.append(f"--- 👤 {u_name}'s Celestial Bodies ---")
@@ -959,7 +925,11 @@ if "chart_data" in st.session_state:
                 mime="text/plain;charset=utf-8"
             )
             
+        # ==========================================
+        # 🌟 ここから下が「一番下に追加する note & 質問箱リンク」です！
+        # ==========================================
         st.divider()
+        
         st.markdown(f"""
         <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
         <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
