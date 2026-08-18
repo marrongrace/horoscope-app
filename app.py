@@ -38,7 +38,7 @@ ui_texts = {
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
         "mode_select": "🔮 鑑定モード",
-        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）","トランジット（現在の運気）"],
+        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）", "トランジット（現在の運気）"],
         "p1_header": "1人目",
         "p2_header": "2人目",
         "name_input": "お名前 / ニックネーム",
@@ -67,7 +67,7 @@ ui_texts = {
         "disclaimer": "※ Minor discrepancies in house degrees may occur due to calculation libraries or coordinate settings.",
         "sidebar_header": "📝 Birth Data Input",
         "mode_select": "🔮 Reading Mode",
-        "mode_options": ["Single Horoscope", "Synastry (Compatibility)"],
+        "mode_options": ["Single Horoscope", "Synastry (Compatibility)", "Transit"],
         "p1_header": "p1",
         "p2_header": "p2",
         "name_input": "Name / Label",
@@ -94,23 +94,16 @@ ui_texts = {
     }
 }
 
-# 3. 選択された言語に基づいて `t` を決定
 t = ui_texts[lang]
 
-# 4. メイン画面のタイトルと注釈を綺麗に表示する
 st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
-# 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
 
 def convert_to_dms(text):
-    """
-    (16.30°) のような10進数の度数表記を (16°18') の60進数表記に変換する関数
-    """
     if not isinstance(text, str):
         text = str(text)
-
     def replace_deg(match):
         val = float(match.group(1))
         deg = int(val)
@@ -119,52 +112,34 @@ def convert_to_dms(text):
             deg += 1
             min_val = 0
         return f"({deg}°{min_val:02d}')"
-    
     return re.sub(r'\((\d+\.\d+)°\)', replace_deg, text)
 
 def localize_text(text, lang):
-    """
-    英語モードの際に、占星術用語（星座、天体、ハウス、アスペクト等）を英語に翻訳する関数
-    """
     if lang == "日本語" or not isinstance(text, str):
         return text
-    
     translations = {
-        # Zodiac Signs
         "牡羊座": "Aries", "牡牛座": "Taurus", "双子座": "Gemini", "蟹座": "Cancer",
         "獅子座": "Leo", "乙女座": "Virgo", "天秤座": "Libra", "蠍座": "Scorpio",
         "射手座": "Sagittarius", "山羊座": "Capricorn", "水瓶座": "Aquarius", "魚座": "Pisces",
-        
-        # Planets & Points
         "太陽": "Sun", "月": "Moon", "水星": "Mercury", "金星": "Venus",
         "火星": "Mars", "木星": "Jupiter", "土星": "Saturn", "天王星": "Uranus",
         "海王星": "Neptune", "冥王星": "Pluto", "ドラゴンヘッド": "North Node",
         "ドラゴンテイル": "South Node", "キロン": "Chiron",
-        
-        # Aspects
         "コンジャンクション": "Conjunction", "オポジション": "Opposition",
         "トライン": "Trine", "スクエア": "Square", "セクスタイル": "Sextile",
         "クインカンクス": "Quincunx",
-        
-        # Dignities
         "ドミサイル": "Domicile", "エグザルテーション": "Exaltation",
         "デトリメント": "Detriment", "フォール": "Fall",
-        
-        # Misc
         "5度前ルール適用": "5-degree rule applied",
         "出生時間不明のためハウス除外": "Houses excluded due to unknown birth time",
     }
-    
     for i in range(12, 0, -1):
         suffix = "st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"
         translations[f"第{i}ハウス"] = f"{i}{suffix} House"
-        
     for jp, en in translations.items():
         text = text.replace(jp, en)
-        
     return text
 
-# 💡 1人分の入力フォームを関数化
 def render_user_input_form(prefix, default_name, show_header=True):
     if show_header:
         header_text = t["p1_header"] if prefix == "p1" else t["p2_header"]
@@ -228,6 +203,7 @@ def render_user_input_form(prefix, default_name, show_header=True):
 
 with st.sidebar:
     st.header(t["sidebar_header"])
+    
     chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select")
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
     is_transit = chart_mode_raw in ["トランジット（現在の運気）", "Transit"]
@@ -240,13 +216,22 @@ with st.sidebar:
         transit_lng = 139.76
     
     st.markdown("---")
+
     p1_data = render_user_input_form("p1", "TestUser1", show_header=is_synastry)
-    p2_data = render_user_input_form("p2", "TestUser2", show_header=True) if is_synastry else None
+
+    p2_data = None
+    if is_synastry:
+        p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
+
+    # ⚙️ 表示設定（ここを追加・復元しました）
+    st.header(t["settings_header"])
+    toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"], key="aspect_view_radio")
+    toggle_view = "ペア別" if toggle_view_raw in ["ペア別", "By Pair"] else "アスペクト別"
+    unknown_checkbox = st.checkbox(t["unknown_time_checkbox"], key="unknown_time_chk")
 
     submit_button = st.button(label=t["submit_btn"], type="primary", key="submit_btn_main")
 
 if submit_button:
-    # バリデーションチェック
     p1_error = False
     if p1_data["selected_pref"] == t["pref_default"]:
         st.error(f"1人目: {t['invalid_pref_error']}")
@@ -266,8 +251,6 @@ if submit_button:
 
     if not p1_error and not p2_error:
         with st.spinner(t["loading"]):
-            
-            # 1. まずトランジット情報を準備する
             transit_info = None
             if is_transit:
                 transit_info = {
@@ -276,13 +259,11 @@ if submit_button:
                     "day": transit_date.day,
                     "hour": transit_time.hour,
                     "minute": transit_time.minute,
-                    "lat": 35.69,  # 東京の緯度
-                    "lng": 139.76  # 東京の経度
+                    "lat": 35.69,
+                    "lng": 139.76
                 }
 
-        # 2. シナストリー（2人分）か、シングル/トランジットかで分岐
         if is_synastry:
-            # シナストリー（2人分）の計算
             if get_synastry_data is not None:
                 p1_info = {
                     "name": p1_data["user_name"],
@@ -316,10 +297,9 @@ if submit_button:
                     p1_data["birth_time"].hour, p1_data["birth_time"].minute, 
                     p1_data["input_lat"], p1_data["input_lng"],
                     p1_data["input_city_name"], lang, toggle_view, unknown_checkbox,
-                    transit_info=transit_info  # 👈 ここを追加！
+                    transit_info=transit_info
                 )
         else:
-            # 1人分（シングル または トランジット）の計算
             data = get_chart_data(
                 p1_data["user_name"], 
                 p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
@@ -345,42 +325,49 @@ if "chart_data" in st.session_state:
     current_is_transit = st.session_state.get("is_transit", False)
 
     if not current_is_synastry:
-        # ヘッダー表示
         display_loc_str = data['loc_str']
         if lang != "日本語":
             display_loc_str = display_loc_str.replace("北緯", "N").replace("東経", "E").replace("十進:", "Decimal:")
 
-        st.markdown(f"""<div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
             <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
             <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data['date_str']}<br>📍 {display_loc_str}</p>
-            </div>""", unsafe_allow_html=True)
+        </div>
+        """, unsafe_allow_html=True)
 
-        # トランジットモードの専用表示
         if current_is_transit and data.get("transit"):
-            st.subheader("🌌 トランジット分析結果")
+            st.divider()
+            st.subheader("トランジット分析結果")
             st.write(f"対象日時: {data['transit']['transit_date']}")
+            
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown("### 👤 ネイタル天体配置")
-                for body in data["bodies"]: st.markdown(body)
+                for body in data["bodies"]:
+                    st.markdown(body)
             with col2:
-                st.markdown("### 🪐 ネイタルへのトランジット影響")
+                st.markdown("### 🌌 ネイタルへのトランジット影響")
                 if data["transit"]["transit_aspects"]:
-                    for aspect in data["transit"]["transit_aspects"]: st.markdown(f"- {aspect}")
-                else: st.info("現在、顕著なトランジット・アスペクトはありません。")
-            st.stop() # トランジットの時はここで終了
+                    for aspect in data["transit"]["transit_aspects"]:
+                        st.markdown(f"- {aspect}")
+                else:
+                    st.info("現在、顕著なトランジット・アスペクトはありません。")
+            
+            st.stop()
 
-        # 通常モード（ネイタル）の表示
         if data["angles"]:
             col_a1, col_a2 = st.columns(2)
             col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
             col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
             st.write("")
 
-        # 通常モードのタブ表示
         ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
         midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"], ruler_tab_label, midpoint_tab_label])
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+            t["bodies_tab"], t["houses_tab"], t["aspects_tab"], 
+            t["patterns_tab"], ruler_tab_label, midpoint_tab_label
+        ])
 
         with tab1:
             for p in data["bodies"]:
@@ -433,7 +420,7 @@ if "chart_data" in st.session_state:
                     target_rulers = data.get("house_rulers", [])
                 else:
                     target_rulers = data.get(
-                        "house_rulers_with_5deg", data.get("house_rulers", [])
+                        "house_rulers_type", data.get("house_rulers_with_5deg", data.get("house_rulers", []))
                     )
 
                 for r_line in target_rulers:
