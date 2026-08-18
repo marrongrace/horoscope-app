@@ -228,39 +228,20 @@ def render_user_input_form(prefix, default_name, show_header=True):
 
 with st.sidebar:
     st.header(t["sidebar_header"])
-    
-    # 鑑定モードの選択
-    chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select",filter_mode=None)
+    chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select")
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
-    is_transit = chart_mode_raw in ["トランジット", "Transit"]
+    is_transit = chart_mode_raw in ["トランジット（現在の運気）", "Transit"]
 
     if is_transit:
         with st.expander("トランジット日時設定", expanded=True):
             transit_date = st.date_input("トランジット日付", value=datetime.date.today())
             transit_time = st.time_input("トランジット時刻", value=datetime.datetime.now().time())
-                                         
-        # 場所入力の代わりに、日本（東京）の緯度経度を強制的にセットする
-        # （計算ロジック側で現在地として扱えるようになります）                    
         transit_lat = 35.69
         transit_lng = 139.76
-        
-        # 緯度経度はとりあえずネイタルと同じ場所を使うか、別の入力を作るか
-        # 今回はシンプルにネイタルの場所を流用する形が良いかも
     
     st.markdown("---")
-
-    # 1人目の入力
     p1_data = render_user_input_form("p1", "TestUser1", show_header=is_synastry)
-
-    # 2人目の入力（シナストリー選択時のみ表示）
-    p2_data = None
-    if is_synastry:
-        p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
-
-    st.header(t["settings_header"])
-    toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"], key="aspect_view_radio")
-    toggle_view = "ペア別" if toggle_view_raw in ["ペア別", "By Pair"] else "アスペクト別"
-    unknown_checkbox = st.checkbox(t["unknown_time_checkbox"], key="unknown_time_chk")
+    p2_data = render_user_input_form("p2", "TestUser2", show_header=True) if is_synastry else None
 
     submit_button = st.button(label=t["submit_btn"], type="primary", key="submit_btn_main")
 
@@ -353,71 +334,53 @@ if submit_button:
             st.session_state.chart_data = data
             st.session_state.user_name = p1_data["user_name"]
             st.session_state.is_synastry = is_synastry
+            st.session_state.is_transit = is_transit
             if is_synastry and p2_data:
                 st.session_state.p2_name = p2_data["user_name"]
 
-# セッションにデータが存在する場合に表示
 if "chart_data" in st.session_state:
     data = st.session_state.chart_data
     u_name = st.session_state.get("user_name", "TestUser")
     current_is_synastry = st.session_state.get("is_synastry", False)
-    p2_name = st.session_state.get("p2_name", "TestUser2")
+    current_is_transit = st.session_state.get("is_transit", False)
 
     if not current_is_synastry:
+        # ヘッダー表示
         display_loc_str = data['loc_str']
         if lang != "日本語":
-            display_loc_str = (
-                display_loc_str
-                .replace("北緯", "N")
-                .replace("東経", "E")
-                .replace("十進:", "Decimal:")
-            )
+            display_loc_str = display_loc_str.replace("北緯", "N").replace("東経", "E").replace("十進:", "Decimal:")
 
-        st.markdown(f"""
-        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+        st.markdown(f"""<div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
             <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
             <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data['date_str']}<br>📍 {display_loc_str}</p>
-        </div>
-        """, unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
+        # トランジットモードの専用表示
+        if current_is_transit and data.get("transit"):
+            st.subheader("🌌 トランジット分析結果")
+            st.write(f"対象日時: {data['transit']['transit_date']}")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("### 👤 ネイタル天体配置")
+                for body in data["bodies"]: st.markdown(body)
+            with col2:
+                st.markdown("### 🪐 ネイタルへのトランジット影響")
+                if data["transit"]["transit_aspects"]:
+                    for aspect in data["transit"]["transit_aspects"]: st.markdown(f"- {aspect}")
+                else: st.info("現在、顕著なトランジット・アスペクトはありません。")
+            st.stop() # トランジットの時はここで終了
+
+        # 通常モード（ネイタル）の表示
         if data["angles"]:
             col_a1, col_a2 = st.columns(2)
             col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
             col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
             st.write("")
 
-        if data.get("transit"):
-            st.divider()
-            st.subheader("トランジット分析結果")
-            st.write(f"対象日時: {data['transit']['transit_date']}")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown("### 👤 ネイタル天体配置")
-                for body in data["bodies"]:
-                    st.markdown(body)
-            with col2:
-                st.markdown("### 🌌 ネイタルへのトランジット影響")
-                if data["transit"]["transit_aspects"]:
-                    for aspect in data["transit"]["transit_aspects"]:
-                        st.markdown(f"- {aspect}")
-                else:
-                    st.info("現在、顕著なトランジット・アスペクトはありません。")
-            
-            # 🌟 ここで終了！これ以降の通常表示を実行させない
-            st.stop()
-            
-        #    # リスト形式でアスペクトを表示
-        #    for aspect in data["transit"]["transit_aspects"]:
-        #        st.markdown(aspect)
-
-        # タブの作成（全6タブ）
+        # 通常モードのタブ表示
         ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
         midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-            t["bodies_tab"], t["houses_tab"], t["aspects_tab"], 
-            t["patterns_tab"], ruler_tab_label, midpoint_tab_label
-        ])
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([t["bodies_tab"], t["houses_tab"], t["aspects_tab"], t["patterns_tab"], ruler_tab_label, midpoint_tab_label])
 
         with tab1:
             for p in data["bodies"]:
