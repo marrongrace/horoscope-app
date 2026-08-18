@@ -401,7 +401,7 @@ if "chart_data" in st.session_state:
     # ==========================================
     if current_is_transit and "transit" in data:
         st.divider()
-        st.subheader("🌌 トランジット分析結果 / Transit Reading" if lang == "日本語" else "🌌 Transit Reading")
+        st.subheader("🌌 トランジット分析結果" if lang == "日本語" else "🌌 Transit Reading")
         st.write(f"📅 対象日時: {data['transit'].get('transit_date', '')}")
         
         t_col1, t_col2 = st.columns(2)
