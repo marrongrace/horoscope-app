@@ -414,7 +414,8 @@ if "chart_data" in st.session_state:
             transit_aspects = data["transit"].get("transit_aspects", [])
             if transit_aspects:
                 for asp in transit_aspects:
-                    st.markdown(f"- {asp}")
+                    clean_asp = re.sub(r'^[-\s◦○]+', '', str(asp)).strip()
+                    st.markdown(f"- {clean_asp}")
             else:
                 st.info("現在、顕著なトランジット・アスペクトはありません。" if lang == "日本語" else "No significant transit aspects found.")
         
@@ -440,7 +441,8 @@ if "chart_data" in st.session_state:
                 copy_lines.append("\n[トランジット・アスペクト]")
                 if transit_aspects:
                     for asp in transit_aspects:
-                        copy_lines.append(f"- {clean_html(asp)}")
+                        clean_asp = re.sub(r'^[-\s◦○]+', '', clean_html(asp)).strip()
+                        copy_lines.append(f"- {clean_asp}")
                 else:
                     copy_lines.append("- (特になし)")
             else:
