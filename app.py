@@ -101,6 +101,9 @@ t = ui_texts[lang]
 st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
+# 先頭に初期選択肢を追加
+PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
+
 def convert_to_dms(text):
     """
     (16.30°) のような10進数の度数表記を (16°18') の60進数表記に変換する関数
