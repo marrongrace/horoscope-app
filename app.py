@@ -238,7 +238,7 @@ with st.sidebar:
     # 1人目の入力
     p1_data = render_user_input_form("p1", "TestUser1", show_header=is_synastry)
 
-    # 🌟 トランジットモードが選ばれた場合
+    # 🌟 トランジットモードが選ばれた場合のみ、1人目の直下に日時入力欄を表示
     if is_transit:
         st.markdown("---")
         st.subheader("🌌 トランジット設定 / Transit Settings" if lang == "日本語" else "🌌 Transit Settings")
@@ -261,22 +261,16 @@ with st.sidebar:
             transit_minute = st.number_input(
                 "分 / Minute" if lang == "日本語" else "Minute", min_value=0, max_value=59, value=0, key="transit_minute_input"
             )
-
-        st.markdown("##### 📍 トランジット地（現在地など）" if lang == "日本語" else "##### 📍 Transit Location")
-        
-        # 💡 1人目の入力フォーム関数を prefix="transit" として丸ごと流用する！
-        transit_loc_data = render_user_input_form("transit", "TransitLocation", show_header=False)
             
-        # 計算用にセッションステートへ保存
+        # 計算用にセッションステートへ保存（1人目の入力位置をデフォルトとして活用）
         st.session_state["transit_info"] = {
             "year": transit_date.year,
             "month": transit_date.month,
             "day": transit_date.day,
             "hour": transit_hour,
             "minute": transit_minute,
-            "lat": transit_loc_data["input_lat"],
-            "lng": transit_loc_data["input_lng"],
-            "city": transit_loc_data["input_city_name"] # 必要に応じて場所名も保持
+            "lat": p1_data["input_lat"],
+            "lng": p1_data["input_lng"]
         }
 
     # 2人目の入力（シナストリー選択時のみ表示）
