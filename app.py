@@ -472,56 +472,58 @@ if "chart_data" in st.session_state:
                 p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", [])) if isinstance(p2_data, dict) else []
                 render_aspect_column(p2_name, p2_aspects)
 
+        # (シナストリーの表示処理...)
         st.divider()
         st.stop()  # シナストリー計算はここまで
 
-if data.get("angles"):
-    col_a1, col_a2 = st.columns(2)
-    col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
-    col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
-    st.write("")
+    # ▼ ここから下のネイタル処理はすべて、1段（スペース4つ分）右に字下げされているのが正解です！
+    if data.get("angles"):
+        col_a1, col_a2 = st.columns(2)
+        col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
+        col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
+        st.write("")
 
-ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
-midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
+    ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
+    midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
 
-t1_label = t.get("bodies_tab", "天体") if 't' in locals() else "天体"
-t2_label = t.get("houses_tab", "ハウス") if 't' in locals() else "ハウス"
-t3_label = t.get("aspects_tab", "アスペクト") if 't' in locals() else "アスペクト"
-t4_label = t.get("patterns_tab", "パターン") if 't' in locals() else "パターン"
+    t1_label = t.get("bodies_tab", "天体") if 't' in locals() else "天体"
+    t2_label = t.get("houses_tab", "ハウス") if 't' in locals() else "ハウス"
+    t3_label = t.get("aspects_tab", "アスペクト") if 't' in locals() else "アスペクト"
+    t4_label = t.get("patterns_tab", "パターン") if 't' in locals() else "パターン"
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    t1_label, t2_label, t3_label, t4_label, ruler_tab_label, midpoint_tab_label
-])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        t1_label, t2_label, t3_label, t4_label, ruler_tab_label, midpoint_tab_label
+    ])
 
-with tab1:
-    for p in data.get("bodies", []):
-        st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
+    with tab1:
+        for p in data.get("bodies", []):
+            st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
-with tab2:
-    for h in data.get("houses", []):
-        st.markdown(f"- {localize_text(convert_to_dms(h), lang)}")
+    with tab2:
+        for h in data.get("houses", []):
+            st.markdown(f"- {localize_text(convert_to_dms(h), lang)}")
 
-with tab3:
-    raw_aspects = data.get("aspects", "")
-    converted_aspects = localize_text(convert_to_dms(raw_aspects), lang)
-    aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
-    current_planet = None
-    for line in aspect_lines:
-        if " & " in line:
-            raw_target = line.lstrip("-* ").strip()
-            planet = raw_target.split(" & ")[0].strip()
-            if planet != current_planet:
-                current_planet = planet
-                heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
-                st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
-        st.markdown(line)
+    with tab3:
+        raw_aspects = data.get("aspects", "")
+        converted_aspects = localize_text(convert_to_dms(raw_aspects), lang)
+        aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
+        current_planet = None
+        for line in aspect_lines:
+            if " & " in line:
+                raw_target = line.lstrip("-* ").strip()
+                planet = raw_target.split(" & ")[0].strip()
+                if planet != current_planet:
+                    current_planet = planet
+                    heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
+                    st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
+            st.markdown(line)
 
-with tab4:
-    if data.get("patterns"):
-        for pat in data["patterns"]:
-            st.success(localize_text(convert_to_dms(pat), lang))
-    else:
-        st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
+    with tab4:
+        if data.get("patterns"):
+            for pat in data["patterns"]:
+                st.success(localize_text(convert_to_dms(pat), lang))
+        else:
+            st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
     with tab5:
         if data.get("house_rulers"):
@@ -571,7 +573,10 @@ with tab4:
                 st.markdown(f"- {localize_text(clean_m, lang)}")
         else:
             st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
-
+            
+# 🌟 この一番最後の else だけが、一番外側（左端）にきます
+else:
+    st.info("👈 左側のサイドバーから出生データなどを入力し、鑑定を実行してください。")
     st.divider()
     
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
