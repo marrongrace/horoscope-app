@@ -229,24 +229,18 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
         
     return chain_results
 
-def get_synastry_data(p1_info, p2_info, mode="日本語"):
-    # 既存の計算用データを抽出するために、一旦内部のロジックを少し拝借します
-    # ここでは、各チャートの天体情報を直接取り出すため、ヘルパー関数を使います
+def get_synastry_data(p1_info, p2_info, mode="日本語", display_mode="ペア別"):
     def get_bodies_for_aspects(info):
-        # get_chart_data と同じ条件でAstrologicalSubjectを作成
         calc_h, calc_m = (12, 0) if info["is_unknown_time"] else (info["hour"], info["minute"])
         chart = AstrologicalSubject(
             name=info["name"], year=info["year"], month=info["month"], day=info["day"],
             hour=calc_h, minute=calc_m, lat=info["lat"], lng=info["lng"], tz_str="Asia/Tokyo", city=info["city"]
         )
-        
-        # 主要天体の位置をリスト化
         bodies = [
             ("Sun", chart.sun), ("Moon", chart.moon), ("Mercury", chart.mercury),
             ("Venus", chart.venus), ("Mars", chart.mars), ("Jupiter", chart.jupiter),
             ("Saturn", chart.saturn), ("Uranus", chart.uranus), ("Neptune", chart.neptune), ("Pluto", chart.pluto)
         ]
-        
         results = []
         for key, p in bodies:
             sign = p.get('sign', 'Aries')
@@ -256,15 +250,13 @@ def get_synastry_data(p1_info, p2_info, mode="日本語"):
             results.append({"key": key, "abs_pos": abs_pos})
         return results
 
-    # それぞれのチャート詳細（表示用）
-    chart1 = get_chart_data(p1_info["name"], p1_info["year"], p1_info["month"], p1_info["day"], p1_info["hour"], p1_info["minute"], p1_info["lat"], p1_info["lng"], p1_info["city"], mode, "ペア別", p1_info["is_unknown_time"])
-    chart2 = get_chart_data(p2_info["name"], p2_info["year"], p2_info["month"], p2_info["day"], p2_info["hour"], p2_info["minute"], p2_info["lat"], p2_info["lng"], p2_info["city"], mode, "ペア別", p2_info["is_unknown_time"])
+    chart1 = get_chart_data(p1_info["name"], p1_info["year"], p1_info["month"], p1_info["day"], p1_info["hour"], p1_info["minute"], p1_info["lat"], p1_info["lng"], p1_info["city"], mode, display_mode, p1_info["is_unknown_time"])
+    chart2 = get_chart_data(p2_info["name"], p2_info["year"], p2_info["month"], p2_info["day"], p2_info["hour"], p2_info["minute"], p2_info["lat"], p2_info["lng"], p2_info["city"], mode, display_mode, p2_info["is_unknown_time"])
     
-    # 計算用データ（数値）
     bodies1 = get_bodies_for_aspects(p1_info)
     bodies2 = get_bodies_for_aspects(p2_info)
     
-    synastry_aspects = []
+    raw_aspects = []
     aspect_defs = [
         {"name": "コンジャンクション" if mode == "日本語" else "Conjunction", "angle": 0.0, "orb": 6.0},
         {"name": "セクスタイル" if mode == "日本語" else "Sextile", "angle": 60.0, "orb": 5.0},
@@ -281,17 +273,55 @@ def get_synastry_data(p1_info, p2_info, mode="日本語"):
             for asp in aspect_defs:
                 orb = abs(diff - asp["angle"])
                 if orb <= asp["orb"]:
-                    asp_str = f"- {p1_info['name']}の{get_p_name(b1['key'], mode)} ＆ {p2_info['name']}の{get_p_name(b2['key'], mode)}：{asp['name']} ({orb:.2f}°)"
-                    synastry_aspects.append(asp_str)
+                    raw_aspects.append({
+                        "b1_key": b1["key"],
+                        "b2_key": b2["key"],
+                        "b1_name": get_p_name(b1["key"], mode),
+                        "b2_name": get_p_name(b2["key"], mode),
+                        "asp_name": asp["name"],
+                        "orb": orb
+                    })
 
-    if not synastry_aspects:
-        synastry_aspects = ["*(該当するアスペクトはありません)*"]
+    synastry_aspects = []
+    if not raw_aspects:
+        synastry_aspects = ["*(該当するアスペクトはありません)*" if mode == "日本語" else "*(No synastry aspects found)*"]
+    else:
+        if display_mode == "アスペクト別":
+            asp_priority = ["コンジャンクション", "Conjunction", "セクスタイル", "Sextile", "スクエア", "Square", "トライン", "Trine", "オポジション", "Opposition"]
+            raw_aspects.sort(key=lambda x: (asp_priority.index(x["asp_name"]) if x["asp_name"] in asp_priority else 99, x["orb"]))
+            
+            prev_asp = None
+            for item in raw_aspects:
+                if prev_asp is not None and item["asp_name"] != prev_asp:
+                    synastry_aspects.append("")
+                
+                asp_str = f"- {p1_info['name']}の{item['b1_name']} ＆ {p2_info['name']}の{item['b2_name']}：{item['asp_name']} ({item['orb']:.2f}°)"
+                if mode != "日本語":
+                    asp_str = f"- {p1_info['name']}'s {item['b1_name']} & {p2_info['name']}'s {item['b2_name']}: {item['asp_name']} ({item['orb']:.2f}°)"
+                synastry_aspects.append(asp_str)
+                prev_asp = item["asp_name"]
+        else:
+            priority = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "North Node", "South Node", "Chiron"]
+            raw_aspects.sort(key=lambda x: (priority.index(x["b1_key"]) if x["b1_key"] in priority else 99, x["orb"]))
+            
+            prev_b1 = None
+            for item in raw_aspects:
+                if prev_b1 is not None and item["b1_key"] != prev_b1:
+                    synastry_aspects.append("")
+                
+                asp_str = f"- {p1_info['name']}の{item['b1_name']} ＆ {p2_info['name']}の{item['b2_name']}：{item['asp_name']} ({item['orb']:.2f}°)"
+                if mode != "日本語":
+                    asp_str = f"- {p1_info['name']}'s {item['b1_name']} & {p2_info['name']}'s {item['b2_name']}: {item['asp_name']} ({item['orb']:.2f}°)"
+                synastry_aspects.append(asp_str)
+                prev_b1 = item["b1_key"]
 
     return {
         "person1": chart1,
         "person2": chart2,
         "synastry_aspects": synastry_aspects
-    }def get_synastry_data(p1_info, p2_info, mode="日本語"):
+    }
+    
+    def get_synastry_data(p1_info, p2_info, mode="日本語"):
     """
     2人分の生年月日等からそれぞれのチャートを計算し、
     個人間のアスペクト（シナストリー）を計算して返す関数（天体ごとに空行を挿入）
