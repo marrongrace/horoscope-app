@@ -852,14 +852,6 @@ if "chart_data" in st.session_state:
             else:
                 st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
 
-            with col_l:
-                p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", data.get("aspects", [])))
-                render_aspect_column(u_name, p1_aspects)
-
-            with col_r:
-                p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
-                render_aspect_column(p2_name, p2_aspects)
-
         st.divider()
 
         with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
