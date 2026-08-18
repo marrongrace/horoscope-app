@@ -348,13 +348,13 @@ if "chart_data" in st.session_state:
             st.markdown(f"#### 👤 {u_name}")
             p1_bodies = p1_data.get("bodies", [])
             for item in p1_bodies:
-                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
+                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}", unsafe_allow_html=True)
                 
         with col2:
             st.markdown(f"#### 👤 {p2_name}")
             p2_bodies = p2_data.get("bodies", [])
             for item in p2_bodies:
-                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
+                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}", unsafe_allow_html=True)
 
     else:
         # 🌟 通常の個人用ホロスコープ表示
