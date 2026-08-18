@@ -310,72 +310,37 @@ if submit_button:
             
             # ── 1. トランジットモードの場合 ──
             if is_transit:
-            # ネイタル情報を取得
                 natal_data = get_chart_data(
-                p1_data["user_name"],
-                p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
-                p1_data["birth_time"].hour, p1_data["birth_time"].minute,
-                p1_data["input_lat"], p1_data["input_lng"],
-                p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
-            )
-            
-            from horoscope_calc import get_transit_chart_data, AstrologicalSubject, SIGN_NORM_MAP, SIGN_DATA
-            
-            # 🌟 ネイタル天体の計算用データを直接安全に構築する（これが確実です）
-            subject = AstrologicalSubject(
-                name=p1_data["user_name"],
-                year=p1_data["birth_date"].year,
-                month=p1_data["birth_date"].month,
-                day=p1_data["birth_date"].day,
-                hour=p1_data["birth_time"].hour,
-                minute=p1_data["birth_time"].minute,
-                lat=p1_data["input_lat"],
-                lng=p1_data["input_lng"],
-                tz_str="Asia/Tokyo",
-                city=p1_data["input_city_name"]
-            )
-            
-            raw_bodies_meta = [
-                ("Sun", subject.sun), ("Moon", subject.moon), ("Mercury", subject.mercury),
-                ("Venus", subject.venus), ("Mars", subject.mars), ("Jupiter", subject.jupiter),
-                ("Saturn", subject.saturn), ("Uranus", subject.uranus), ("Neptune", subject.neptune), ("Pluto", subject.pluto)
-            ]
-            
-            natal_bodies = []
-            for key, p in raw_bodies_meta:
-                sign = p.get('sign', 'Aries') if isinstance(p, dict) else getattr(p, 'sign', 'Aries')
-                pos = p.get('position', 0.0) if isinstance(p, dict) else getattr(p, 'position', 'Aries')
-                norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
-                s_idx = list(SIGN_DATA.keys()).index(norm_sign) if norm_sign in SIGN_DATA else 0
-                abs_p_pos = s_idx * 30 + pos
-                natal_bodies.append({
-                    "key": key,
-                    "abs_pos": abs_p_pos,
-                    "sign": norm_sign,
-                    "position": pos
+                    p1_data["user_name"],
+                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                    p1_data["birth_time"].hour, p1_data["birth_time"].minute,
+                    p1_data["input_lat"], p1_data["input_lng"],
+                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
+                )
+                
+                from horoscope_calc import get_transit_chart_data
+                transit_info = st.session_state.get("transit_info", {
+                    "year": 2026, "month": 1, "day": 1, "hour": 12, "minute": 0,
+                    "lat": p1_data["input_lat"], "lng": p1_data["input_lng"]
                 })
-
-            transit_info = st.session_state.get("transit_info", {
-                "year": 2026, "month": 1, "day": 1, "hour": 12, "minute": 0,
-                "lat": p1_data["input_lat"], "lng": p1_data["input_lng"]
-            })
-            
-            transit_result = get_transit_chart_data(transit_info, natal_bodies, mode=lang)
-            
-            data = {
-                "user_name": p1_data["user_name"],
-                "date_str": natal_data["date_str"],
-                "loc_str": natal_data["loc_str"],
-                "bodies": natal_data["bodies"],
-                "transit": transit_result
-            }
-            st.session_state.chart_data = data
-            st.session_state.user_name = p1_data["user_name"]
-            st.session_state.is_synastry = False
-            st.session_state.is_transit = True
+                
+                natal_bodies = natal_data.get("bodies_meta", [])
+                transit_result = get_transit_chart_data(transit_info, natal_bodies, mode=lang)
+                
+                data = {
+                    "user_name": p1_data["user_name"],
+                    "date_str": natal_data["date_str"],
+                    "loc_str": natal_data["loc_str"],
+                    "bodies": natal_data["bodies"],
+                    "transit": transit_result
+                }
+                st.session_state.chart_data = data
+                st.session_state.user_name = p1_data["user_name"]
+                st.session_state.is_synastry = False
+                st.session_state.is_transit = True
 
             # ── 2. シングル（ネイタル）モードの場合 ──
-            if not is_synastry:
+            elif not is_synastry:
                 data = get_chart_data(
                     p1_data["user_name"],
                     p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
@@ -428,15 +393,6 @@ if submit_button:
                 st.session_state.p2_name = p2_data["user_name"]
                 st.session_state.is_synastry = True
                 st.session_state.is_transit = False
-
-        if data.get("error"):
-            st.error(data["error"])
-        else:
-            st.session_state.chart_data = data
-            st.session_state.user_name = p1_data["user_name"]
-            st.session_state.is_synastry = is_synastry
-            if is_synastry and p2_data:
-                st.session_state.p2_name = p2_data["user_name"]
 
 # セッションにデータが存在する場合に表示
 if "chart_data" in st.session_state:
