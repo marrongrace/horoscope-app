@@ -311,7 +311,7 @@ if submit_button:
             # ── 1. トランジットモードの場合 ──
             if is_transit:
             # ネイタル情報を取得
-            natal_data = get_chart_data(
+                natal_data = get_chart_data(
                 p1_data["user_name"],
                 p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
                 p1_data["birth_time"].hour, p1_data["birth_time"].minute,
