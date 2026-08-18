@@ -821,8 +821,7 @@ if "chart_data" in st.session_state:
                 p2_bodies = data.get("person2", {}).get("bodies", data.get("person2_bodies", []))
                 for p in p2_bodies:
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
-
-       with stab2:
+        with stab2:
             st.markdown(f"#### 🔗 {u_name} & {p2_name} のシナストリー・アスペクト" if lang=="日本語" else f"#### 🔗 Synastry Aspects between {u_name} & {p2_name}")
             
             # 各種キーのバリエーションに対応して取得
