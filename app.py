@@ -372,11 +372,11 @@ if "chart_data" in st.session_state:
             
             st.stop()
 
-        if data["angles"]:
-            col_a1, col_a2 = st.columns(2)
-            col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
-            col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
-            st.write("")
+            if data["angles"]:
+                col_a1, col_a2 = st.columns(2)
+                col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
+                col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
+                st.write("")
 
         ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
         midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
