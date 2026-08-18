@@ -410,9 +410,9 @@ if "chart_data" in st.session_state:
                 else:
                     st.info("現在、顕著なトランジット・アスペクトはありません。")
             
-            # リスト形式でアスペクトを表示
-            for aspect in data["transit"]["transit_aspects"]:
-                st.markdown(aspect)
+        #    # リスト形式でアスペクトを表示
+        #    for aspect in data["transit"]["transit_aspects"]:
+        #        st.markdown(aspect)
 
         # タブの作成（全6タブ）
         ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
