@@ -553,186 +553,14 @@ if "chart_data" in st.session_state:
         midpoints_data = data.get("midpoints", [])
         if midpoints_data:
             for m_line in midpoints_data:
-                clean_m = m_line.lstrip("- ").strip()
+                clean_m = m_line.lstrip("- ").setItem() if hasattr(m_line, 'setItem') else m_line.lstrip("- ").strip()
                 st.markdown(f"- {localize_text(clean_m, lang)}")
         else:
             st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
 
+# 🌟 ここが「if "chart_data" in st.session_state:` に対する else: です（一番左端に配置）
 else:
-    # 🌟 まだ計算ボタンを押していない初期画面
-    st.info("👈 左側のサイドバーから出生データなどを入力し、鑑定を実行してください。")
-    
-    with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
-            u_name = st.session_state.get("user_name", "TestUser")
-            
-            hide_dt_loc = st.checkbox(
-                "日時と場所を非表示にする（除外する）" if lang == "日本語" else "Exclude Date, Time & Location",
-                value=False,
-                key="copy_hide_dt_loc"
-            )
-            
-            def clean_html(text):
-                if not isinstance(text, str):
-                    return str(text)
-                text = re.sub(r'<[^>]+>', '', text)
-                text = text.replace('&nbsp;', '')
-                text = text.replace('**', '').replace('`', '')
-                text = localize_text(text, lang)
-                return text
-
-            copy_lines = []
-            if lang == "日本語":
-                copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
-                
-                if not hide_dt_loc:
-                    copy_lines.append(f"日時: {data['date_str']}")
-                    copy_lines.append(f"場所: {data['loc_str']}\n")
-                else:
-                    copy_lines.append("")
-
-                if data["angles"]:
-                    copy_lines.append("[アングル]")
-                    for a in data["angles"]:
-                        copy_lines.append(f"- {clean_html(a)}")
-                    copy_lines.append("")
-                
-                copy_lines.append("[天体配置]")
-                for b in data["bodies"]:
-                    clean_b = clean_html(b)
-                    clean_b = clean_b.replace("↳", " ↳ ")
-                    copy_lines.append(f"- {clean_b}")
-                    
-                copy_lines.append("\n[12ハウス]")
-                for h in data["houses"]:
-                    copy_lines.append(f"- {clean_html(h)}")
-
-                if data.get("house_rulers"):
-                    ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
-                    copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
-                    
-                    is_without = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
-                    target_rulers_for_copy = (
-                        data.get("house_rulers", []) 
-                        if is_without 
-                        else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
-                    )
-                    
-                    for r_line in target_rulers_for_copy:
-                        formatted_r = clean_html(r_line).replace('➡️', '->')
-                        copy_lines.append(f"- {formatted_r}")
-
-                copy_lines.append("\n[主要アスペクト]")
-                clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
-                copy_lines.append(clean_aspects)
-
-                if data["patterns"]:
-                    copy_lines.append("\n[複合アスペクト]")
-                    for pat in data["patterns"]:
-                        copy_lines.append(f"- {clean_html(pat)}")
-
-                midpoints_data = data.get("midpoints", [])
-                if midpoints_data:
-                    copy_lines.append("\n[ミッドポイント]")
-                    for m_line in midpoints_data:
-                        clean_m = clean_html(m_line).lstrip("- ").strip()
-                        copy_lines.append(f"- {clean_m}")
-            else:
-                copy_lines.append(f"[Horoscope Reading Data: {u_name}]")
-                
-                if not hide_dt_loc:
-                    copy_lines.append(f"Date & Time: {data['date_str']}")
-                    copy_lines.append(f"Location: {display_loc_str}\n")
-                else:
-                    copy_lines.append("")
-
-                if data["angles"]:
-                    copy_lines.append("[Angles]")
-                    for a in data["angles"]:
-                        copy_lines.append(f"- {clean_html(a)}")
-                    copy_lines.append("")
-                
-                copy_lines.append("[Celestial Bodies]")
-                for b in data["bodies"]:
-                    clean_b = clean_html(b)
-                    clean_b = clean_b.replace("↳", " ↳ ")
-                    copy_lines.append(f"- {clean_b}")
-                    
-                copy_lines.append("\n[12 Houses]")
-                for h in data["houses"]:
-                    copy_lines.append(f"- {clean_html(h)}")
-
-                if data.get("house_rulers"):
-                    ruler_mode_raw = st.session_state.get("ruler_mode_radio", "Without 5-degree rule")
-                    if ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]:
-                        ruler_mode_en = "Without 5-degree rule"
-                    else:
-                        ruler_mode_en = "With 5-degree rule"
-                    
-                    copy_lines.append(f"\n[House Rulers ({ruler_mode_en})]")
-                    
-                    is_without = ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]
-                    target_rulers_for_copy = (
-                        data.get("house_rulers", []) 
-                        if is_without 
-                        else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
-                    )
-                    
-                    for r_line in target_rulers_for_copy:
-                        formatted_r = clean_html(r_line).replace('➡️', '->')
-                        copy_lines.append(f"- {formatted_r}")
-
-                copy_lines.append("\n[Main Aspects]")
-                clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
-                copy_lines.append(clean_aspects)
-
-                if data["patterns"]:
-                    copy_lines.append("\n[Complex Patterns]")
-                    for pat in data["patterns"]:
-                        copy_lines.append(f"- {clean_html(pat)}")
-
-                midpoints_data = data.get("midpoints", [])
-                if midpoints_data:
-                    copy_lines.append("\n[Midpoints]")
-                    for m_line in midpoints_data:
-                        clean_m = clean_html(m_line).lstrip("- ").strip()
-                        copy_lines.append(f"- {clean_m}")
-
-            st.code("\n".join(copy_lines), language="text")
-            
-            full_text = "\n".join(copy_lines)
-            boms_text = "\ufeff" + full_text
-            
-            st.download_button(
-                label="💾 テキストファイルとしてダウンロード / Download as text",
-                data=boms_text,
-                file_name=f"horoscope_{u_name}.txt",
-                mime="text/plain;charset=utf-8"
-            )
-            
-            st.divider()
-            
-            st.markdown(f"""
-            <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
-            <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
-            <p style="color: var(--text-color);">今回のホロスコープのより詳しい解説は、noteの方で発信しています。</p>
-            <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none; display: inline-block; margin-top: 15px;">
-            <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
-            noteをチェックする / Visit Note
-            </button>
-            </a>
-            <br><br>
-            <p style="color: var(--text-color); margin-bottom: 10px;">匿名での質問も可能です。詳しくは以下からどうぞ</p>
-            <a href="https://note.com/qa/marroscorps" target="_blank" style="text-decoration: none; display: inline-block;">
-            <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
-            匿名で質問する / Ask anonymously
-            </button>
-            </a>
-            </div>
-            """, unsafe_allow_html=True)
-            st.write("")
-        
-else:
-        # 🌟 変数に頼らず、f-stringの中で直接セッションステートから安全に取得する
+    # 🌟 変数に頼らず、f-stringの中で直接セッションステートから安全に取得する
     st.markdown(f"""
     <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
         <h2 style="margin: 0; color: #B8860B;">✨ {st.session_state.get("user_name", "TestUser")} & {st.session_state.get("p2_name", "TestUser2")} {"のシナストリー鑑定" if st.session_state.get("lang_radio", "日本語")=="日本語" else "'s Synastry Reading"} ✨</h2>
@@ -752,8 +580,8 @@ else:
     stab1, stab2 = st.tabs(synastry_tabs_labels)
 
     # 🌟 安全なデータ取得用ヘルパー
-    p1_data = data.get("person1", data)
-    p2_data = data.get("person2", {})
+    p1_data = data.get("person1", data) if 'data' in locals() else {}
+    p2_data = data.get("person2", {}) if 'data' in locals() else {}
 
     with stab1:
         col_l, col_r = st.columns(2)
@@ -816,7 +644,6 @@ else:
     st.divider()
 
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
-        # 関数を先に定義
         def clean_html(text):
             if not isinstance(text, str):
                 return str(text)
