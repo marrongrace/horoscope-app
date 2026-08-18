@@ -385,85 +385,85 @@ if "chart_data" in st.session_state:
         t["patterns_tab"], ruler_tab_label, midpoint_tab_label
     ])
 
-        with tab1:
-            for p in data["bodies"]:
-                st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
+    with tab1:
+        for p in data["bodies"]:
+            st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
-        with tab2:
-            for h in data["houses"]:
-                st.markdown(f"- {localize_text(convert_to_dms(h), lang)}")
+    with tab2:
+        for h in data["houses"]:
+            st.markdown(f"- {localize_text(convert_to_dms(h), lang)}")
 
-        with tab3:
-            converted_aspects = localize_text(convert_to_dms(data["aspects"]), lang)
-            aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
-            current_planet = None
-            for line in aspect_lines:
-                if " & " in line:
-                    raw_target = line.lstrip("-* ").strip()
-                    planet = raw_target.split(" & ")[0].strip()
-                    if planet != current_planet:
-                        current_planet = planet
-                        heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
-                        st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
-                st.markdown(line)
+    with tab3:
+        converted_aspects = localize_text(convert_to_dms(data["aspects"]), lang)
+        aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
+        current_planet = None
+        for line in aspect_lines:
+            if " & " in line:
+                raw_target = line.lstrip("-* ").strip()
+                planet = raw_target.split(" & ")[0].strip()
+                if planet != current_planet:
+                    current_planet = planet
+                    heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
+                    st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
+            st.markdown(line)
 
-        with tab4:
-            if data["patterns"]:
-                for pat in data["patterns"]:
-                    st.success(localize_text(convert_to_dms(pat), lang))
+    with tab4:
+        if data["patterns"]:
+            for pat in data["patterns"]:
+                st.success(localize_text(convert_to_dms(pat), lang))
+        else:
+            st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
+
+    with tab5:
+        if data.get("house_rulers"):
+            ruler_mode_options = (
+                ["5度前ルール適用なし", "5度前ルール適用あり"] 
+                if lang == "日本語" 
+                else ["Without 5-degree rule", "With 5-degree rule"]
+            )
+            ruler_mode_label = "表示モードを選択" if lang == "日本語" else "Select Display Mode"
+            
+            ruler_mode = st.radio(
+                ruler_mode_label,
+                ruler_mode_options,
+                key="ruler_mode_radio"
+            )
+            st.write("")
+
+            is_without_5deg = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
+
+            if is_without_5deg:
+                target_rulers = data.get("house_rulers", [])
             else:
-                st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
-
-        with tab5:
-            if data.get("house_rulers"):
-                ruler_mode_options = (
-                    ["5度前ルール適用なし", "5度前ルール適用あり"] 
-                    if lang == "日本語" 
-                    else ["Without 5-degree rule", "With 5-degree rule"]
+                target_rulers = data.get(
+                    "house_rulers_type", data.get("house_rulers_with_5deg", data.get("house_rulers", []))
                 )
-                ruler_mode_label = "表示モードを選択" if lang == "日本語" else "Select Display Mode"
-                
-                ruler_mode = st.radio(
-                    ruler_mode_label,
-                    ruler_mode_options,
-                    key="ruler_mode_radio"
+
+            for r_line in target_rulers:
+                formatted_line = (
+                    r_line.replace("->", "→").replace("➡️", "→").strip()
                 )
-                st.write("")
+                if " → " in formatted_line:
+                    separator = "：" if lang == "日本語" else ": "
+                    formatted_line = formatted_line.replace(" → ", separator, 1)
 
-                is_without_5deg = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
+                formatted_line = localize_text(formatted_line, lang)
+                st.markdown(f"- {formatted_line}")
+        else:
+            st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
+            
+    with tab6:
+        st.caption("※1 主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。" if lang=="日本語" else "*1 Displays midpoint hits to major points/axes (orb within 1.5°).")
+        st.caption("※2 出生時間不明の場合、月・Asc・Mcを含む組み合わせは除外してあります。" if lang == "日本語" else "*2 Combinations including Moon, Asc, and MC are excluded if birth time is unknown.")
+        midpoints_data = data.get("midpoints", [])
+        if midpoints_data:
+            for m_line in midpoints_data:
+                clean_m = m_line.lstrip("- ").strip()
+                st.markdown(f"- {localize_text(clean_m, lang)}")
+        else:
+            st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
 
-                if is_without_5deg:
-                    target_rulers = data.get("house_rulers", [])
-                else:
-                    target_rulers = data.get(
-                        "house_rulers_type", data.get("house_rulers_with_5deg", data.get("house_rulers", []))
-                    )
-
-                for r_line in target_rulers:
-                    formatted_line = (
-                        r_line.replace("->", "→").replace("➡️", "→").strip()
-                    )
-                    if " → " in formatted_line:
-                        separator = "：" if lang == "日本語" else ": "
-                        formatted_line = formatted_line.replace(" → ", separator, 1)
-
-                    formatted_line = localize_text(formatted_line, lang)
-                    st.markdown(f"- {formatted_line}")
-            else:
-                st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
-                
-        with tab6:
-            st.caption("※1 主要な感受点・軸に対するミッドポイント・ヒット（オーブ1.5°以内）を表示します。" if lang=="日本語" else "*1 Displays midpoint hits to major points/axes (orb within 1.5°).")
-            st.caption("※2 出生時間不明の場合、月・Asc・Mcを含む組み合わせは除外してあります。" if lang == "日本語" else "*2 Combinations including Moon, Asc, and MC are excluded if birth time is unknown.")
-            midpoints_data = data.get("midpoints", [])
-            if midpoints_data:
-                for m_line in midpoints_data:
-                    clean_m = m_line.lstrip("- ").strip()
-                    st.markdown(f"- {localize_text(clean_m, lang)}")
-            else:
-                st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
-
-        st.divider()
+    st.divider()
 
         with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
             u_name = st.session_state.get("user_name", "TestUser")
