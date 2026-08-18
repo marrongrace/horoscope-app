@@ -360,9 +360,6 @@ def calculate_transit_aspects(natal_bodies, transit_bodies, mode="日本語"):
     ]
     
     results = []
-
-    # 🔍 ここにデバッグ用のprintを挟む
-    print(f"DEBUG: ネイタル天体数={len(natal_bodies)}, トランジット天体数={len(transit_bodies)}")
     
     for b1 in natal_bodies:
         for b2 in transit_bodies:
