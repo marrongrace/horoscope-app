@@ -333,6 +333,12 @@ if "chart_data" in st.session_state:
                 st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
         else:
             st.write(data)
+        
+        if isinstance(data, dict) and "bodies" in data:
+            for item in data["bodies"]:
+                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
+        else:
+            st.write(data)
 
     else:
         display_loc_str = data['loc_str']
@@ -629,6 +635,10 @@ if "chart_data" in st.session_state:
             st.write("")
 
     else:
+        # 🌟 シナストリーモード判定（必要に応じて通常ホロスコープと分岐）
+        # ※もし通常のホロスコープ表示が必要な場合はここに続きますが、
+        # ユーザー様のご提示コードに基づき、シナストリーの詳細表示ブロックを統合しています。
+        
         # 🌟 シナストリーモード用の表示（左右に分ける）
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
@@ -652,7 +662,7 @@ if "chart_data" in st.session_state:
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
             with col_r:
                 st.markdown(f"#### 👤 {p2_name}")
-                p2_bodies = data.get("person2", {}).get("bodies", data.get("person2_bodies", []))
+                p2_bodies = data.get("person2", {}).get("bodies", data.get("p2_bodies", []))
                 for p in p2_bodies:
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
