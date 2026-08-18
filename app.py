@@ -633,7 +633,7 @@ if "chart_data" in st.session_state:
             </div>
             """, unsafe_allow_html=True)
             st.write("")
-else:
+        else:
         # 🌟 シナストリーモード判定（必要に応じて通常ホロスコープと分岐）
         # ※もし通常のホロスコープ表示が必要な場合はここに続きますが、
         # ユーザー様のご提示コードに基づき、シナストリーの詳細表示ブロックを統合しています。
