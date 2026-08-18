@@ -573,11 +573,6 @@ if "chart_data" in st.session_state:
                 st.markdown(f"- {localize_text(clean_m, lang)}")
         else:
             st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
-            
-# 🌟 この一番最後の else だけが、一番外側（左端）にきます
-else:
-    st.info("👈 左側のサイドバーから出生データなどを入力し、鑑定を実行してください。")
-    st.divider()
     
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
             u_name = st.session_state.get("user_name", "TestUser")
