@@ -703,94 +703,104 @@ if "chart_data" in st.session_state:
 
         st.divider()
 
-        with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
-            def clean_html(text):
-                if not isinstance(text, str):
-                    return str(text)
-                text = re.sub(r'<[^>]+>', '', text)
-                text = text.replace('&nbsp;', '')
-                text = text.replace('**', '').replace('`', '')
-                text = localize_text(text, lang)
-                return text
+        with col_l:
+    p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", data.get("aspects", [])))
+    render_aspect_column(u_name, p1_aspects)
 
-            copy_lines = []
-            if lang == "日本語":
-                copy_lines.append(f"【シナストリー鑑定データ: {u_name} & {p2_name}】\n")
-                
-                copy_lines.append(f"--- 👤 {u_name} の天体配置 ---")
-                p1_bodies = data.get("person1", {}).get("bodies", data.get("bodies", []))
-                for p in p1_bodies:
-                    copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
-                
-                copy_lines.append(f"\n--- 👤 {u_name} のアスペクト ---")
-                p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", data.get("aspects", [])))
-                if isinstance(p1_aspects, list):
-                    for a in p1_aspects:
-                        if a is not Ellipsis and str(a) != "Ellipsis":
-                            copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p1_aspects, str):
-                    for line in p1_aspects.split("\n"):
-                        if line.strip():
-                            copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+with col_r:
+    p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
+    render_aspect_column(p2_name, p2_aspects)
 
-                copy_lines.append(f"\n--- 👤 {p2_name} の天体配置 ---")
-                p2_bodies = data.get("person2", {}).get("bodies", data.get("person2_bodies", []))
-                for p in p2_bodies:
-                    copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+st.divider()
 
-                copy_lines.append(f"\n--- 👤 {p2_name} のアスペクト ---")
-                p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
-                if isinstance(p2_aspects, list):
-                    for a in p2_aspects:
-                        if a is not Ellipsis and str(a) != "Ellipsis":
-                            copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p2_aspects, str):
-                    for line in p2_aspects.split("\n"):
-                        if line.strip():
-                            copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
-            else:
-                copy_lines.append(f"[Synastry Reading Data: {u_name} & {p2_name}]\n")
-                
-                copy_lines.append(f"--- 👤 {u_name}'s Celestial Bodies ---")
-                p1_bodies = data.get("person1", {}).get("bodies", data.get("bodies", []))
-                for p in p1_bodies:
-                    copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
-                
-                copy_lines.append(f"\n--- 👤 {u_name}'s Aspects ---")
-                p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", data.get("aspects", [])))
-                if isinstance(p1_aspects, list):
-                    for a in p1_aspects:
-                        if a is not Ellipsis and str(a) != "Ellipsis":
-                            copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p1_aspects, str):
-                    for line in p1_aspects.split("\n"):
-                        if line.strip():
-                            copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+    def clean_html(text):
+        if not isinstance(text, str):
+            return str(text)
+        text = re.sub(r'<[^>]+>', '', text)
+        text = text.replace('&nbsp;', '')
+        text = text.replace('**', '').replace('`', '')
+        text = localize_text(text, lang)
+        return text
 
-                copy_lines.append(f"\n--- 👤 {p2_name}'s Celestial Bodies ---")
-                p2_bodies = data.get("person2", {}).get("bodies", data.get("person2_bodies", []))
-                for p in p2_bodies:
-                    copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+    copy_lines = []
+    if lang == "日本語":
+        copy_lines.append(f"【シナストリー鑑定データ: {u_name} & {p2_name}】\n")
+        
+        copy_lines.append(f"--- 👤 {u_name} の天体配置 ---")
+        p1_bodies = data.get("person1", {}).get("bodies", data.get("bodies", []))
+        for p in p1_bodies:
+            copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+        
+        copy_lines.append(f"\n--- 👤 {u_name} のアスペクト ---")
+        p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", data.get("aspects", [])))
+        if isinstance(p1_aspects, list):
+            for a in p1_aspects:
+                if a is not Ellipsis and str(a) != "Ellipsis":
+                    copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+        elif isinstance(p1_aspects, str):
+            for line in p1_aspects.split("\n"):
+                if line.strip():
+                    copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
 
-                copy_lines.append(f"\n--- 👤 {p2_name}'s Aspects ---")
-                p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
-                if isinstance(p2_aspects, list):
-                    for a in p2_aspects:
-                        if a is not Ellipsis and str(a) != "Ellipsis":
-                            copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p2_aspects, str):
-                    for line in p2_aspects.split("\n"):
-                        if line.strip():
-                            copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+        copy_lines.append(f"\n--- 👤 {p2_name} の天体配置 ---")
+        p2_bodies = data.get("person2", {}).get("bodies", data.get("person2_bodies", []))
+        for p in p2_bodies:
+            copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
 
-            st.code("\n".join(copy_lines), language="text")
-            
-            full_text = "\n".join(copy_lines)
-            boms_text = "\ufeff" + full_text
-            
-            st.download_button(
-                label="💾 テキストファイルとしてダウンロード / Download as text",
-                data=boms_text,
-                file_name=f"synastry_{u_name}_{p2_name}.txt",
-                mime="text/plain;charset=utf-8"
-            )
+        copy_lines.append(f"\n--- 👤 {p2_name} のアスペクト ---")
+        p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
+        if isinstance(p2_aspects, list):
+            for a in p2_aspects:
+                if a is not Ellipsis and str(a) != "Ellipsis":
+                    copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+        elif isinstance(p2_aspects, str):
+            for line in p2_aspects.split("\n"):
+                if line.strip():
+                    copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+    else:
+        copy_lines.append(f"[Synastry Reading Data: {u_name} & {p2_name}]\n")
+        
+        copy_lines.append(f"--- 👤 {u_name}'s Celestial Bodies ---")
+        p1_bodies = data.get("person1", {}).get("bodies", data.get("bodies", []))
+        for p in p1_bodies:
+            copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+        
+        copy_lines.append(f"\n--- 👤 {u_name}'s Aspects ---")
+        p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", data.get("aspects", [])))
+        if isinstance(p1_aspects, list):
+            for a in p1_aspects:
+                if a is not Ellipsis and str(a) != "Ellipsis":
+                    copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+        elif isinstance(p1_aspects, str):
+            for line in p1_aspects.split("\n"):
+                if line.strip():
+                    copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+
+        copy_lines.append(f"\n--- 👤 {p2_name}'s Celestial Bodies ---")
+        p2_bodies = data.get("person2", {}).get("bodies", data.get("person2_bodies", []))
+        for p in p2_bodies:
+            copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+
+        copy_lines.append(f"\n--- 👤 {p2_name}'s Aspects ---")
+        p2_aspects = data.get("person2", {}).get("aspects", data.get("person2_aspects", []))
+        if isinstance(p2_aspects, list):
+            for a in p2_aspects:
+                if a is not Ellipsis and str(a) != "Ellipsis":
+                    copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+        elif isinstance(p2_aspects, str):
+            for line in p2_aspects.split("\n"):
+                if line.strip():
+                    copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+
+    st.code("\n".join(copy_lines), language="text")
+    
+    full_text = "\n".join(copy_lines)
+    boms_text = "\ufeff" + full_text
+    
+    st.download_button(
+        label="💾 テキストファイルとしてダウンロード / Download as text",
+        data=boms_text,
+        file_name=f"synastry_{u_name}_{p2_name}.txt",
+        mime="text/plain;charset=utf-8"
+    )
