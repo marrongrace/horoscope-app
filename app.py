@@ -49,7 +49,7 @@ ui_texts = {
         "city_input": "市区町村・地名 (例: 古河市)",
         "lat_input": "緯度",
         "lng_input": "経度",
-        "settings_header": "⚙️ 表示設定（ネイタルのみ）",
+        "settings_header": "⚙️ 表示設定（ネイタル）",
         "aspect_view_label": "アスペクト表示形式:",
         "aspect_view_options": ["ペア別", "アスペクト別"],
         "unknown_time_checkbox": "出生時間が分からない（12:00仮定 / ハウス除外）",
