@@ -321,13 +321,10 @@ if "chart_data" in st.session_state:
     current_is_transit = st.session_state.get("is_transit", False)
     p2_name = st.session_state.get("p2_name", "TestUser2")
 
-# ==========================================
-# 🌟 ホロスコープデータが存在する場合の描画処理
-# ==========================================
 if "chart_data" in st.session_state:
     data = st.session_state.chart_data
     
-    # JSON文字列だった場合の安全対策
+    # ▼ dataが文字列（JSONなど）だった場合に備えて安全に辞書へ変換
     import json
     if isinstance(data, str):
         try:
@@ -343,9 +340,46 @@ if "chart_data" in st.session_state:
     p2_name = st.session_state.get("p2_name", "TestUser2")
     lang = st.session_state.get("lang_radio", "日本語")
 
-    # ------------------------------------------
-    # 1. トランジットモードの場合
-    # ------------------------------------------
+    if current_is_synastry:
+        # 🌟 シナストリーモード用のヘッダー表示
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # 🌟 安全なデータ取得（person1 / person2 に分ける）
+        p1_data = data.get("person1", data)
+        p2_data = data.get("person2", {})
+
+        # 🌟 左右に分けて1回だけ綺麗に表示（重複を解消）
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown(f"#### 👤 {u_name}")
+            p1_bodies = p1_data.get("bodies", [])
+            for item in p1_bodies:
+                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}", unsafe_allow_html=True)
+                
+        with col2:
+            st.markdown(f"#### 👤 {p2_name}")
+            p2_bodies = p2_data.get("bodies", [])
+            for item in p2_bodies:
+                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}", unsafe_allow_html=True)
+
+    else:
+        # 🌟 通常の個人用ホロスコープ表示
+        display_loc_str = data.get('loc_str', '')
+        if lang != "日本語":
+            display_loc_str = display_loc_str.replace("北緯", "N").replace("東経", "E").replace("十進:", "Decimal:")
+
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
+            <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data.get('date_str', '')}<br>📍 {display_loc_str}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
     if current_is_transit and data.get("transit"):
         st.divider()
         st.subheader("トランジット分析結果")
@@ -354,51 +388,45 @@ if "chart_data" in st.session_state:
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("### 👤 ネイタル天体配置")
-            for body in data.get("bodies", []):
+            for body in data["bodies"]:
                 st.markdown(body)
         with col2:
             st.markdown("### 🌌 ネイタルへのトランジット影響")
-            if data["transit"].get("transit_aspects"):
+            if data["transit"]["transit_aspects"]:
                 for aspect in data["transit"]["transit_aspects"]:
                     st.markdown(f"- {aspect}")
             else:
                 st.info("現在、顕著なトランジット・アスペクトはありません。")
+        
         st.stop()
+        
+        if current_is_synastry:
+            synastry_tabs_labels = (
+                ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
+                if lang == "日本語" 
+                else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
+            )
+            stab1, stab2 = st.tabs(synastry_tabs_labels)
 
-    # ------------------------------------------
-    # 2. シナストリー（相性・2人用）モードの場合
-    # ------------------------------------------
-    # ※ フラグがTrue、またはデータ内に "person1" が含まれている場合はこちらに入ります
-    if current_is_synastry or "person1" in data:
-        st.markdown(f"""
-        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
-        </div>
-        """, unsafe_allow_html=True)
-
+        # データの安全な取得
         p1_data = data.get("person1", data)
         p2_data = data.get("person2", {})
 
-        synastry_tabs_labels = (
-            ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
-            if lang == "日本語" 
-            else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
-        )
-        stab1, stab2 = st.tabs(synastry_tabs_labels)
-
-        # Tab 1: 天体配置
+        # Tab 1: 2人分の天体配置（左右に分ける）
         with stab1:
             col_l, col_r = st.columns(2)
             with col_l:
                 st.markdown(f"#### 👤 {u_name}")
-                for p in p1_data.get("bodies", []):
+                p1_bodies = p1_data.get("bodies", []) if isinstance(p1_data, dict) else []
+                for p in p1_bodies:
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
             with col_r:
                 st.markdown(f"#### 👤 {p2_name}")
-                for p in p2_data.get("bodies", []):
+                p2_bodies = p2_data.get("bodies", []) if isinstance(p2_data, dict) else []
+                for p in p2_bodies:
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
-        # Tab 2: アスペクト比較
+        # Tab 2: 2人分のアスペクト比較（左右に分ける）
         with stab2:
             col_l, col_r = st.columns(2)
             
@@ -437,30 +465,18 @@ if "chart_data" in st.session_state:
                     st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
 
             with col_l:
-                p1_aspects = p1_data.get("aspects", p1_data.get("person1_aspects", []))
+                p1_aspects = p1_data.get("aspects", p1_data.get("person1_aspects", [])) if isinstance(p1_data, dict) else []
                 render_aspect_column(u_name, p1_aspects)
 
             with col_r:
-                p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", []))
+                p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", [])) if isinstance(p2_data, dict) else []
                 render_aspect_column(p2_name, p2_aspects)
 
+        # (シナストリーの表示処理...)
         st.divider()
-        st.stop()  # 🛑 シナストリーの処理はここで完全にストップ！
+        st.stop()  # シナストリー計算はここまで
 
-    # ------------------------------------------
-    # 3. 通常のネイタル（個人用）モードの場合
-    # ------------------------------------------
-    display_loc_str = data.get('loc_str', '')
-    if lang != "日本語":
-        display_loc_str = display_loc_str.replace("北緯", "N").replace("東経", "E").replace("十進:", "Decimal:")
-
-    st.markdown(f"""
-    <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-        <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
-        <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data.get('date_str', '')}<br>📍 {display_loc_str}</p>
-    </div>
-    """, unsafe_allow_html=True)
-
+    # ▼ ここから下のネイタル処理はすべて、1段（スペース4つ分）右に字下げされているのが正解です！
     if data.get("angles"):
         col_a1, col_a2 = st.columns(2)
         col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
@@ -470,10 +486,10 @@ if "chart_data" in st.session_state:
     ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
     midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
 
-    t1_label = t.get("bodies_tab", "天体")
-    t2_label = t.get("houses_tab", "ハウス")
-    t3_label = t.get("aspects_tab", "アスペクト")
-    t4_label = t.get("patterns_tab", "パターン")
+    t1_label = t.get("bodies_tab", "天体") if 't' in locals() else "天体"
+    t2_label = t.get("houses_tab", "ハウス") if 't' in locals() else "ハウス"
+    t3_label = t.get("aspects_tab", "アスペクト") if 't' in locals() else "アスペクト"
+    t4_label = t.get("patterns_tab", "パターン") if 't' in locals() else "パターン"
 
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         t1_label, t2_label, t3_label, t4_label, ruler_tab_label, midpoint_tab_label
@@ -553,14 +569,182 @@ if "chart_data" in st.session_state:
         midpoints_data = data.get("midpoints", [])
         if midpoints_data:
             for m_line in midpoints_data:
-                clean_m = m_line.lstrip("- ").setItem() if hasattr(m_line, 'setItem') else m_line.lstrip("- ").strip()
+                clean_m = m_line.lstrip("- ").strip()
                 st.markdown(f"- {localize_text(clean_m, lang)}")
         else:
             st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
+    
+    with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+            u_name = st.session_state.get("user_name", "TestUser")
+            
+            hide_dt_loc = st.checkbox(
+                "日時と場所を非表示にする（除外する）" if lang == "日本語" else "Exclude Date, Time & Location",
+                value=False,
+                key="copy_hide_dt_loc"
+            )
+            
+            def clean_html(text):
+                if not isinstance(text, str):
+                    return str(text)
+                text = re.sub(r'<[^>]+>', '', text)
+                text = text.replace('&nbsp;', '')
+                text = text.replace('**', '').replace('`', '')
+                text = localize_text(text, lang)
+                return text
 
-# 🌟 ここが「if "chart_data" in st.session_state:` に対する else: です（一番左端に配置）
+            copy_lines = []
+            if lang == "日本語":
+                copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
+                
+                if not hide_dt_loc:
+                    copy_lines.append(f"日時: {data['date_str']}")
+                    copy_lines.append(f"場所: {data['loc_str']}\n")
+                else:
+                    copy_lines.append("")
+
+                if data["angles"]:
+                    copy_lines.append("[アングル]")
+                    for a in data["angles"]:
+                        copy_lines.append(f"- {clean_html(a)}")
+                    copy_lines.append("")
+                
+                copy_lines.append("[天体配置]")
+                for b in data["bodies"]:
+                    clean_b = clean_html(b)
+                    clean_b = clean_b.replace("↳", " ↳ ")
+                    copy_lines.append(f"- {clean_b}")
+                    
+                copy_lines.append("\n[12ハウス]")
+                for h in data["houses"]:
+                    copy_lines.append(f"- {clean_html(h)}")
+
+                if data.get("house_rulers"):
+                    ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
+                    copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
+                    
+                    is_without = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
+                    target_rulers_for_copy = (
+                        data.get("house_rulers", []) 
+                        if is_without 
+                        else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
+                    )
+                    
+                    for r_line in target_rulers_for_copy:
+                        formatted_r = clean_html(r_line).replace('➡️', '->')
+                        copy_lines.append(f"- {formatted_r}")
+
+                copy_lines.append("\n[主要アスペクト]")
+                clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
+                copy_lines.append(clean_aspects)
+
+                if data["patterns"]:
+                    copy_lines.append("\n[複合アスペクト]")
+                    for pat in data["patterns"]:
+                        copy_lines.append(f"- {clean_html(pat)}")
+
+                midpoints_data = data.get("midpoints", [])
+                if midpoints_data:
+                    copy_lines.append("\n[ミッドポイント]")
+                    for m_line in midpoints_data:
+                        clean_m = clean_html(m_line).lstrip("- ").strip()
+                        copy_lines.append(f"- {clean_m}")
+            else:
+                copy_lines.append(f"[Horoscope Reading Data: {u_name}]")
+                
+                if not hide_dt_loc:
+                    copy_lines.append(f"Date & Time: {data['date_str']}")
+                    copy_lines.append(f"Location: {display_loc_str}\n")
+                else:
+                    copy_lines.append("")
+
+                if data["angles"]:
+                    copy_lines.append("[Angles]")
+                    for a in data["angles"]:
+                        copy_lines.append(f"- {clean_html(a)}")
+                    copy_lines.append("")
+                
+                copy_lines.append("[Celestial Bodies]")
+                for b in data["bodies"]:
+                    clean_b = clean_html(b)
+                    clean_b = clean_b.replace("↳", " ↳ ")
+                    copy_lines.append(f"- {clean_b}")
+                    
+                copy_lines.append("\n[12 Houses]")
+                for h in data["houses"]:
+                    copy_lines.append(f"- {clean_html(h)}")
+
+                if data.get("house_rulers"):
+                    ruler_mode_raw = st.session_state.get("ruler_mode_radio", "Without 5-degree rule")
+                    if ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]:
+                        ruler_mode_en = "Without 5-degree rule"
+                    else:
+                        ruler_mode_en = "With 5-degree rule"
+                    
+                    copy_lines.append(f"\n[House Rulers ({ruler_mode_en})]")
+                    
+                    is_without = ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]
+                    target_rulers_for_copy = (
+                        data.get("house_rulers", []) 
+                        if is_without 
+                        else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
+                    )
+                    
+                    for r_line in target_rulers_for_copy:
+                        formatted_r = clean_html(r_line).replace('➡️', '->')
+                        copy_lines.append(f"- {formatted_r}")
+
+                copy_lines.append("\n[Main Aspects]")
+                clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
+                copy_lines.append(clean_aspects)
+
+                if data["patterns"]:
+                    copy_lines.append("\n[Complex Patterns]")
+                    for pat in data["patterns"]:
+                        copy_lines.append(f"- {clean_html(pat)}")
+
+                midpoints_data = data.get("midpoints", [])
+                if midpoints_data:
+                    copy_lines.append("\n[Midpoints]")
+                    for m_line in midpoints_data:
+                        clean_m = clean_html(m_line).lstrip("- ").strip()
+                        copy_lines.append(f"- {clean_m}")
+
+            st.code("\n".join(copy_lines), language="text")
+            
+            full_text = "\n".join(copy_lines)
+            boms_text = "\ufeff" + full_text
+            
+            st.download_button(
+                label="💾 テキストファイルとしてダウンロード / Download as text",
+                data=boms_text,
+                file_name=f"horoscope_{u_name}.txt",
+                mime="text/plain;charset=utf-8"
+            )
+            
+            st.divider()
+            
+            st.markdown(f"""
+            <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
+            <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
+            <p style="color: var(--text-color);">今回のホロスコープのより詳しい解説は、noteの方で発信しています。</p>
+            <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none; display: inline-block; margin-top: 15px;">
+            <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
+            noteをチェックする / Visit Note
+            </button>
+            </a>
+            <br><br>
+            <p style="color: var(--text-color); margin-bottom: 10px;">匿名での質問も可能です。詳しくは以下からどうぞ</p>
+            <a href="https://note.com/qa/marroscorps" target="_blank" style="text-decoration: none; display: inline-block;">
+            <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
+            匿名で質問する / Ask anonymously
+            </button>
+            </a>
+            </div>
+            """, unsafe_allow_html=True)
+            st.write("")
+        
 else:
-    # 🌟 変数に頼らず、f-stringの中で直接セッションステートから安全に取得する
+        # 🌟 変数に頼らず、f-stringの中で直接セッションステートから安全に取得する
     st.markdown(f"""
     <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
         <h2 style="margin: 0; color: #B8860B;">✨ {st.session_state.get("user_name", "TestUser")} & {st.session_state.get("p2_name", "TestUser2")} {"のシナストリー鑑定" if st.session_state.get("lang_radio", "日本語")=="日本語" else "'s Synastry Reading"} ✨</h2>
@@ -580,8 +764,8 @@ else:
     stab1, stab2 = st.tabs(synastry_tabs_labels)
 
     # 🌟 安全なデータ取得用ヘルパー
-    p1_data = data.get("person1", data) if 'data' in locals() else {}
-    p2_data = data.get("person2", {}) if 'data' in locals() else {}
+    p1_data = data.get("person1", data)
+    p2_data = data.get("person2", {})
 
     with stab1:
         col_l, col_r = st.columns(2)
@@ -644,6 +828,7 @@ else:
     st.divider()
 
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+        # 関数を先に定義
         def clean_html(text):
             if not isinstance(text, str):
                 return str(text)
