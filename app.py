@@ -352,7 +352,7 @@ if "chart_data" in st.session_state:
         </div>
         """, unsafe_allow_html=True)
 
-        if current_is_transit and data.get("transit"):
+    if current_is_transit and data.get("transit"):
             st.divider()
             st.subheader("トランジット分析結果")
             st.write(f"対象日時: {data['transit']['transit_date']}")
