@@ -473,9 +473,9 @@ if "chart_data" in st.session_state:
                 render_aspect_column(p2_name, p2_aspects)
 
         st.divider()
-        st.stop() # シナストリー計算はここまで
-        
-        if data.get("angles"):
+        st.stop()  # シナストリー計算はここまで
+
+if data.get("angles"):
     col_a1, col_a2 = st.columns(2)
     col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
     col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
@@ -516,12 +516,12 @@ with tab3:
                 st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
         st.markdown(line)
 
-    with tab4:
-        if data["patterns"]:
-            for pat in data["patterns"]:
-                st.success(localize_text(convert_to_dms(pat), lang))
-        else:
-            st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
+with tab4:
+    if data.get("patterns"):
+        for pat in data["patterns"]:
+            st.success(localize_text(convert_to_dms(pat), lang))
+    else:
+        st.info("*(該当する複合アスペクトはありません)*" if lang=="日本語" else "*(No complex aspects found)*")
 
     with tab5:
         if data.get("house_rulers"):
