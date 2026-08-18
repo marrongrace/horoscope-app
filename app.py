@@ -321,45 +321,53 @@ if "chart_data" in st.session_state:
     current_is_transit = st.session_state.get("is_transit", False)
     p2_name = st.session_state.get("p2_name", "TestUser2")
 
+    if "chart_data" in st.session_state:
+    data = st.session_state.chart_data
+    u_name = st.session_state.get("user_name", "TestUser")
+    current_is_synastry = st.session_state.get("is_synastry", False)
+    current_is_transit = st.session_state.get("is_transit", False)
+    p2_name = st.session_state.get("p2_name", "TestUser2")
+    lang = st.session_state.get("lang_radio", "日本語")
+
     if current_is_synastry:
-    # 🌟 シナストリーモード用のヘッダー表示
-    st.markdown(f"""
-    <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-        <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
-    </div>
-    """, unsafe_allow_html=True)
+        # 🌟 シナストリーモード用のヘッダー表示
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # 🌟 安全なデータ取得（person1 / person2 に分ける）
-    p1_data = data.get("person1", data)
-    p2_data = data.get("person2", {})
+        # 🌟 安全なデータ取得（person1 / person2 に分ける）
+        p1_data = data.get("person1", data)
+        p2_data = data.get("person2", {})
 
-    # 🌟 左右に分けて1回だけ綺麗に表示（重複を解消）
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown(f"#### 👤 {u_name}")
-        p1_bodies = p1_data.get("bodies", [])
-        for item in p1_bodies:
-            st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
-            
-    with col2:
-        st.markdown(f"#### 👤 {p2_name}")
-        p2_bodies = p2_data.get("bodies", [])
-        for item in p2_bodies:
-            st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
+        # 🌟 左右に分けて1回だけ綺麗に表示（重複を解消）
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown(f"#### 👤 {u_name}")
+            p1_bodies = p1_data.get("bodies", [])
+            for item in p1_bodies:
+                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
+                
+        with col2:
+            st.markdown(f"#### 👤 {p2_name}")
+            p2_bodies = p2_data.get("bodies", [])
+            for item in p2_bodies:
+                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
 
-else:
-    # 🌟 通常の個人用ホロスコープ表示
-    display_loc_str = data.get('loc_str', '')
-    if lang != "日本語":
-        display_loc_str = display_loc_str.replace("北緯", "N").replace("東経", "E").replace("十進:", "Decimal:")
+    else:
+        # 🌟 通常の個人用ホロスコープ表示
+        display_loc_str = data.get('loc_str', '')
+        if lang != "日本語":
+            display_loc_str = display_loc_str.replace("北緯", "N").replace("東経", "E").replace("十進:", "Decimal:")
 
-    st.markdown(f"""
-    <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-        <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
-        <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data.get('date_str', '')}<br>📍 {display_loc_str}</p>
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
+            <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data.get('date_str', '')}<br>📍 {display_loc_str}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     if current_is_transit and data.get("transit"):
         st.divider()
