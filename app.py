@@ -5,6 +5,14 @@ import pytz
 import streamlit as st
 from horoscope_calc import validate_and_get_coords, get_chart_data, EPHE_PATH, get_cities_for_prefecture
 
+from horoscope_calc import (
+    validate_and_get_coords, 
+    get_chart_data, 
+    get_synastry_data, 
+    EPHE_PATH, 
+    get_cities_for_prefecture
+)
+
 # get_synastry_data が horoscope_calc に無い場合の安全対策
 try:
     from horoscope_calc import get_synastry_data
