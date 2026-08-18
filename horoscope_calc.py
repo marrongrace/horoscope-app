@@ -256,13 +256,13 @@ def get_synastry_data(p1_info, p2_info, mode="日本語"):
         "synastry_aspects": [...] # シナストリーの結果
     }
 
+import warnings
+
 def get_transit_chart_data(transit_info, natal_bodies, mode="日本語"):
     """
     指定されたトランジット日時における天体位置を計算し、
     ネイタル天体との間のトランジット・アスペクトを計算して返す
     """
-    # 1. トランジット用のチャート計算 (位置・時間は現在地や任意の指定地、通常は出生地やGMT/ローカル)
-    # ここでは例として natal と同じ緯度経度・TZ、または指定のトランジット日時を使用
     t_year = transit_info.get("year", 2026)
     t_month = transit_info.get("month", 1)
     t_day = transit_info.get("day", 1)
@@ -293,7 +293,15 @@ def get_transit_chart_data(transit_info, natal_bodies, mode="日本語"):
         norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
         s_idx = list(SIGN_DATA.keys()).index(norm_sign) if norm_sign in SIGN_DATA else 0
         abs_p_pos = s_idx * 30 + pos
-        transit_bodies.append({"key": "T_" + key, "original_key": key, "abs_pos": abs_p_pos, "sign": s_name, "position": pos})
+        
+        # 修正: s_name の代わりに norm_sign（または sign）を安全に渡す
+        transit_bodies.append({
+            "key": "T_" + key, 
+            "original_key": key, 
+            "abs_pos": abs_p_pos, 
+            "sign": norm_sign, 
+            "position": pos
+        })
 
     # ネイタル天体とトランジット天体のアスペクト計算
     transit_aspects = calculate_transit_aspects(natal_bodies, transit_bodies, mode=mode)
@@ -338,7 +346,7 @@ def calculate_transit_aspects(natal_bodies, transit_bodies, mode="日本語"):
     for item in sorted_res:
         n_name = get_p_name(item["natal"], mode)
         t_name = get_p_name(item["transit"], mode)
-        lines.append(f"- **T {t_name}** ☌/△等 **N {n_name}** : {item['label']} `(orb: {item['orb']:.2f}°)`")
+        lines.append(f"- **T {t_name}** — **N {n_name}** : {item['label']} `(orb: {item['orb']:.2f}°)`")
         
     return lines
     
