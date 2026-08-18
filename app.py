@@ -431,6 +431,10 @@ if "chart_data" in st.session_state:
                 st.markdown(f"- {body}", unsafe_allow_html=True)
         with t_col2:
             st.markdown("### 🔗 トランジット・アスペクト" if lang == "日本語" else "🔗 Transit Aspects")
+            
+            # 🌟 ここに一時的にデータをそのまま表示させるコードを挟む
+            st.write("DEBUG DATA:", data["transit"])
+            
             transit_aspects = data["transit"].get("transit_aspects", [])
             if transit_aspects:
                 for asp in transit_aspects:
