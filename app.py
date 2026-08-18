@@ -321,7 +321,7 @@ if "chart_data" in st.session_state:
     current_is_transit = st.session_state.get("is_transit", False)
     p2_name = st.session_state.get("p2_name", "TestUser2")
 
-    if "chart_data" in st.session_state:
+if "chart_data" in st.session_state:
     data = st.session_state.chart_data
     u_name = st.session_state.get("user_name", "TestUser")
     current_is_synastry = st.session_state.get("is_synastry", False)
