@@ -337,7 +337,7 @@ if submit_button:
                         "abs_pos": abs_p
                     })
                 
-                natal_bodies = natal_data.get("bodies_meta", [])
+                # natal_bodies = natal_data.get("bodies_meta", [])
                 transit_result = get_transit_chart_data(transit_info, natal_bodies, mode=lang)
                 
                 data = {
