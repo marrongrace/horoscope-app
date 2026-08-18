@@ -569,157 +569,183 @@ if "chart_data" in st.session_state:
         midpoints_data = data.get("midpoints", [])
         if midpoints_data:
             for m_line in midpoints_data:
-                clean_m = m_line.lstrip("- ").strip()
+                clean_m = m_line.lstrip("- ").setItem() if hasattr(m_line, 'setItem') else m_line.lstrip("- ").strip()
                 st.markdown(f"- {localize_text(clean_m, lang)}")
         else:
             st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
-    
-    with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
-            u_name = st.session_state.get("user_name", "TestUser")
-            
-            hide_dt_loc = st.checkbox(
-                "日時と場所を非表示にする（除外する）" if lang == "日本語" else "Exclude Date, Time & Location",
-                value=False,
-                key="copy_hide_dt_loc"
-            )
-            
-            def clean_html(text):
-                if not isinstance(text, str):
-                    return str(text)
-                text = re.sub(r'<[^>]+>', '', text)
-                text = text.replace('&nbsp;', '')
-                text = text.replace('**', '').replace('`', '')
-                text = localize_text(text, lang)
-                return text
 
-            copy_lines = []
-            if lang == "日本語":
-                copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
-                
-                if not hide_dt_loc:
-                    copy_lines.append(f"日時: {data['date_str']}")
-                    copy_lines.append(f"場所: {data['loc_str']}\n")
+# 🌟 ここが「if "chart_data" in st.session_state:` に対する else: です（一番左端に配置）
+else:
+    # 🌟 変数に頼らず、f-stringの中で直接セッションステートから安全に取得する
+    st.markdown(f"""
+    <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+        <h2 style="margin: 0; color: #B8860B;">✨ {st.session_state.get("user_name", "TestUser")} & {st.session_state.get("p2_name", "TestUser2")} {"のシナストリー鑑定" if st.session_state.get("lang_radio", "日本語")=="日本語" else "'s Synastry Reading"} ✨</h2>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 以降で使用するローカル変数もこの場で安全に確保
+    u_name = st.session_state.get("user_name", "TestUser")
+    p2_name = st.session_state.get("p2_name", "TestUser2")
+    lang = st.session_state.get("lang_radio", "日本語")
+
+    synastry_tabs_labels = (
+        ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
+        if lang == "日本語" 
+        else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
+    )
+    stab1, stab2 = st.tabs(synastry_tabs_labels)
+
+    # 🌟 安全なデータ取得用ヘルパー
+    p1_data = data.get("person1", data) if 'data' in locals() else {}
+    p2_data = data.get("person2", {}) if 'data' in locals() else {}
+
+    with stab1:
+        col_l, col_r = st.columns(2)
+        with col_l:
+            st.markdown(f"#### 👤 {u_name}")
+            p1_bodies = p1_data.get("bodies", [])
+            for p in p1_bodies:
+                st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
+        with col_r:
+            st.markdown(f"#### 👤 {p2_name}")
+            p2_bodies = p2_data.get("bodies", [])
+            for p in p2_bodies:
+                st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
+
+    with stab2:
+        col_l, col_r = st.columns(2)
+        
+        def render_aspect_column(name, aspects_data):
+            st.markdown(f"#### 👤 {name} " + ("のアスペクト" if lang=="日本語" else "'s Aspects"))
+            if aspects_data and aspects_data is not Ellipsis:
+                if isinstance(aspects_data, str):
+                    lines = [l.strip() for l in aspects_data.split("\n") if l.strip()]
+                elif isinstance(aspects_data, list):
+                    lines = []
+                    for item in aspects_data:
+                        if item is not Ellipsis and str(item) != "Ellipsis":
+                            if isinstance(item, str):
+                                lines.extend([l.strip() for l in item.split("\n") if l.strip()])
+                            else:
+                                lines.append(str(item))
                 else:
-                    copy_lines.append("")
+                    lines = [str(aspects_data)]
 
-                if data["angles"]:
-                    copy_lines.append("[アングル]")
-                    for a in data["angles"]:
-                        copy_lines.append(f"- {clean_html(a)}")
-                    copy_lines.append("")
-                
-                copy_lines.append("[天体配置]")
-                for b in data["bodies"]:
-                    clean_b = clean_html(b)
-                    clean_b = clean_b.replace("↳", " ↳ ")
-                    copy_lines.append(f"- {clean_b}")
-                    
-                copy_lines.append("\n[12ハウス]")
-                for h in data["houses"]:
-                    copy_lines.append(f"- {clean_html(h)}")
-
-                if data.get("house_rulers"):
-                    ruler_mode = st.session_state.get("ruler_mode_radio", "5度前ルール適用なし")
-                    copy_lines.append(f"\n[ハウスルーラー（{ruler_mode}）]")
-                    
-                    is_without = ruler_mode in ["5度前ルール適用なし", "Without 5-degree rule"]
-                    target_rulers_for_copy = (
-                        data.get("house_rulers", []) 
-                        if is_without 
-                        else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
-                    )
-                    
-                    for r_line in target_rulers_for_copy:
-                        formatted_r = clean_html(r_line).replace('➡️', '->')
-                        copy_lines.append(f"- {formatted_r}")
-
-                copy_lines.append("\n[主要アスペクト]")
-                clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
-                copy_lines.append(clean_aspects)
-
-                if data["patterns"]:
-                    copy_lines.append("\n[複合アスペクト]")
-                    for pat in data["patterns"]:
-                        copy_lines.append(f"- {clean_html(pat)}")
-
-                midpoints_data = data.get("midpoints", [])
-                if midpoints_data:
-                    copy_lines.append("\n[ミッドポイント]")
-                    for m_line in midpoints_data:
-                        clean_m = clean_html(m_line).lstrip("- ").strip()
-                        copy_lines.append(f"- {clean_m}")
+                valid_lines = [l for l in lines if l and str(l) != "Ellipsis"]
+                if valid_lines:
+                    current_planet = None
+                    for line in valid_lines:
+                        converted_line = localize_text(convert_to_dms(line), lang)
+                        if " & " in converted_line:
+                            raw_target = converted_line.lstrip("-* ").strip()
+                            planet = raw_target.split(" & ")[0].strip()
+                            if planet != current_planet:
+                                current_planet = planet
+                                heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
+                                st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
+                        st.markdown(converted_line if converted_line.startswith("-") else f"- {converted_line}")
+                else:
+                    st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
             else:
-                copy_lines.append(f"[Horoscope Reading Data: {u_name}]")
-                
-                if not hide_dt_loc:
-                    copy_lines.append(f"Date & Time: {data['date_str']}")
-                    copy_lines.append(f"Location: {display_loc_str}\n")
-                else:
-                    copy_lines.append("")
+                st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
 
-                if data["angles"]:
-                    copy_lines.append("[Angles]")
-                    for a in data["angles"]:
-                        copy_lines.append(f"- {clean_html(a)}")
-                    copy_lines.append("")
-                
-                copy_lines.append("[Celestial Bodies]")
-                for b in data["bodies"]:
-                    clean_b = clean_html(b)
-                    clean_b = clean_b.replace("↳", " ↳ ")
-                    copy_lines.append(f"- {clean_b}")
-                    
-                copy_lines.append("\n[12 Houses]")
-                for h in data["houses"]:
-                    copy_lines.append(f"- {clean_html(h)}")
+        with col_l:
+            p1_aspects = p1_data.get("aspects", p1_data.get("person1_aspects", []))
+            render_aspect_column(u_name, p1_aspects)
 
-                if data.get("house_rulers"):
-                    ruler_mode_raw = st.session_state.get("ruler_mode_radio", "Without 5-degree rule")
-                    if ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]:
-                        ruler_mode_en = "Without 5-degree rule"
-                    else:
-                        ruler_mode_en = "With 5-degree rule"
-                    
-                    copy_lines.append(f"\n[House Rulers ({ruler_mode_en})]")
-                    
-                    is_without = ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]
-                    target_rulers_for_copy = (
-                        data.get("house_rulers", []) 
-                        if is_without 
-                        else data.get("house_rulers_with_5deg", data.get("house_rulers", []))
-                    )
-                    
-                    for r_line in target_rulers_for_copy:
-                        formatted_r = clean_html(r_line).replace('➡️', '->')
-                        copy_lines.append(f"- {formatted_r}")
+        with col_r:
+            p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", []))
+            render_aspect_column(p2_name, p2_aspects)
 
-                copy_lines.append("\n[Main Aspects]")
-                clean_aspects = clean_html(data["aspects"]).replace("■ ", "")
-                copy_lines.append(clean_aspects)
+    st.divider()
 
-                if data["patterns"]:
-                    copy_lines.append("\n[Complex Patterns]")
-                    for pat in data["patterns"]:
-                        copy_lines.append(f"- {clean_html(pat)}")
+    with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+        def clean_html(text):
+            if not isinstance(text, str):
+                return str(text)
+            text = re.sub(r'<[^>]+>', '', text)
+            text = text.replace('&nbsp;', '')
+            text = text.replace('**', '').replace('`', '')
+            text = localize_text(text, lang)
+            return text
 
-                midpoints_data = data.get("midpoints", [])
-                if midpoints_data:
-                    copy_lines.append("\n[Midpoints]")
-                    for m_line in midpoints_data:
-                        clean_m = clean_html(m_line).lstrip("- ").strip()
-                        copy_lines.append(f"- {clean_m}")
-
-            st.code("\n".join(copy_lines), language="text")
+        copy_lines = []
+        if lang == "日本語":
+            copy_lines.append(f"【シナストリー鑑定データ: {u_name} & {p2_name}】\n")
             
-            full_text = "\n".join(copy_lines)
-            boms_text = "\ufeff" + full_text
+            copy_lines.append(f"--- 👤 {u_name} の天体配置 ---")
+            for p in p1_data.get("bodies", []):
+                copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
             
-            st.download_button(
-                label="💾 テキストファイルとしてダウンロード / Download as text",
-                data=boms_text,
-                file_name=f"horoscope_{u_name}.txt",
-                mime="text/plain;charset=utf-8"
-            )
+            copy_lines.append(f"\n--- 👤 {u_name} のアスペクト ---")
+            p1_asp = p1_data.get("aspects", p1_data.get("person1_aspects", []))
+            if isinstance(p1_asp, list):
+                for a in p1_asp:
+                    if a is not Ellipsis and str(a) != "Ellipsis":
+                        copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+            elif isinstance(p1_asp, str):
+                for line in p1_asp.split("\n"):
+                    if line.strip():
+                        copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+
+            copy_lines.append(f"\n--- 👤 {p2_name} の天体配置 ---")
+            for p in p2_data.get("bodies", []):
+                copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+
+            copy_lines.append(f"\n--- 👤 {p2_name} のアスペクト ---")
+            p2_asp = p2_data.get("aspects", p2_data.get("person2_aspects", []))
+            if isinstance(p2_asp, list):
+                for a in p2_asp:
+                    if a is not Ellipsis and str(a) != "Ellipsis":
+                        copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+            elif isinstance(p2_asp, str):
+                for line in p2_asp.split("\n"):
+                    if line.strip():
+                        copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+        else:
+            copy_lines.append(f"[Synastry Reading Data: {u_name} & {p2_name}]\n")
+            
+            copy_lines.append(f"--- 👤 {u_name}'s Celestial Bodies ---")
+            for p in p1_data.get("bodies", []):
+                copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+            
+            copy_lines.append(f"\n--- 👤 {u_name}'s Aspects ---")
+            p1_asp = p1_data.get("aspects", p1_data.get("person1_aspects", []))
+            if isinstance(p1_asp, list):
+                for a in p1_asp:
+                    if a is not Ellipsis and str(a) != "Ellipsis":
+                        copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+            elif isinstance(p1_asp, str):
+                for line in p1_asp.split("\n"):
+                    if line.strip():
+                        copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+
+            copy_lines.append(f"\n--- 👤 {p2_name}'s Celestial Bodies ---")
+            for p in p2_data.get("bodies", []):
+                copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+
+            copy_lines.append(f"\n--- 👤 {p2_name}'s Aspects ---")
+            p2_asp = p2_data.get("aspects", p2_data.get("person2_aspects", []))
+            if isinstance(p2_asp, list):
+                for a in p2_asp:
+                    if a is not Ellipsis and str(a) != "Ellipsis":
+                        copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+            elif isinstance(p2_asp, str):
+                for line in p2_asp.split("\n"):
+                    if line.strip():
+                        copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+
+        st.code("\n".join(copy_lines), language="text")
+        
+        full_text = "\n".join(copy_lines)
+        boms_text = "\ufeff" + full_text
+        
+        st.download_button(
+            label="💾 テキストファイルとしてダウンロード / Download as text",
+            data=boms_text,
+            file_name=f"synastry_{u_name}_{p2_name}.txt",
+            mime="text/plain;charset=utf-8"
+        )
             
             st.divider()
             
