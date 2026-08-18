@@ -230,28 +230,41 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
     return chain_results
 
 def get_synastry_data(p1_info, p2_info, mode="日本語"):
-    """
-    2人分の生年月日等からそれぞれのチャートを計算し、
-    個人間のアスペクト（シナストリー）を計算して返す関数
-    """
-    # 1人目のチャート計算
-    chart1 = get_chart_data(
-        p1_info["name"], p1_info["year"], p1_info["month"], p1_info["day"],
-        p1_info["hour"], p1_info["minute"], p1_info["lat"], p1_info["lng"],
-        p1_info["city"], mode, "ペア別", p1_info["is_unknown_time"]
-    )
+    # 既存の計算用データを抽出するために、一旦内部のロジックを少し拝借します
+    # ここでは、各チャートの天体情報を直接取り出すため、ヘルパー関数を使います
+    def get_bodies_for_aspects(info):
+        # get_chart_data と同じ条件でAstrologicalSubjectを作成
+        calc_h, calc_m = (12, 0) if info["is_unknown_time"] else (info["hour"], info["minute"])
+        chart = AstrologicalSubject(
+            name=info["name"], year=info["year"], month=info["month"], day=info["day"],
+            hour=calc_h, minute=calc_m, lat=info["lat"], lng=info["lng"], tz_str="Asia/Tokyo", city=info["city"]
+        )
+        
+        # 主要天体の位置をリスト化
+        bodies = [
+            ("Sun", chart.sun), ("Moon", chart.moon), ("Mercury", chart.mercury),
+            ("Venus", chart.venus), ("Mars", chart.mars), ("Jupiter", chart.jupiter),
+            ("Saturn", chart.saturn), ("Uranus", chart.uranus), ("Neptune", chart.neptune), ("Pluto", chart.pluto)
+        ]
+        
+        results = []
+        for key, p in bodies:
+            sign = p.get('sign', 'Aries')
+            pos = p.get('position', 0.0)
+            s_idx = list(SIGN_DATA.keys()).index(SIGN_NORM_MAP.get(str(sign), "Aries"))
+            abs_pos = s_idx * 30 + pos
+            results.append({"key": key, "abs_pos": abs_pos})
+        return results
+
+    # それぞれのチャート詳細（表示用）
+    chart1 = get_chart_data(p1_info["name"], p1_info["year"], p1_info["month"], p1_info["day"], p1_info["hour"], p1_info["minute"], p1_info["lat"], p1_info["lng"], p1_info["city"], mode, "ペア別", p1_info["is_unknown_time"])
+    chart2 = get_chart_data(p2_info["name"], p2_info["year"], p2_info["month"], p2_info["day"], p2_info["hour"], p2_info["minute"], p2_info["lat"], p2_info["lng"], p2_info["city"], mode, "ペア別", p2_info["is_unknown_time"])
     
-    # 2人目のチャート計算
-    chart2 = get_chart_data(
-        p2_info["name"], p2_info["year"], p2_info["month"], p2_info["day"],
-        p2_info["hour"], p2_info["minute"], p2_info["lat"], p2_info["lng"],
-        p2_info["city"], mode, "ペア別", p2_info["is_unknown_time"]
-    )
+    # 計算用データ（数値）
+    bodies1 = get_bodies_for_aspects(p1_info)
+    bodies2 = get_bodies_for_aspects(p2_info)
     
-    # ── 2人分の天体位置同士のアスペクト（Person1の天体 × Person2の天体）を計算 ──
     synastry_aspects = []
-    
-    # アスペクトの定義（角度と許容オーブの例）
     aspect_defs = [
         {"name": "コンジャンクション" if mode == "日本語" else "Conjunction", "angle": 0.0, "orb": 6.0},
         {"name": "セクスタイル" if mode == "日本語" else "Sextile", "angle": 60.0, "orb": 5.0},
@@ -260,54 +273,19 @@ def get_synastry_data(p1_info, p2_info, mode="日本語"):
         {"name": "オポジション" if mode == "日本語" else "Opposition", "angle": 180.0, "orb": 6.0},
     ]
 
-    # chart1 と chart2 から天体のメタデータ（名前と絶対位置）を取得する
-    # ※もし `chart1` に "bodies_meta" のような内部データがあればそこから取得、なければ "bodies" の文字列からパースするなどの調整が必要ですが、
-    # 通常内部で `bodies_meta` を保持している場合はそちらを利用するのが確実です。
-    bodies1 = chart1.get("bodies_meta", [])
-    bodies2 = chart2.get("bodies_meta", [])
-
-    # 만약 bodies_meta が無い場合、chart1["bodies"] や chart2["bodies"] から位置を抽出するロジックが必要な場合がありますが、
-    # 通常 `get_chart_data` が内部で持っているオブジェクト構造に合わせて以下のように総当たりで計算します。
-    if bodies1 and bodies2:
-        for b1 in bodies1:
-            name1 = b1.get("key") or b1.get("name")
-            pos1 = b1.get("abs_pos")
-            if pos1 is None:
-                continue
-                
-            for b2 in bodies2:
-                name2 = b2.get("key") or b2.get("name")
-                pos2 = b2.get("abs_pos")
-                if pos2 is None:
-                    continue
-                
-                # 角度の差を計算（0〜180度の範囲に収める）
-                diff = abs(pos1 - pos2) % 360.0
-                if diff > 180.0:
-                    diff = 360.0 - diff
-                
-                for asp in aspect_defs:
-                    target_angle = asp["angle"]
-                    allowed_orb = asp["orb"]
-                    actual_orb = abs(diff - target_angle)
-                    
-                    if actual_orb <= allowed_orb:
-                        # オーブの度・分表記への変換（簡易的）
-                        orb_deg = int(actual_orb)
-                        orb_min = round((actual_orb - orb_deg) * 60)
-                        if orb_min == 60:
-                            orb_deg += 1
-                            orb_min = 0
-                        
-                        asp_str = f"- {p1_info['name']} の {name1} ＆ {p2_info['name']} の {name2}：{asp['name']} ({orb_deg}°{orb_min:02d}')"
-                        if mode != "日本語":
-                            asp_str = f"- {p1_info['name']}'s {name1} & {p2_info['name']}'s {name2}: {asp['name']} ({orb_deg}°{orb_min:02d}')"
-                        
-                        synastry_aspects.append(asp_str)
-                        break
+    for b1 in bodies1:
+        for b2 in bodies2:
+            diff = abs(b1["abs_pos"] - b2["abs_pos"]) % 360.0
+            if diff > 180.0: diff = 360.0 - diff
+            
+            for asp in aspect_defs:
+                orb = abs(diff - asp["angle"])
+                if orb <= asp["orb"]:
+                    asp_str = f"- {p1_info['name']}の{get_p_name(b1['key'], mode)} ＆ {p2_info['name']}の{get_p_name(b2['key'], mode)}：{asp['name']} ({orb:.2f}°)"
+                    synastry_aspects.append(asp_str)
 
     if not synastry_aspects:
-        synastry_aspects = ["*(該当するアスペクトはありません)*" if mode == "日本語" else "*(No synastry aspects found)*"]
+        synastry_aspects = ["*(該当するアスペクトはありません)*"]
 
     return {
         "person1": chart1,
