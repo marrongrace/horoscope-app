@@ -823,41 +823,34 @@ if "chart_data" in st.session_state:
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
         with stab2:
-            col_l, col_r = st.columns(2)
+            st.markdown(f"#### 🔗 {u_name} & {p2_name} のシナストリー・アスペクト" if lang=="日本語" else f"#### 🔗 Synastry Aspects between {u_name} & {p2_name}")
             
-            def render_aspect_column(name, aspects_data):
-                st.markdown(f"#### 👤 {name} " + ("のアスペクト" if lang=="日本語" else "'s Aspects"))
-                if aspects_data and aspects_data is not Ellipsis:
-                    if isinstance(aspects_data, str):
-                        lines = [l.strip() for l in aspects_data.split("\n") if l.strip()]
-                    elif isinstance(aspects_data, list):
-                        lines = []
-                        for item in aspects_data:
-                            if item is not Ellipsis and str(item) != "Ellipsis":
-                                if isinstance(item, str):
-                                    lines.extend([l.strip() for l in item.split("\n") if l.strip()])
-                                else:
-                                    lines.append(str(item))
-                    else:
-                        lines = [str(aspects_data)]
-
-                    valid_lines = [l for l in lines if l and str(l) != "Ellipsis"]
-                    if valid_lines:
-                        current_planet = None
-                        for line in valid_lines:
-                            converted_line = localize_text(convert_to_dms(line), lang)
-                            if " & " in converted_line:
-                                raw_target = converted_line.lstrip("-* ").strip()
-                                planet = raw_target.split(" & ")[0].strip()
-                                if planet != current_planet:
-                                    current_planet = planet
-                                    heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
-                                    st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
-                            st.markdown(converted_line if converted_line.startswith("-") else f"- {converted_line}")
-                    else:
-                        st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
+            # データからシナストリーアスペクトのリストを取得（キー名は実際のデータ構造に合わせて調整してください）
+            synastry_aspects = data.get("synastry_aspects", data.get("person1_to_person2_aspects", []))
+            
+            if synastry_aspects and synastry_aspects is not Ellipsis:
+                if isinstance(synastry_aspects, str):
+                    lines = [l.strip() for l in synastry_aspects.split("\n") if l.strip()]
+                elif isinstance(synastry_aspects, list):
+                    lines = []
+                    for item in synastry_aspects:
+                        if item is not Ellipsis and str(item) != "Ellipsis":
+                            if isinstance(item, str):
+                                lines.extend([l.strip() for l in item.split("\n") if l.strip()])
+                            else:
+                                lines.append(str(item))
                 else:
-                    st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
+                    lines = [str(synastry_aspects)]
+
+                valid_lines = [l for l in lines if l and str(l) != "Ellipsis"]
+                if valid_lines:
+                    for line in valid_lines:
+                        converted_line = localize_text(convert_to_dms(line), lang)
+                        st.markdown(converted_line if converted_line.startswith("-") else f"- {converted_line}")
+                else:
+                    st.info("*(該当するアスペクトはありません)*" if lang=="日本語" else "*(No synastry aspects found)*")
+            else:
+                st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
 
             with col_l:
                 p1_aspects = data.get("person1", {}).get("aspects", data.get("person1_aspects", data.get("aspects", [])))
