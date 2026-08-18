@@ -241,7 +241,7 @@ with st.sidebar:
     # 🌟 トランジットモードが選ばれた場合
     if is_transit:
         st.markdown("---")
-        st.subheader("🌌 トランジット設定 / Transit Settings" if lang == "日本語" else "🌌 Transit Settings")
+        st.subheader("🌌 トランジット設定" if lang == "日本語" else "🌌 Transit Settings")
         
         import datetime
         from zoneinfo import ZoneInfo
