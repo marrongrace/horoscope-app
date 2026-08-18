@@ -238,25 +238,27 @@ with st.sidebar:
     # 1人目の入力
     p1_data = render_user_input_form("p1", "TestUser1", show_header=is_synastry)
 
-    # 🌟 トランジットモードが選ばれた場合のみ、1人目の直下に日時入力欄を表示
+    # 🌟 トランジットモードが選ばれた場合
     if is_transit:
         st.markdown("---")
         st.subheader("🌌 トランジット設定 / Transit Settings" if lang == "日本語" else "🌌 Transit Settings")
         
         import datetime
-        today = datetime.date.today()
+        from zoneinfo import ZoneInfo
         
+        # 💡 日本時間（JST）の現在日時を取得
+        jst_now = datetime.datetime.now(ZoneInfo("Asia/Tokyo"))
+        
+        # フォームの初期値として JST の現在の日付・時間をセット
         transit_date = st.date_input(
             "トランジットの日付 / Transit Date" if lang == "日本語" else "Transit Date",
-            value=today,
+            value=jst_now.date(),
             key="transit_date_input"
         )
         
-        # 💡 2つの number_input の代わりに st.time_input を1つ配置！
-        default_transit_time = datetime.time(12, 0)
         transit_time = st.time_input(
             "トランジットの時間 / Transit Time" if lang == "日本語" else "Transit Time",
-            value=default_transit_time,
+            value=jst_now.time().replace(second=0, microsecond=0), # 秒・ミリ秒は切り捨てる
             key="transit_time_input"
         )
             
@@ -265,8 +267,8 @@ with st.sidebar:
             "year": transit_date.year,
             "month": transit_date.month,
             "day": transit_date.day,
-            "hour": transit_time.hour,     # 👈 変更：time_input から時を取り出す
-            "minute": transit_time.minute, # 👈 変更：time_input から分を取り出す
+            "hour": transit_time.hour,
+            "minute": transit_time.minute,
             "lat": p1_data["input_lat"],
             "lng": p1_data["input_lng"]
         }
