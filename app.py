@@ -394,7 +394,8 @@ if submit_button:
                         "city": p2_data["input_city_name"],
                         "is_unknown_time": unknown_checkbox
                     }
-                    data = get_synastry_data(p1_info, p2_info, mode=lang)
+                    # 💡 ここに display_mode=toggle_view を追加します！
+                    data = get_synastry_data(p1_info, p2_info, mode=lang, display_mode=toggle_view)
                 else:
                     data = get_chart_data(
                         f"{p1_data['user_name']} & {p2_data['user_name']}", 
