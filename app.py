@@ -307,15 +307,54 @@ if submit_button:
 
     if not p1_error and not p2_error:
         with st.spinner(t["loading"]):
-            if not is_synastry:
-                # 1人分（シングル）の計算
-                data = get_chart_data(
-                    p1_data["user_name"], p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
-                    p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
+            
+            # ── 1. トランジットモードの場合 ──
+            if is_transit:
+                natal_data = get_chart_data(
+                    p1_data["user_name"],
+                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                    p1_data["birth_time"].hour, p1_data["birth_time"].minute,
+                    p1_data["input_lat"], p1_data["input_lng"],
                     p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
                 )
+                
+                from horoscope_calc import get_transit_chart_data
+                transit_info = st.session_state.get("transit_info", {
+                    "year": 2026, "month": 1, "day": 1, "hour": 12, "minute": 0,
+                    "lat": p1_data["input_lat"], "lng": p1_data["input_lng"]
+                })
+                
+                natal_bodies = natal_data.get("bodies_meta", [])
+                transit_result = get_transit_chart_data(transit_info, natal_bodies, mode=lang)
+                
+                data = {
+                    "user_name": p1_data["user_name"],
+                    "date_str": natal_data["date_str"],
+                    "loc_str": natal_data["loc_str"],
+                    "bodies": natal_data["bodies"],
+                    "transit": transit_result
+                }
+                st.session_state.chart_data = data
+                st.session_state.user_name = p1_data["user_name"]
+                st.session_state.is_synastry = False
+                st.session_state.is_transit = True
+
+            # ── 2. シングル（ネイタル）モードの場合 ──
+            elif not is_synastry:
+                data = get_chart_data(
+                    p1_data["user_name"],
+                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                    p1_data["birth_time"].hour, p1_data["birth_time"].minute,
+                    p1_data["input_lat"], p1_data["input_lng"],
+                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
+                )
+                st.session_state.chart_data = data
+                st.session_state.user_name = p1_data["user_name"]
+                st.session_state.is_synastry = False
+                st.session_state.is_transit = False
+
+            # ── 3. シナストリー（相性）モードの場合 ──
             else:
-                # シナストリー（2人分）の計算
                 if get_synastry_data is not None:
                     p1_info = {
                         "name": p1_data["user_name"],
@@ -349,6 +388,11 @@ if submit_button:
                         p1_data["birth_time"].hour, p1_data["birth_time"].minute, p1_data["input_lat"], p1_data["input_lng"],
                         p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
                     )
+                st.session_state.chart_data = data
+                st.session_state.user_name = p1_data["user_name"]
+                st.session_state.p2_name = p2_data["user_name"]
+                st.session_state.is_synastry = True
+                st.session_state.is_transit = False
 
         if data.get("error"):
             st.error(data["error"])
