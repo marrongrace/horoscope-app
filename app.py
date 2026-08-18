@@ -634,7 +634,7 @@ if "chart_data" in st.session_state:
             """, unsafe_allow_html=True)
             st.write("")
             
-    else:
+else:
         # 🌟 シナストリーモード用の表示（左右に分ける）
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
