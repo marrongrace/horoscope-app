@@ -649,7 +649,7 @@ else:
         )
         stab1, stab2 = st.tabs(synastry_tabs_labels)
 
-        # 安全なデータ取得用ヘルパー
+        # 🌟 安全なデータ取得用ヘルパー（ここで person1 / person2 を正しくキャッチ）
         p1_data = data.get("person1", data)
         p2_data = data.get("person2", {})
 
