@@ -633,7 +633,11 @@ if "chart_data" in st.session_state:
             </div>
             """, unsafe_allow_html=True)
             st.write("")
-            
+        
+            u_name = st.session_state.get("user_name", "TestUser")
+            p2_name = st.session_state.get("p2_name", "TestUser2")
+            lang = st.session_state.get("lang_radio", "日本語")
+        
 else:
         # 🌟 シナストリーモード用の表示（左右に分ける）
         st.markdown(f"""
