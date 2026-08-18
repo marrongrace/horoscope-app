@@ -324,6 +324,20 @@ if submit_button:
                     "lat": p1_data["input_lat"], "lng": p1_data["input_lng"]
                 })
                 
+                # 🌟 ネイタル天体データを、アスペクト計算が確実に読める形式に整える
+                raw_bodies = natal_data.get("bodies_meta", [])
+                natal_bodies = []
+                for b in raw_bodies:
+                    # キーや位置情報の名前が違っていても拾えるように安全に取得
+                    key = b.get("key") or b.get("name") or "Unknown"
+                    abs_p = b.get("abs_pos") if "abs_pos" in b else b.get("position", 0.0)
+                    
+                    natal_bodies.append({
+                        "key": key,
+                        "abs_pos": abs_p
+                    })
+                
+                transit_result = get_transit_chart_data(transit_info, natal_bodies, mode=lang)
                 natal_bodies = natal_data.get("bodies_meta", [])
                 transit_result = get_transit_chart_data(transit_info, natal_bodies, mode=lang)
                 
