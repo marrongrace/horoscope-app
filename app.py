@@ -401,7 +401,7 @@ if "chart_data" in st.session_state:
         st.stop()
         
         if current_is_synastry:
-        synastry_tabs_labels = (
+            synastry_tabs_labels = (
             ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
             if lang == "日本語" 
             else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
