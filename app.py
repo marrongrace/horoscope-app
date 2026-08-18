@@ -242,6 +242,43 @@ with st.sidebar:
     if is_synastry:
         p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
 
+    # 🌟 トランジットモードが選ばれた場合のみ、日時入力欄を表示
+    is_transit = chart_mode_raw in ["トランジット（現在の運勢）", "Transit"]
+    
+    if is_transit:
+        st.markdown("---")
+        st.sidebar.subheader("🌌 トランジット設定 / Transit Settings" if lang == "日本語" else "🌌 Transit Settings")
+        
+        import datetime
+        today = datetime.date.today()
+        
+        transit_date = st.date_input(
+            "トランジットの日付 / Transit Date" if lang == "日本語" else "Transit Date",
+            value=today,
+            key="transit_date_input"
+        )
+        
+        col_th1, col_th2 = st.columns(2)
+        with col_th1:
+            transit_hour = st.number_input(
+                "時 / Hour" if lang == "日本語" else "Hour", min_value=0, max_value=23, value=12, key="transit_hour_input"
+            )
+        with col_th2:
+            transit_minute = st.number_input(
+                "分 / Minute" if lang == "日本語" else "Minute", min_value=0, max_value=59, value=0, key="transit_minute_input"
+            )
+            
+        # 計算用にセッションステートへ保存
+        st.session_state["transit_info"] = {
+            "year": transit_date.year,
+            "month": transit_date.month,
+            "day": transit_date.day,
+            "hour": transit_hour,
+            "minute": transit_minute,
+            "lat": 35.6812, # デフォルト（東京）または p1 の入力地を流用可能
+            "lng": 139.7671
+        }
+
     st.header(t["settings_header"])
     toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"], key="aspect_view_radio")
     toggle_view = "ペア別" if toggle_view_raw in ["ペア別", "By Pair"] else "アスペクト別"
