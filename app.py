@@ -375,7 +375,7 @@ if submit_button:
             st.session_state.is_transit = True
 
             # ── 2. シングル（ネイタル）モードの場合 ──
-            elif not is_synastry:
+            if not is_synastry:
                 data = get_chart_data(
                     p1_data["user_name"],
                     p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
