@@ -411,6 +411,101 @@ if "chart_data" in st.session_state:
     current_is_transit = st.session_state.get("is_transit", False)
     p2_name = st.session_state.get("p2_name", "TestUser2")
 
+    # ==========================================
+    # 🌌 トランジットモードの場合の画面描画
+    # ==========================================
+    if current_is_transit and "transit" in data:
+        st.divider()
+        st.subheader("🌌 トランジット分析結果 / Transit Reading" if lang == "日本語" else "🌌 Transit Reading")
+        st.write(f"📅 対象日時: {data['transit'].get('transit_date', '')}")
+        
+        t_col1, t_col2 = st.columns(2)
+        with t_col1:
+            st.markdown("### 👤 ネイタル天体配置" if lang == "日本語" else "👤 Natal Bodies")
+            for body in data.get("bodies", []):
+                st.markdown(f"- {body}")
+        with t_col2:
+            st.markdown("### 🔗 トランジット・アスペクト" if lang == "日本語" else "🔗 Transit Aspects")
+            transit_aspects = data["transit"].get("transit_aspects", [])
+            if transit_aspects:
+                for asp in transit_aspects:
+                    st.markdown(f"- {asp}")
+            else:
+                st.info("現在、顕著なトランジット・アスペクトはありません。" if lang == "日本語" else "No significant transit aspects found.")
+        
+        st.divider()
+
+        # 📋 ④ 一括コピー欄（トランジット用）
+        with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+            def clean_html(text):
+                if not isinstance(text, str):
+                    return str(text)
+                text = re.sub(r'<[^>]+>', '', text)
+                text = text.replace('&nbsp;', '').replace('**', '').replace('`', '')
+                return text
+
+            copy_lines = []
+            if lang == "日本語":
+                copy_lines.append(f"【トランジット鑑定データ: {u_name}】")
+                copy_lines.append(f"ネイタル日時: {data.get('date_str', '')}")
+                copy_lines.append(f"トランジット日時: {data['transit'].get('transit_date', '')}\n")
+                copy_lines.append("[ネイタル天体配置]")
+                for b in data.get("bodies", []):
+                    copy_lines.append(f"- {clean_html(b)}")
+                copy_lines.append("\n[トランジット・アスペクト]")
+                if transit_aspects:
+                    for asp in transit_aspects:
+                        copy_lines.append(f"- {clean_html(asp)}")
+                else:
+                    copy_lines.append("- (特になし)")
+            else:
+                copy_lines.append(f"[Transit Reading Data: {u_name}]")
+                copy_lines.append(f"Natal Date: {data.get('date_str', '')}")
+                copy_lines.append(f"Transit Date: {data['transit'].get('transit_date', '')}\n")
+                copy_lines.append("[Natal Bodies]")
+                for b in data.get("bodies", []):
+                    copy_lines.append(f"- {clean_html(b)}")
+                copy_lines.append("\n[Transit Aspects]")
+                if transit_aspects:
+                    for asp in transit_aspects:
+                        copy_lines.append(f"- {clean_html(asp)}")
+                else:
+                    copy_lines.append("- (None)")
+
+            full_text = "\n".join(copy_lines)
+            st.code(full_text, language="text")
+            
+            st.download_button(
+                label="💾 テキストファイルとしてダウンロード / Download as text",
+                data="\ufeff" + full_text,
+                file_name=f"transit_{u_name}.txt",
+                mime="text/plain;charset=utf-8"
+            )
+
+        # 一番下に追加する note & 質問箱リンク
+        st.divider()
+        st.markdown(f"""
+        <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
+        <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
+        <p style="color: var(--text-color);">今回のホロスコープのより詳しい解説は、noteの方で発信しています。</p>
+        <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none; display: inline-block; margin-top: 15px;">
+        <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
+        noteをチェックする / Visit Note
+        </button>
+        </a>
+        <br><br>
+        <p style="color: var(--text-color); margin-bottom: 10px;">匿名での質問も可能です。詳しくは以下からどうぞ</p>
+        <a href="https://note.com/qa/marroscorps" target="_blank" style="text-decoration: none; display: inline-block;">
+        <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
+        匿名で質問する / Ask anonymously
+        </button>
+        </a>
+        </div>
+        """, unsafe_allow_html=True)
+        st.write("")
+        
+        st.stop() # トランジットのときはここで通常の描画をストップする
+
     if not current_is_synastry:
         display_loc_str = data['loc_str']
         if lang != "日本語":
