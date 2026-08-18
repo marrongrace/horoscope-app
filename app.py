@@ -103,41 +103,40 @@ st.caption(t["disclaimer"])
 
 # 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
-
 # ※ 実際のコードの変数名（例: reading_mode や mode など）に合わせてください
-    if mode in ["トランジット（現在の運勢）", "Transit"]:
-        st.sidebar.markdown("---")
-        st.sidebar.subheader("🌌 トランジット設定 / Transit Settings")
+if mode in ["トランジット（現在の運勢）", "Transit"]:
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("🌌 トランジット設定 / Transit Settings")
         
-        import datetime
-        today = datetime.date.today()
+    import datetime
+    today = datetime.date.today()
         
-        transit_date = st.sidebar.date_input(
-            "トランジットの日付 / Transit Date",
-            value=today,
-            key="transit_date_input"
+    transit_date = st.sidebar.date_input(
+        "トランジットの日付 / Transit Date",
+        value=today,
+        key="transit_date_input"
+    )
+        
+    col_th1, col_th2 = st.sidebar.columns(2)
+    with col_th1:
+        transit_hour = st.sidebar.number_input(
+            "時 / Hour", min_value=0, max_value=23, value=12, key="transit_hour_input"
+        )
+    with col_th2:
+        transit_minute = st.sidebar.number_input(
+            "分 / Minute", min_value=0, max_value=59, value=0, key="transit_minute_input"
         )
         
-        col_th1, col_th2 = st.sidebar.columns(2)
-        with col_th1:
-            transit_hour = st.sidebar.number_input(
-                "時 / Hour", min_value=0, max_value=23, value=12, key="transit_hour_input"
-            )
-        with col_th2:
-            transit_minute = st.sidebar.number_input(
-                "分 / Minute", min_value=0, max_value=59, value=0, key="transit_minute_input"
-            )
-        
-        # 後で計算処理に渡すための辞書を保存
-        st.session_state["transit_info"] = {
-            "year": transit_date.year,
-            "month": transit_date.month,
-            "day": transit_date.day,
-            "hour": transit_hour,
-            "minute": transit_minute,
-            "lat": st.session_state.get("lat", 35.6812),
-            "lng": st.session_state.get("lng", 139.7671)
-        }
+    # 後で計算処理に渡すための辞書を保存
+    st.session_state["transit_info"] = {
+        "year": transit_date.year,
+        "month": transit_date.month,
+        "day": transit_date.day,
+        "hour": transit_hour,
+        "minute": transit_minute,
+        "lat": st.session_state.get("lat", 35.6812),
+        "lng": st.session_state.get("lng", 139.7671)
+    }
 
 def convert_to_dms(text):
     """
