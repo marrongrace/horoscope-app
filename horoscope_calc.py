@@ -11,8 +11,8 @@ EPHE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "ephe"))
 if not EPHE_PATH.endswith(os.path.sep):
     EPHE_PATH += os.path.sep
 
-if os.path.exists(EPHE_PATH):
-    swe.set_ephe_path(EPHE_PATH)
+#if os.path.exists(EPHE_PATH):
+#    swe.set_ephe_path(EPHE_PATH)
 
 LOCAL_JSON_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "ja_data.json"))
 
