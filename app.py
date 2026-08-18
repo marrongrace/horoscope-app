@@ -252,27 +252,25 @@ with st.sidebar:
             key="transit_date_input"
         )
         
-        col_th1, col_th2 = st.columns(2)
-        with col_th1:
-            transit_hour = st.number_input(
-                "時 / Hour" if lang == "日本語" else "Hour", min_value=0, max_value=23, value=12, key="transit_hour_input"
-            )
-        with col_th2:
-            transit_minute = st.number_input(
-                "分 / Minute" if lang == "日本語" else "Minute", min_value=0, max_value=59, value=0, key="transit_minute_input"
-            )
+        # 💡 2つの number_input の代わりに st.time_input を1つ配置！
+        default_transit_time = datetime.time(12, 0)
+        transit_time = st.time_input(
+            "トランジットの時間 / Transit Time" if lang == "日本語" else "Transit Time",
+            value=default_transit_time,
+            key="transit_time_input"
+        )
             
-        # 計算用にセッションステートへ保存（1人目の入力位置をデフォルトとして活用）
+        # 計算用にセッションステートへ保存
         st.session_state["transit_info"] = {
             "year": transit_date.year,
             "month": transit_date.month,
             "day": transit_date.day,
-            "hour": transit_hour,
-            "minute": transit_minute,
+            "hour": transit_time.hour,     # 👈 変更：time_input から時を取り出す
+            "minute": transit_time.minute, # 👈 変更：time_input から分を取り出す
             "lat": p1_data["input_lat"],
             "lng": p1_data["input_lng"]
         }
-
+        
     # 2人目の入力（シナストリー選択時のみ表示）
     p2_data = None
     if is_synastry:
