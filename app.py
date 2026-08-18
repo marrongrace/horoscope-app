@@ -321,22 +321,19 @@ if "chart_data" in st.session_state:
     current_is_transit = st.session_state.get("is_transit", False)
     p2_name = st.session_state.get("p2_name", "TestUser2")
 
-    # --- 1. シナストリーモードの場合 ---
     if current_is_synastry:
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
+            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} ✨</h2>
         </div>
         """, unsafe_allow_html=True)
         
-        # シナストリー結果の表示（辞書やリスト形式など）
         if isinstance(data, dict) and "bodies" in data:
             for item in data["bodies"]:
                 st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
         else:
             st.write(data)
 
-    # --- 2. ネイタル または トランジットモードの場合 ---
     else:
         display_loc_str = data['loc_str']
         if lang != "日本語":
@@ -349,7 +346,6 @@ if "chart_data" in st.session_state:
         </div>
         """, unsafe_allow_html=True)
 
-        # トランジットモードの専用表示
         if current_is_transit and data.get("transit"):
             st.divider()
             st.subheader("トランジット分析結果")
@@ -397,7 +393,7 @@ if "chart_data" in st.session_state:
             current_planet = None
             for line in aspect_lines:
                 if " & " in line:
-                    raw_target = line.lstrip("-* ").stud().strip() if hasattr(line.lstrip("-* ").strip(), 'stud') else line.lstrip("-* ").strip()
+                    raw_target = line.lstrip("-* ").strip()
                     planet = raw_target.split(" & ")[0].strip()
                     if planet != current_planet:
                         current_planet = planet
