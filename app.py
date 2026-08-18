@@ -634,88 +634,89 @@ if "chart_data" in st.session_state:
             """, unsafe_allow_html=True)
             st.write("")
         
-            u_name = st.session_state.get("user_name", "TestUser")
-            p2_name = st.session_state.get("p2_name", "TestUser2")
-            lang = st.session_state.get("lang_radio", "日本語")
-        
 else:
-        # 🌟 シナストリーモード用の表示（左右に分ける）
-        st.markdown(f"""
-        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-        <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
-        </div>
-        """, unsafe_allow_html=True)
+        # 🌟 変数に頼らず、f-stringの中で直接セッションステートから安全に取得する
+    st.markdown(f"""
+    <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+        <h2 style="margin: 0; color: #B8860B;">✨ {st.session_state.get("user_name", "TestUser")} & {st.session_state.get("p2_name", "TestUser2")} {"のシナストリー鑑定" if st.session_state.get("lang_radio", "日本語")=="日本語" else "'s Synastry Reading"} ✨</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
-        synastry_tabs_labels = (
-            ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
-            if lang == "日本語" 
-            else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
-        )
-        stab1, stab2 = st.tabs(synastry_tabs_labels)
+    # 以降で使用するローカル変数もこの場で安全に確保
+    u_name = st.session_state.get("user_name", "TestUser")
+    p2_name = st.session_state.get("p2_name", "TestUser2")
+    lang = st.session_state.get("lang_radio", "日本語")
 
-        # 🌟 安全なデータ取得用ヘルパー（ここで person1 / person2 を正しくキャッチ）
-        p1_data = data.get("person1", data)
-        p2_data = data.get("person2", {})
+    synastry_tabs_labels = (
+        ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
+        if lang == "日本語" 
+        else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
+    )
+    stab1, stab2 = st.tabs(synastry_tabs_labels)
 
-        with stab1:
-            col_l, col_r = st.columns(2)
-            with col_l:
-                st.markdown(f"#### 👤 {u_name}")
-                p1_bodies = p1_data.get("bodies", [])
-                for p in p1_bodies:
-                    st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
-            with col_r:
-                st.markdown(f"#### 👤 {p2_name}")
-                p2_bodies = p2_data.get("bodies", [])
-                for p in p2_bodies:
-                    st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
+    # 🌟 安全なデータ取得用ヘルパー
+    p1_data = data.get("person1", data)
+    p2_data = data.get("person2", {})
 
-        with stab2:
-            col_l, col_r = st.columns(2)
-            
-            def render_aspect_column(name, aspects_data):
-                st.markdown(f"#### 👤 {name} " + ("のアスペクト" if lang=="日本語" else "'s Aspects"))
-                if aspects_data and aspects_data is not Ellipsis:
-                    if isinstance(aspects_data, str):
-                        lines = [l.strip() for l in aspects_data.split("\n") if l.strip()]
-                    elif isinstance(aspects_data, list):
-                        lines = []
-                        for item in aspects_data:
-                            if item is not Ellipsis and str(item) != "Ellipsis":
-                                if isinstance(item, str):
-                                    lines.extend([l.strip() for l in item.split("\n") if l.strip()])
-                                else:
-                                    lines.append(str(item))
-                    else:
-                        lines = [str(aspects_data)]
+    with stab1:
+        col_l, col_r = st.columns(2)
+        with col_l:
+            st.markdown(f"#### 👤 {u_name}")
+            p1_bodies = p1_data.get("bodies", [])
+            for p in p1_bodies:
+                st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
+        with col_r:
+            st.markdown(f"#### 👤 {p2_name}")
+            p2_bodies = p2_data.get("bodies", [])
+            for p in p2_bodies:
+                st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
-                    valid_lines = [l for l in lines if l and str(l) != "Ellipsis"]
-                    if valid_lines:
-                        current_planet = None
-                        for line in valid_lines:
-                            converted_line = localize_text(convert_to_dms(line), lang)
-                            if " & " in converted_line:
-                                raw_target = converted_line.lstrip("-* ").strip()
-                                planet = raw_target.split(" & ")[0].strip()
-                                if planet != current_planet:
-                                    current_planet = planet
-                                    heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
-                                    st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
-                            st.markdown(converted_line if converted_line.startswith("-") else f"- {converted_line}")
-                    else:
-                        st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
+    with stab2:
+        col_l, col_r = st.columns(2)
+        
+        def render_aspect_column(name, aspects_data):
+            st.markdown(f"#### 👤 {name} " + ("のアスペクト" if lang=="日本語" else "'s Aspects"))
+            if aspects_data and aspects_data is not Ellipsis:
+                if isinstance(aspects_data, str):
+                    lines = [l.strip() for l in aspects_data.split("\n") if l.strip()]
+                elif isinstance(aspects_data, list):
+                    lines = []
+                    for item in aspects_data:
+                        if item is not Ellipsis and str(item) != "Ellipsis":
+                            if isinstance(item, str):
+                                lines.extend([l.strip() for l in item.split("\n") if l.strip()])
+                            else:
+                                lines.append(str(item))
+                else:
+                    lines = [str(aspects_data)]
+
+                valid_lines = [l for l in lines if l and str(l) != "Ellipsis"]
+                if valid_lines:
+                    current_planet = None
+                    for line in valid_lines:
+                        converted_line = localize_text(convert_to_dms(line), lang)
+                        if " & " in converted_line:
+                            raw_target = converted_line.lstrip("-* ").strip()
+                            planet = raw_target.split(" & ")[0].strip()
+                            if planet != current_planet:
+                                current_planet = planet
+                                heading_prefix = "Aspects of" if lang != "日本語" else "のアスペクト"
+                                st.markdown(f"\n#### 🌟 {current_planet} {heading_prefix}")
+                        st.markdown(converted_line if converted_line.startswith("-") else f"- {converted_line}")
                 else:
                     st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
+            else:
+                st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
 
-            with col_l:
-                p1_aspects = p1_data.get("aspects", p1_data.get("person1_aspects", []))
-                render_aspect_column(u_name, p1_aspects)
+        with col_l:
+            p1_aspects = p1_data.get("aspects", p1_data.get("person1_aspects", []))
+            render_aspect_column(u_name, p1_aspects)
 
-            with col_r:
-                p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", []))
-                render_aspect_column(p2_name, p2_aspects)
+        with col_r:
+            p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", []))
+            render_aspect_column(p2_name, p2_aspects)
 
-        st.divider()
+    st.divider()
 
         with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
             def clean_html(text):
