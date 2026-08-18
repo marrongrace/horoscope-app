@@ -310,43 +310,23 @@ if submit_button:
             
             # ── 1. トランジットモードの場合 ──
             if is_transit:
-                natal_data = get_chart_data(
-                    p1_data["user_name"],
-                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
-                    p1_data["birth_time"].hour, p1_data["birth_time"].minute,
-                    p1_data["input_lat"], p1_data["input_lng"],
-                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
-                )
-                
                 from horoscope_calc import get_transit_chart_data
                 transit_info = st.session_state.get("transit_info", {
                     "year": 2026, "month": 1, "day": 1, "hour": 12, "minute": 0,
                     "lat": p1_data["input_lat"], "lng": p1_data["input_lng"]
                 })
                 
-                # 🌟 ネイタル天体データを、アスペクト計算が確実に読める形式に整える
-                raw_bodies = natal_data.get("bodies_meta", [])
-                natal_bodies = []
-                for b in raw_bodies:
-                    # キーや位置情報の名前が違っていても拾えるように安全に取得
-                    key = b.get("key") or b.get("name") or "Unknown"
-                    abs_p = b.get("abs_pos") if "abs_pos" in b else b.get("position", 0.0)
-                    
-                    natal_bodies.append({
-                        "key": key,
-                        "abs_pos": abs_p
-                    })
+                # get_chart_data の中で transit_info を受け取って計算させる形にするか、
+                # あるいはご提示いただいたコードの通りに返すようにする
+                data = get_chart_data(
+                    p1_data["user_name"],
+                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                    p1_data["birth_time"].hour, p1_data["birth_time"].minute,
+                    p1_data["input_lat"], p1_data["input_lng"],
+                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox,
+                    transit_info=transit_info # ← もし引数で渡せるようになっているならここへ！
+                )
                 
-                # natal_bodies = natal_data.get("bodies_meta", [])
-                transit_result = get_transit_chart_data(transit_info, natal_bodies, mode=lang)
-                
-                data = {
-                    "user_name": p1_data["user_name"],
-                    "date_str": natal_data["date_str"],
-                    "loc_str": natal_data["loc_str"],
-                    "bodies": natal_data["bodies"],
-                    "transit": transit_result
-                }
                 st.session_state.chart_data = data
                 st.session_state.user_name = p1_data["user_name"]
                 st.session_state.is_synastry = False
