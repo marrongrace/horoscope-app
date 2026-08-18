@@ -239,8 +239,7 @@ def get_synastry_data(p1_info, p2_info, mode="日本語", display_mode="ペア�
         bodies = [
             ("Sun", chart.sun), ("Moon", chart.moon), ("Mercury", chart.mercury),
             ("Venus", chart.venus), ("Mars", chart.mars), ("Jupiter", chart.jupiter),
-            ("Saturn", chart.saturn), ("Uranus", chart.uranus), ("Neptune", chart.neptune), ("Pluto", chart.pluto),
-            ("North Node", chart.north_node), ("Chiron", chart.chiron)
+            ("Saturn", chart.saturn), ("Uranus", chart.uranus), ("Neptune", chart.neptune), ("Pluto", chart.pluto)
         ]
         results = []
         for key, p in bodies:
