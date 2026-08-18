@@ -240,7 +240,7 @@ with st.sidebar:
     # 2人目の入力（シナストリー選択時のみ表示）
     p2_data = None
     if is_synastry:
-        p2_data = render_user_input_form("p2", "TestUser2", show_header=FALSE)
+        p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
 
     # 🌟 トランジットモードが選ばれた場合のみ、日時入力欄を表示
     is_transit = chart_mode_raw in ["トランジット（現在の運勢）", "Transit"]
