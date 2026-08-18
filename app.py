@@ -5,7 +5,6 @@ import pytz
 import streamlit as st
 from horoscope_calc import validate_and_get_coords, get_chart_data, EPHE_PATH, get_cities_for_prefecture
 
-# get_synastry_data が horoscope_calc に無い場合の安全対策
 try:
     from horoscope_calc import get_synastry_data
 except ImportError:
@@ -27,11 +26,9 @@ BASE_PREFECTURES = [
     "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県", "海外・その他"
 ]
 
-# 1. 言語選択はサイドバーで1つにまとめる
 st.sidebar.markdown("### 🌐 言語 / Language")
 lang = st.sidebar.radio("言語選択", ["日本語", "English"], label_visibility="collapsed", key="lang_radio")
 
-# 2. 辞書の定義
 ui_texts = {
     "日本語": {
         "page_title": "🔮 ホロスコープ作成システム",
@@ -223,7 +220,6 @@ with st.sidebar:
     if is_synastry:
         p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
 
-    # ⚙️ 表示設定（ここを追加・復元しました）
     st.header(t["settings_header"])
     toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"], key="aspect_view_radio")
     toggle_view = "ペア別" if toggle_view_raw in ["ペア別", "By Pair"] else "アスペクト別"
@@ -323,8 +319,25 @@ if "chart_data" in st.session_state:
     u_name = st.session_state.get("user_name", "TestUser")
     current_is_synastry = st.session_state.get("is_synastry", False)
     current_is_transit = st.session_state.get("is_transit", False)
+    p2_name = st.session_state.get("p2_name", "TestUser2")
 
-    if not current_is_synastry:
+    # --- 1. シナストリーモードの場合 ---
+    if current_is_synastry:
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # シナストリー結果の表示（辞書やリスト形式など）
+        if isinstance(data, dict) and "bodies" in data:
+            for item in data["bodies"]:
+                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}")
+        else:
+            st.write(data)
+
+    # --- 2. ネイタル または トランジットモードの場合 ---
+    else:
         display_loc_str = data['loc_str']
         if lang != "日本語":
             display_loc_str = display_loc_str.replace("北緯", "N").replace("東経", "E").replace("十進:", "Decimal:")
@@ -336,6 +349,7 @@ if "chart_data" in st.session_state:
         </div>
         """, unsafe_allow_html=True)
 
+        # トランジットモードの専用表示
         if current_is_transit and data.get("transit"):
             st.divider()
             st.subheader("トランジット分析結果")
@@ -383,7 +397,7 @@ if "chart_data" in st.session_state:
             current_planet = None
             for line in aspect_lines:
                 if " & " in line:
-                    raw_target = line.lstrip("-* ").strip()
+                    raw_target = line.lstrip("-* ").stud().strip() if hasattr(line.lstrip("-* ").strip(), 'stud') else line.lstrip("-* ").strip()
                     planet = raw_target.split(" & ")[0].strip()
                     if planet != current_planet:
                         current_planet = planet
