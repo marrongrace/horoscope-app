@@ -17,6 +17,19 @@ st.set_page_config(
     layout="centered",
 )
 
+st.markdown(
+    """
+    <style>
+    /* セレクトボックス内のテキスト入力（検索）部分のカーソル・入力を完全に無効化する */
+    div[data-baseweb="select"] input {
+        caret-color: transparent !important; /* カーソルを非表示 */
+        pointer-events: none !important;     /* クリックやフォーカスによる入力を無効化 */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 BASE_PREFECTURES = [
     "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
     "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
