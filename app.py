@@ -353,37 +353,37 @@ if "chart_data" in st.session_state:
         """, unsafe_allow_html=True)
 
     if current_is_transit and data.get("transit"):
-            st.divider()
-            st.subheader("トランジット分析結果")
-            st.write(f"対象日時: {data['transit']['transit_date']}")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown("### 👤 ネイタル天体配置")
-                for body in data["bodies"]:
-                    st.markdown(body)
-            with col2:
-                st.markdown("### 🌌 ネイタルへのトランジット影響")
-                if data["transit"]["transit_aspects"]:
-                    for aspect in data["transit"]["transit_aspects"]:
-                        st.markdown(f"- {aspect}")
-                else:
-                    st.info("現在、顕著なトランジット・アスペクトはありません。")
-            
-            st.stop()
+        st.divider()
+        st.subheader("トランジット分析結果")
+        st.write(f"対象日時: {data['transit']['transit_date']}")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### 👤 ネイタル天体配置")
+            for body in data["bodies"]:
+                st.markdown(body)
+        with col2:
+            st.markdown("### 🌌 ネイタルへのトランジット影響")
+            if data["transit"]["transit_aspects"]:
+                for aspect in data["transit"]["transit_aspects"]:
+                    st.markdown(f"- {aspect}")
+            else:
+                st.info("現在、顕著なトランジット・アスペクトはありません。")
+        
+        st.stop()
 
-            if data["angles"]:
-                col_a1, col_a2 = st.columns(2)
-                col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
-                col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
-                st.write("")
+        if data["angles"]:
+            col_a1, col_a2 = st.columns(2)
+            col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
+            col_a2.info(localize_text(convert_to_dms(data["angles"][1]), lang))
+            st.write("")
 
-        ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
-        midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-            t["bodies_tab"], t["houses_tab"], t["aspects_tab"], 
-            t["patterns_tab"], ruler_tab_label, midpoint_tab_label
-        ])
+    ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
+    midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        t["bodies_tab"], t["houses_tab"], t["aspects_tab"], 
+        t["patterns_tab"], ruler_tab_label, midpoint_tab_label
+    ])
 
         with tab1:
             for p in data["bodies"]:
