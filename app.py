@@ -309,7 +309,7 @@ if submit_button:
         with st.spinner(t["loading"]):
             
             # ── 1. トランジットモードの場合 ──
-        if is_transit:
+            if is_transit:
             # ネイタル情報を取得
             natal_data = get_chart_data(
                 p1_data["user_name"],
