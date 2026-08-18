@@ -402,11 +402,11 @@ if "chart_data" in st.session_state:
         
         if current_is_synastry:
             synastry_tabs_labels = (
-            ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
-            if lang == "日本語" 
-            else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
-        )
-        stab1, stab2 = st.tabs(synastry_tabs_labels)
+                ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
+                if lang == "日本語" 
+                else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
+            )
+            stab1, stab2 = st.tabs(synastry_tabs_labels)
 
         # データの安全な取得
         p1_data = data.get("person1", data)
@@ -417,11 +417,13 @@ if "chart_data" in st.session_state:
             col_l, col_r = st.columns(2)
             with col_l:
                 st.markdown(f"#### 👤 {u_name}")
-                for p in p1_data.get("bodies", []):
+                p1_bodies = p1_data.get("bodies", []) if isinstance(p1_data, dict) else []
+                for p in p1_bodies:
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
             with col_r:
                 st.markdown(f"#### 👤 {p2_name}")
-                for p in p2_data.get("bodies", []):
+                p2_bodies = p2_data.get("bodies", []) if isinstance(p2_data, dict) else []
+                for p in p2_bodies:
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
         # Tab 2: 2人分のアスペクト比較（左右に分ける）
@@ -463,15 +465,15 @@ if "chart_data" in st.session_state:
                     st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
 
             with col_l:
-                p1_aspects = p1_data.get("aspects", p1_data.get("person1_aspects", []))
+                p1_aspects = p1_data.get("aspects", p1_data.get("person1_aspects", [])) if isinstance(p1_data, dict) else []
                 render_aspect_column(u_name, p1_aspects)
 
             with col_r:
-                p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", []))
+                p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", [])) if isinstance(p2_data, dict) else []
                 render_aspect_column(p2_name, p2_aspects)
 
         st.divider()
-        st.stop()  # 🛑 シナストリーの処理がここで完了したら、通常のネイタル処理に流れないように止める
+        st.stop()
 
         if data["angles"]:
             col_a1, col_a2 = st.columns(2)
