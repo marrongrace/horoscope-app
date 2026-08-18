@@ -718,90 +718,91 @@ else:
 
     st.divider()
 
-        with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
-            def clean_html(text):
-                if not isinstance(text, str):
-                    return str(text)
-                text = re.sub(r'<[^>]+>', '', text)
-                text = text.replace('&nbsp;', '')
-                text = text.replace('**', '').replace('`', '')
-                text = localize_text(text, lang)
-                return text
+    with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+        # 関数を先に定義
+        def clean_html(text):
+            if not isinstance(text, str):
+                return str(text)
+            text = re.sub(r'<[^>]+>', '', text)
+            text = text.replace('&nbsp;', '')
+            text = text.replace('**', '').replace('`', '')
+            text = localize_text(text, lang)
+            return text
 
-            copy_lines = []
-            if lang == "日本語":
-                copy_lines.append(f"【シナストリー鑑定データ: {u_name} & {p2_name}】\n")
-                
-                copy_lines.append(f"--- 👤 {u_name} の天体配置 ---")
-                for p in p1_data.get("bodies", []):
-                    copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
-                
-                copy_lines.append(f"\n--- 👤 {u_name} のアスペクト ---")
-                p1_asp = p1_data.get("aspects", p1_data.get("person1_aspects", []))
-                if isinstance(p1_asp, list):
-                    for a in p1_asp:
-                        if a is not Ellipsis and str(a) != "Ellipsis":
-                            copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p1_asp, str):
-                    for line in p1_asp.split("\n"):
-                        if line.strip():
-                            copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
-
-                copy_lines.append(f"\n--- 👤 {p2_name} の天体配置 ---")
-                for p in p2_data.get("bodies", []):
-                    copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
-
-                copy_lines.append(f"\n--- 👤 {p2_name} のアスペクト ---")
-                p2_asp = p2_data.get("aspects", p2_data.get("person2_aspects", []))
-                if isinstance(p2_asp, list):
-                    for a in p2_asp:
-                        if a is not Ellipsis and str(a) != "Ellipsis":
-                            copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p2_asp, str):
-                    for line in p2_asp.split("\n"):
-                        if line.strip():
-                            copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
-            else:
-                copy_lines.append(f"[Synastry Reading Data: {u_name} & {p2_name}]\n")
-                
-                copy_lines.append(f"--- 👤 {u_name}'s Celestial Bodies ---")
-                for p in p1_data.get("bodies", []):
-                    copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
-                
-                copy_lines.append(f"\n--- 👤 {u_name}'s Aspects ---")
-                p1_asp = p1_data.get("aspects", p1_data.get("person1_aspects", []))
-                if isinstance(p1_asp, list):
-                    for a in p1_asp:
-                        if a is not Ellipsis and str(a) != "Ellipsis":
-                            copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p1_asp, str):
-                    for line in p1_asp.split("\n"):
-                        if line.strip():
-                            copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
-
-                copy_lines.append(f"\n--- 👤 {p2_name}'s Celestial Bodies ---")
-                for p in p2_data.get("bodies", []):
-                    copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
-
-                copy_lines.append(f"\n--- 👤 {p2_name}'s Aspects ---")
-                p2_asp = p2_data.get("aspects", p2_data.get("person2_aspects", []))
-                if isinstance(p2_asp, list):
-                    for a in p2_asp:
-                        if a is not Ellipsis and str(a) != "Ellipsis":
-                            copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
-                elif isinstance(p2_asp, str):
-                    for line in p2_asp.split("\n"):
-                        if line.strip():
-                            copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
-
-            st.code("\n".join(copy_lines), language="text")
+        copy_lines = []
+        if lang == "日本語":
+            copy_lines.append(f"【シナストリー鑑定データ: {u_name} & {p2_name}】\n")
             
-            full_text = "\n".join(copy_lines)
-            boms_text = "\ufeff" + full_text
+            copy_lines.append(f"--- 👤 {u_name} の天体配置 ---")
+            for p in p1_data.get("bodies", []):
+                copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
             
-            st.download_button(
-                label="💾 テキストファイルとしてダウンロード / Download as text",
-                data=boms_text,
-                file_name=f"synastry_{u_name}_{p2_name}.txt",
-                mime="text/plain;charset=utf-8"
-            )
+            copy_lines.append(f"\n--- 👤 {u_name} のアスペクト ---")
+            p1_asp = p1_data.get("aspects", p1_data.get("person1_aspects", []))
+            if isinstance(p1_asp, list):
+                for a in p1_asp:
+                    if a is not Ellipsis and str(a) != "Ellipsis":
+                        copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+            elif isinstance(p1_asp, str):
+                for line in p1_asp.split("\n"):
+                    if line.strip():
+                        copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+
+            copy_lines.append(f"\n--- 👤 {p2_name} の天体配置 ---")
+            for p in p2_data.get("bodies", []):
+                copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+
+            copy_lines.append(f"\n--- 👤 {p2_name} のアスペクト ---")
+            p2_asp = p2_data.get("aspects", p2_data.get("person2_aspects", []))
+            if isinstance(p2_asp, list):
+                for a in p2_asp:
+                    if a is not Ellipsis and str(a) != "Ellipsis":
+                        copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+            elif isinstance(p2_asp, str):
+                for line in p2_asp.split("\n"):
+                    if line.strip():
+                        copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+        else:
+            copy_lines.append(f"[Synastry Reading Data: {u_name} & {p2_name}]\n")
+            
+            copy_lines.append(f"--- 👤 {u_name}'s Celestial Bodies ---")
+            for p in p1_data.get("bodies", []):
+                copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+            
+            copy_lines.append(f"\n--- 👤 {u_name}'s Aspects ---")
+            p1_asp = p1_data.get("aspects", p1_data.get("person1_aspects", []))
+            if isinstance(p1_asp, list):
+                for a in p1_asp:
+                    if a is not Ellipsis and str(a) != "Ellipsis":
+                        copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+            elif isinstance(p1_asp, str):
+                for line in p1_asp.split("\n"):
+                    if line.strip():
+                        copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+
+            copy_lines.append(f"\n--- 👤 {p2_name}'s Celestial Bodies ---")
+            for p in p2_data.get("bodies", []):
+                copy_lines.append(f"- {clean_html(convert_to_dms(p))}")
+
+            copy_lines.append(f"\n--- 👤 {p2_name}'s Aspects ---")
+            p2_asp = p2_data.get("aspects", p2_data.get("person2_aspects", []))
+            if isinstance(p2_asp, list):
+                for a in p2_asp:
+                    if a is not Ellipsis and str(a) != "Ellipsis":
+                        copy_lines.append(f"- {clean_html(convert_to_dms(a))}")
+            elif isinstance(p2_asp, str):
+                for line in p2_asp.split("\n"):
+                    if line.strip():
+                        copy_lines.append(f"- {clean_html(convert_to_dms(line))}")
+
+        st.code("\n".join(copy_lines), language="text")
+        
+        full_text = "\n".join(copy_lines)
+        boms_text = "\ufeff" + full_text
+        
+        st.download_button(
+            label="💾 テキストファイルとしてダウンロード / Download as text",
+            data=boms_text,
+            file_name=f"synastry_{u_name}_{p2_name}.txt",
+            mime="text/plain;charset=utf-8"
+        )
