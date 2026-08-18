@@ -234,6 +234,19 @@ with st.sidebar:
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
     is_transit = chart_mode_raw in ["トランジット（現在の運勢）", "Transit"]
     st.markdown("---")
+    
+    st.markdown(
+    """
+    <style>
+    /* セレクトボックス内のテキスト入力（検索）部分のカーソル・入力を完全に無効化する */
+    div[data-baseweb="select"] input {
+        caret-color: transparent !important; /* カーソルを非表示 */
+        pointer-events: none !important;     /* クリックやフォーカスによる入力を無効化 */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
     # 1人目の入力
     p1_data = render_user_input_form("p1", "TestUser1", show_header=is_synastry)
