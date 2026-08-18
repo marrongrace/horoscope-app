@@ -391,24 +391,21 @@ if "chart_data" in st.session_state:
             st.subheader("トランジット分析結果")
             st.write(f"対象日時: {data['transit']['transit_date']}")
             
-            # カラムを左右に作成
             col1, col2 = st.columns(2)
-            
             with col1:
                 st.markdown("### 👤 ネイタル天体配置")
-                # 必要であればここをスクロール可能なコンテナにすることも可能です
                 for body in data["bodies"]:
                     st.markdown(body)
-            
             with col2:
                 st.markdown("### 🌌 ネイタルへのトランジット影響")
-                
-                # if のインデントと else のインデントを正確に合わせる
                 if data["transit"]["transit_aspects"]:
                     for aspect in data["transit"]["transit_aspects"]:
                         st.markdown(f"- {aspect}")
                 else:
                     st.info("現在、顕著なトランジット・アスペクトはありません。")
+            
+            # 🌟 ここで終了！これ以降の通常表示を実行させない
+            st.stop()
             
         #    # リスト形式でアスペクトを表示
         #    for aspect in data["transit"]["transit_aspects"]:
