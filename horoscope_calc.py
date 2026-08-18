@@ -248,14 +248,72 @@ def get_synastry_data(p1_info, p2_info, mode="日本語"):
         p2_info["city"], mode, "ペア別", p2_info["is_unknown_time"]
     )
     
-    # ここで2人分の天体位置同士のアスペクト（Person1の天体 × Person2の天体）を計算する処理を追加...
+    # ── 2人分の天体位置同士のアスペクト（Person1の天体 × Person2の天体）を計算 ──
+    synastry_aspects = []
     
+    # アスペクトの定義（角度と許容オーブの例）
+    aspect_defs = [
+        {"name": "コンジャンクション" if mode == "日本語" else "Conjunction", "angle": 0.0, "orb": 6.0},
+        {"name": "セクスタイル" if mode == "日本語" else "Sextile", "angle": 60.0, "orb": 5.0},
+        {"name": "スクエア" if mode == "日本語" else "Square", "angle": 90.0, "orb": 6.0},
+        {"name": "トライン" if mode == "日本語" else "Trine", "angle": 120.0, "orb": 6.0},
+        {"name": "オポジション" if mode == "日本語" else "Opposition", "angle": 180.0, "orb": 6.0},
+    ]
+
+    # chart1 と chart2 から天体のメタデータ（名前と絶対位置）を取得する
+    # ※もし `chart1` に "bodies_meta" のような内部データがあればそこから取得、なければ "bodies" の文字列からパースするなどの調整が必要ですが、
+    # 通常内部で `bodies_meta` を保持している場合はそちらを利用するのが確実です。
+    bodies1 = chart1.get("bodies_meta", [])
+    bodies2 = chart2.get("bodies_meta", [])
+
+    # 만약 bodies_meta が無い場合、chart1["bodies"] や chart2["bodies"] から位置を抽出するロジックが必要な場合がありますが、
+    # 通常 `get_chart_data` が内部で持っているオブジェクト構造に合わせて以下のように総当たりで計算します。
+    if bodies1 and bodies2:
+        for b1 in bodies1:
+            name1 = b1.get("key") or b1.get("name")
+            pos1 = b1.get("abs_pos")
+            if pos1 is None:
+                continue
+                
+            for b2 in bodies2:
+                name2 = b2.get("key") or b2.get("name")
+                pos2 = b2.get("abs_pos")
+                if pos2 is None:
+                    continue
+                
+                # 角度の差を計算（0〜180度の範囲に収める）
+                diff = abs(pos1 - pos2) % 360.0
+                if diff > 180.0:
+                    diff = 360.0 - diff
+                
+                for asp in aspect_defs:
+                    target_angle = asp["angle"]
+                    allowed_orb = asp["orb"]
+                    actual_orb = abs(diff - target_angle)
+                    
+                    if actual_orb <= allowed_orb:
+                        # オーブの度・分表記への変換（簡易的）
+                        orb_deg = int(actual_orb)
+                        orb_min = round((actual_orb - orb_deg) * 60)
+                        if orb_min == 60:
+                            orb_deg += 1
+                            orb_min = 0
+                        
+                        asp_str = f"- {p1_info['name']} の {name1} ＆ {p2_info['name']} の {name2}：{asp['name']} ({orb_deg}°{orb_min:02d}')"
+                        if mode != "日本語":
+                            asp_str = f"- {p1_info['name']}'s {name1} & {p2_info['name']}'s {name2}: {asp['name']} ({orb_deg}°{orb_min:02d}')"
+                        
+                        synastry_aspects.append(asp_str)
+                        break
+
+    if not synastry_aspects:
+        synastry_aspects = ["*(該当するアスペクトはありません)*" if mode == "日本語" else "*(No synastry aspects found)*"]
+
     return {
         "person1": chart1,
         "person2": chart2,
-        "synastry_aspects": [...] # シナストリーの結果
+        "synastry_aspects": synastry_aspects
     }
-
 import warnings
 
 def get_transit_chart_data(transit_info, natal_bodies, mode="日本語"):
