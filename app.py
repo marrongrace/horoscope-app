@@ -321,10 +321,13 @@ if "chart_data" in st.session_state:
     current_is_transit = st.session_state.get("is_transit", False)
     p2_name = st.session_state.get("p2_name", "TestUser2")
 
+# ==========================================
+# 🌟 ホロスコープデータが存在する場合の描画処理
+# ==========================================
 if "chart_data" in st.session_state:
     data = st.session_state.chart_data
     
-    # ▼ dataが文字列（JSONなど）だった場合に備えて安全に辞書へ変換
+    # JSON文字列だった場合の安全対策
     import json
     if isinstance(data, str):
         try:
@@ -340,46 +343,9 @@ if "chart_data" in st.session_state:
     p2_name = st.session_state.get("p2_name", "TestUser2")
     lang = st.session_state.get("lang_radio", "日本語")
 
-    if current_is_synastry:
-        # 🌟 シナストリーモード用のヘッダー表示
-        st.markdown(f"""
-        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 🌟 安全なデータ取得（person1 / person2 に分ける）
-        p1_data = data.get("person1", data)
-        p2_data = data.get("person2", {})
-
-        # 🌟 左右に分けて1回だけ綺麗に表示（重複を解消）
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown(f"#### 👤 {u_name}")
-            p1_bodies = p1_data.get("bodies", [])
-            for item in p1_bodies:
-                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}", unsafe_allow_html=True)
-                
-        with col2:
-            st.markdown(f"#### 👤 {p2_name}")
-            p2_bodies = p2_data.get("bodies", [])
-            for item in p2_bodies:
-                st.markdown(f"- {localize_text(convert_to_dms(item), lang)}", unsafe_allow_html=True)
-
-    else:
-        # 🌟 通常の個人用ホロスコープ表示
-        display_loc_str = data.get('loc_str', '')
-        if lang != "日本語":
-            display_loc_str = display_loc_str.replace("北緯", "N").replace("東経", "E").replace("十進:", "Decimal:")
-
-        st.markdown(f"""
-        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
-            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
-            <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data.get('date_str', '')}<br>📍 {display_loc_str}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+    # ------------------------------------------
+    # 1. トランジットモードの場合
+    # ------------------------------------------
     if current_is_transit and data.get("transit"):
         st.divider()
         st.subheader("トランジット分析結果")
@@ -388,45 +354,51 @@ if "chart_data" in st.session_state:
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("### 👤 ネイタル天体配置")
-            for body in data["bodies"]:
+            for body in data.get("bodies", []):
                 st.markdown(body)
         with col2:
             st.markdown("### 🌌 ネイタルへのトランジット影響")
-            if data["transit"]["transit_aspects"]:
+            if data["transit"].get("transit_aspects"):
                 for aspect in data["transit"]["transit_aspects"]:
                     st.markdown(f"- {aspect}")
             else:
                 st.info("現在、顕著なトランジット・アスペクトはありません。")
-        
         st.stop()
-        
-        if current_is_synastry:
-            synastry_tabs_labels = (
-                ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
-                if lang == "日本語" 
-                else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
-            )
-            stab1, stab2 = st.tabs(synastry_tabs_labels)
 
-        # データの安全な取得
+    # ------------------------------------------
+    # 2. シナストリー（相性・2人用）モードの場合
+    # ------------------------------------------
+    # ※ フラグがTrue、またはデータ内に "person1" が含まれている場合はこちらに入ります
+    if current_is_synastry or "person1" in data:
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: #B8860B;">✨ {u_name} & {p2_name} {"のシナストリー鑑定" if lang=="日本語" else "'s Synastry Reading"} ✨</h2>
+        </div>
+        """, unsafe_allow_html=True)
+
         p1_data = data.get("person1", data)
         p2_data = data.get("person2", {})
 
-        # Tab 1: 2人分の天体配置（左右に分ける）
+        synastry_tabs_labels = (
+            ["🌟 2人分の天体配置", "🔗 2人分のアスペクト比較"] 
+            if lang == "日本語" 
+            else ["🌟 Celestial Bodies", "🔗 Aspects Comparison"]
+        )
+        stab1, stab2 = st.tabs(synastry_tabs_labels)
+
+        # Tab 1: 天体配置
         with stab1:
             col_l, col_r = st.columns(2)
             with col_l:
                 st.markdown(f"#### 👤 {u_name}")
-                p1_bodies = p1_data.get("bodies", []) if isinstance(p1_data, dict) else []
-                for p in p1_bodies:
+                for p in p1_data.get("bodies", []):
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
             with col_r:
                 st.markdown(f"#### 👤 {p2_name}")
-                p2_bodies = p2_data.get("bodies", []) if isinstance(p2_data, dict) else []
-                for p in p2_bodies:
+                for p in p2_data.get("bodies", []):
                     st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
 
-        # Tab 2: 2人分のアスペクト比較（左右に分ける）
+        # Tab 2: アスペクト比較
         with stab2:
             col_l, col_r = st.columns(2)
             
@@ -465,18 +437,30 @@ if "chart_data" in st.session_state:
                     st.info("*(データなし)*" if lang=="日本語" else "*(No data)*")
 
             with col_l:
-                p1_aspects = p1_data.get("aspects", p1_data.get("person1_aspects", [])) if isinstance(p1_data, dict) else []
+                p1_aspects = p1_data.get("aspects", p1_data.get("person1_aspects", []))
                 render_aspect_column(u_name, p1_aspects)
 
             with col_r:
-                p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", [])) if isinstance(p2_data, dict) else []
+                p2_aspects = p2_data.get("aspects", p2_data.get("person2_aspects", []))
                 render_aspect_column(p2_name, p2_aspects)
 
-        # (シナストリーの表示処理...)
         st.divider()
-        st.stop()  # シナストリー計算はここまで
+        st.stop()  # 🛑 シナストリーの処理はここで完全にストップ！
 
-    # ▼ ここから下のネイタル処理はすべて、1段（スペース4つ分）右に字下げされているのが正解です！
+    # ------------------------------------------
+    # 3. 通常のネイタル（個人用）モードの場合
+    # ------------------------------------------
+    display_loc_str = data.get('loc_str', '')
+    if lang != "日本語":
+        display_loc_str = display_loc_str.replace("北緯", "N").replace("東経", "E").replace("十進:", "Decimal:")
+
+    st.markdown(f"""
+    <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+        <h2 style="margin: 0; color: #B8860B;">✨ {u_name} {"さんのホロスコープ" if lang=="日本語" else "'s Horoscope Reading"} ✨</h2>
+        <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">📅 {data.get('date_str', '')}<br>📍 {display_loc_str}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     if data.get("angles"):
         col_a1, col_a2 = st.columns(2)
         col_a1.info(localize_text(convert_to_dms(data["angles"][0]), lang))
@@ -486,10 +470,10 @@ if "chart_data" in st.session_state:
     ruler_tab_label = "🗝️ハウスルーラー" if lang == "日本語" else "🗝️House Rulers"
     midpoint_tab_label = "🎯ミッドポイント" if lang == "日本語" else "🎯Midpoints"
 
-    t1_label = t.get("bodies_tab", "天体") if 't' in locals() else "天体"
-    t2_label = t.get("houses_tab", "ハウス") if 't' in locals() else "ハウス"
-    t3_label = t.get("aspects_tab", "アスペクト") if 't' in locals() else "アスペクト"
-    t4_label = t.get("patterns_tab", "パターン") if 't' in locals() else "パターン"
+    t1_label = t.get("bodies_tab", "天体")
+    t2_label = t.get("houses_tab", "ハウス")
+    t3_label = t.get("aspects_tab", "アスペクト")
+    t4_label = t.get("patterns_tab", "パターン")
 
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         t1_label, t2_label, t3_label, t4_label, ruler_tab_label, midpoint_tab_label
@@ -573,6 +557,10 @@ if "chart_data" in st.session_state:
                 st.markdown(f"- {localize_text(clean_m, lang)}")
         else:
             st.info("*(該当するミッドポイントデータはありません)*" if lang=="日本語" else "*(No midpoint data)*")
+
+else:
+    # 🌟 まだ計算ボタンを押していない初期画面
+    st.info("👈 左側のサイドバーから出生データなどを入力し、鑑定を実行してください。")
     
     with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
             u_name = st.session_state.get("user_name", "TestUser")
