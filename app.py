@@ -232,22 +232,16 @@ with st.sidebar:
     # 鑑定モードの選択
     chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select")
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
+    is_transit = chart_mode_raw in ["トランジット（現在の運勢）", "Transit"]
     st.markdown("---")
 
     # 1人目の入力
     p1_data = render_user_input_form("p1", "TestUser1", show_header=is_synastry)
 
-    # 2人目の入力（シナストリー選択時のみ表示）
-    p2_data = None
-    if is_synastry:
-        p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
-
-    # 🌟 トランジットモードが選ばれた場合のみ、日時入力欄を表示
-    is_transit = chart_mode_raw in ["トランジット（現在の運勢）", "Transit"]
-    
+    # 🌟 トランジットモードが選ばれた場合のみ、1人目の直下に日時入力欄を表示
     if is_transit:
         st.markdown("---")
-        st.sidebar.subheader("🌌 トランジット設定 / Transit Settings" if lang == "日本語" else "🌌 Transit Settings")
+        st.subheader("🌌 トランジット設定 / Transit Settings" if lang == "日本語" else "🌌 Transit Settings")
         
         import datetime
         today = datetime.date.today()
@@ -268,24 +262,30 @@ with st.sidebar:
                 "分 / Minute" if lang == "日本語" else "Minute", min_value=0, max_value=59, value=0, key="transit_minute_input"
             )
             
-        # 計算用にセッションステートへ保存
+        # 計算用にセッションステートへ保存（1人目の入力位置をデフォルトとして活用）
         st.session_state["transit_info"] = {
             "year": transit_date.year,
             "month": transit_date.month,
             "day": transit_date.day,
             "hour": transit_hour,
             "minute": transit_minute,
-            "lat": 35.6812, # デフォルト（東京）または p1 の入力地を流用可能
-            "lng": 139.7671
+            "lat": p1_data["input_lat"],
+            "lng": p1_data["input_lng"]
         }
 
+    # 2人目の入力（シナストリー選択時のみ表示）
+    p2_data = None
+    if is_synastry:
+        p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
+
+    st.markdown("---")
     st.header(t["settings_header"])
     toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"], key="aspect_view_radio")
     toggle_view = "ペア別" if toggle_view_raw in ["ペア別", "By Pair"] else "アスペクト別"
     unknown_checkbox = st.checkbox(t["unknown_time_checkbox"], key="unknown_time_chk")
 
     submit_button = st.button(label=t["submit_btn"], type="primary", key="submit_btn_main")
-
+    
 if submit_button:
     # バリデーションチェック
     p1_error = False
