@@ -18,15 +18,12 @@ st.set_page_config(
 )
 
 st.markdown(
-    """
-    <style>
-    /* セレクトボックス内のテキスト入力（検索）部分のカーソル・入力を完全に無効化する */
+    
+    # セレクトボックス内のテキスト入力（検索）部分のカーソル・入力を完全に無効化する */
     div[data-baseweb="select"] input {
-        caret-color: transparent !important; /* カーソルを非表示 */
-        pointer-events: none !important;     /* クリックやフォーカスによる入力を無効化 */
+        caret-color: transparent !important; # カーソルを非表示 */
+        pointer-events: none !important;     # クリックやフォーカスによる入力を無効化 */
     }
-    </style>
-    """,
     unsafe_allow_html=True,
 )
 
