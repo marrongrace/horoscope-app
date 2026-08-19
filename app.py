@@ -400,12 +400,14 @@ if submit_button:
                     p2_data["input_city_name"], lang, toggle_view, unknown_checkbox
                 )
                 
-                from horoscope_calc import calculate_composite_bodies
+                from horoscope_calc import calculate_composite_bodies, calculate_aspects
                 comp_bodies = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
                 
-                # ※もし horoscope_calc にアスペクト計算関数があればここで取得して格納します
-                # 例: comp_aspects = calculate_composite_aspects(comp_bodies)
-                comp_aspects = [] # ← もし関数があればここに代入
+                # コンポジット天体からアスペクトを計算
+                try:
+                    comp_aspects = calculate_aspects(comp_bodies)
+                except Exception:
+                    comp_aspects = []
                 
                 st.session_state.chart_data = {
                     "type": "composite", 
@@ -587,6 +589,10 @@ if "chart_data" in st.session_state:
         """, unsafe_allow_html=True)
         
         bodies = data.get("bodies", [])
+        # 万が一ネスト（リストのリスト）していたら綺麗に平文化する安全策
+        if bodies and isinstance(bodies, list) and isinstance(bodies[0], list):
+            bodies = bodies[0]
+            
         aspects = data.get("aspects", [])
         
         sign_map = {
@@ -601,13 +607,13 @@ if "chart_data" in st.session_state:
             "South Node": "ドラゴンテイル", "Chiron": "キロン"
         }
 
-        tab1, tab2 = st.tabs(["🌟 コンポジット天体位置", "🔗 アスペクト"])
+        # 🌟 タブを廃止し、左右2カラムで天体位置とアスペクトを並べる
+        col1, col2 = st.columns(2)
         
-        with tab1:
+        with col1:
+            st.markdown("#### ■ コンポジット天体位置" if lang == "日本語" else "#### ■ Composite Bodies")
             if bodies:
-                st.markdown("#### ■ コンポジット天体位置" if lang == "日本語" else "#### ■ Composite Bodies")
                 for body in bodies:
-                    # 🌟 辞書型か文字列型かを判定して安全に処理する
                     if isinstance(body, dict):
                         raw_name = body.get('key', '')
                         raw_sign = body.get('sign', '')
@@ -625,14 +631,13 @@ if "chart_data" in st.session_state:
                         
                         st.markdown(f"- **{disp_name}** : {disp_sign} `{deg_str}`")
                     else:
-                        # すでに文字列になっている場合のフォールバック
                         st.markdown(f"- {localize_text(convert_to_dms(str(body)), lang)}")
             else:
                 st.info("表示するデータがありません。" if lang == "日本語" else "No data to display.")
 
-        with tab2:
+        with col2:
+            st.markdown("#### ■ コンポジット・アスペクト" if lang == "日本語" else "#### ■ Composite Aspects")
             if aspects:
-                st.markdown("#### ■ コンポジット・アスペクト" if lang == "日本語" else "#### ■ Composite Aspects")
                 if isinstance(aspects, list):
                     for asp in aspects:
                         st.markdown(f"- {localize_text(convert_to_dms(str(asp)), lang)}")
@@ -663,6 +668,11 @@ if "chart_data" in st.session_state:
                     copy_lines.append(f"- {disp_name} : {disp_sign} ({deg_str})")
                 else:
                     copy_lines.append(f"- {str(body)}")
+            
+            if aspects:
+                copy_lines.append("\n[コンポジット・アスペクト]")
+                for asp in aspects:
+                    copy_lines.append(f"- {str(asp)}")
             
             full_text = "\n".join(copy_lines)
             st.code(full_text, language="text")
