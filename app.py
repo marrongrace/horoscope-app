@@ -401,13 +401,10 @@ if submit_button:
                 )
                 
                 from horoscope_calc import calculate_composite_bodies, calculate_aspects
+                # calculate_composite_bodies が返すのは天体リスト（1つの戻り値）を想定
                 comp_bodies = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
                 
-                # もし二重リストになっていたら綺麗に平文化する
-                if isinstance(comp_bodies, list) and len(comp_bodies) > 0 and isinstance(comp_bodies[0], list):
-                    comp_bodies = comp_bodies[0]
-                
-                # アスペクトの計算
+                # アスペクトを安全に計算
                 try:
                     comp_aspects = calculate_aspects(comp_bodies)
                 except Exception:
@@ -592,16 +589,8 @@ if "chart_data" in st.session_state:
         </div>
         """, unsafe_allow_html=True)
         
-        raw_bodies = data.get("bodies", [])
-        # 確実に1層のリスト（辞書のリスト）に変換する（二重リスト対策）
-        bodies = []
-        if isinstance(raw_bodies, list):
-            for item in raw_bodies:
-                if isinstance(item, list):
-                    bodies.extend(item)
-                else:
-                    bodies.append(item)
-                    
+        # データの取り出し
+        bodies = data.get("bodies", [])
         aspects = data.get("aspects", [])
         
         sign_map = {
@@ -621,7 +610,7 @@ if "chart_data" in st.session_state:
         
         with col1:
             st.markdown("#### ■ コンポジット天体位置" if lang == "日本語" else "#### ■ Composite Bodies")
-            if bodies:
+            if bodies and isinstance(bodies, list):
                 for body in bodies:
                     if isinstance(body, dict):
                         raw_name = body.get('key', '')
@@ -639,19 +628,14 @@ if "chart_data" in st.session_state:
                         disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
                         
                         st.markdown(f"- **{disp_name}** : {disp_sign} `{deg_str}`")
-                    else:
-                        st.markdown(f"- {str(body)}")
             else:
-                st.info("表示するデータがありません。" if lang == "日本語" else "No data to display.")
+                st.info("表示する天体データがありません。" if lang == "日本語" else "No bodies data.")
 
         with col2:
             st.markdown("#### ■ コンポジット・アスペクト" if lang == "日本語" else "#### ■ Composite Aspects")
-            if aspects:
-                if isinstance(aspects, list):
-                    for asp in aspects:
-                        st.markdown(f"- {localize_text(convert_to_dms(str(asp)), lang)}")
-                else:
-                    st.markdown(localize_text(convert_to_dms(str(aspects)), lang))
+            if aspects and isinstance(aspects, list):
+                for asp in aspects:
+                    st.markdown(f"- {localize_text(convert_to_dms(str(asp)), lang)}")
             else:
                 st.info("該当するアスペクトはありません。" if lang == "日本語" else "No aspects found.")
 
@@ -660,25 +644,24 @@ if "chart_data" in st.session_state:
         # 📋 一括コピー（結果画面の下側）
         with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
             copy_lines = [f"【コンポジットチャート: {u_name} & {p2_name}】\n", "[コンポジット天体位置]"]
-            for body in bodies:
-                if isinstance(body, dict):
-                    raw_name = body.get('key', '')
-                    raw_sign = body.get('sign', '')
-                    deg_val = body.get('degree', 0)
-                    d = int(deg_val)
-                    m = round((deg_val - d) * 60)
-                    if m == 60:
-                        d += 1
-                        m = 0
-                    deg_str = f"{d}°{m:02d}'"
-                    
-                    disp_name = body_map.get(raw_name, raw_name) if lang == "日本語" else raw_name
-                    disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
-                    copy_lines.append(f"- {disp_name} : {disp_sign} ({deg_str})")
-                else:
-                    copy_lines.append(f"- {str(body)}")
+            if bodies and isinstance(bodies, list):
+                for body in bodies:
+                    if isinstance(body, dict):
+                        raw_name = body.get('key', '')
+                        raw_sign = body.get('sign', '')
+                        deg_val = body.get('degree', 0)
+                        d = int(deg_val)
+                        m = round((deg_val - d) * 60)
+                        if m == 60:
+                            d += 1
+                            m = 0
+                        deg_str = f"{d}°{m:02d}'"
+                        
+                        disp_name = body_map.get(raw_name, raw_name) if lang == "日本語" else raw_name
+                        disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
+                        copy_lines.append(f"- {disp_name} : {disp_sign} ({deg_str})")
             
-            if aspects:
+            if aspects and isinstance(aspects, list):
                 copy_lines.append("\n[コンポジット・アスペクト]")
                 for asp in aspects:
                     copy_lines.append(f"- {str(asp)}")
