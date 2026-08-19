@@ -401,7 +401,10 @@ if submit_button:
                 )
                 
                 from horoscope_calc import calculate_composite_bodies, calculate_aspects
-                
+
+                # コンポジットを計算するボタンや処理のブロックの先頭あたり
+                st.write("🔥 ここを通っているはず！")
+
                 # 2つの変数で個別に受け取る
                 comp_bodies, comp_aspects = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
                 st.session_state.chart_data = {
