@@ -68,7 +68,7 @@ ui_texts = {
         "syn_card_title": "💕 シナストリー（相性）",
         "syn_card_desc": "2人分のホロスコープを重ね合わせ、お互いの相性や引き出し合う魅力を読み解きます。",
         "tra_card_title": "🌌 トランジット（現在の運勢）",
-        "tra_card_desc": "現在のリアルタイムな星の動きが、あなたの人生にどんな影響を与えているかを読み解きます。"
+        "tra_card_desc": "現在の星の動きから、あなたの人生にどんな影響を与えているかを読み解きます。"
     },
     "English": {
         "page_title": "🔮 Professional Horoscope Reading",
