@@ -651,11 +651,10 @@ def calculate_composite_bodies(bodies_p1, bodies_p2):
                 "degree": sign_deg,
             })
             
-    # 🌟 【追加】コンポジット天体を使ってアスペクトを計算する処理
-    # ※ファイル内にある既存のアスペクト計算関数名（例: calculate_aspects など）に変更してください
-    composite_aspects = calculate_aspects(composite_bodies) # ← 既存の関数名をここに指定
+    # 🌟 view_type="アスペクト別" に指定するか、エラーハンドリングを入れる
+    # 「アスペクト別」のほうがリスト表示でエラーが起きにくく、コンポジットに向いています
+    composite_aspects = calculate_aspects(composite_bodies, mode="日本語", view_type="アスペクト別")
     
-    # 天体リストとアスペクトリストの両方を返すようにする    
     return composite_bodies, composite_aspects
     
 def detect_patterns(bodies, mode="日本語"):
