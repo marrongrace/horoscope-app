@@ -403,9 +403,17 @@ if submit_button:
                 from horoscope_calc import calculate_composite_bodies
                 comp_bodies = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
                 
-                st.session_state.chart_data = {"type": "composite", "bodies": comp_bodies}
+                # ※もし horoscope_calc にアスペクト計算関数があればここで取得して格納します
+                # 例: comp_aspects = calculate_composite_aspects(comp_bodies)
+                comp_aspects = [] # ← もし関数があればここに代入
+                
+                st.session_state.chart_data = {
+                    "type": "composite", 
+                    "bodies": comp_bodies,
+                    "aspects": comp_aspects
+                }
                 st.session_state.user_name = p1_data["user_name"]
-                st.session_state.p2_name = p2_data["user_name"]  # 2人目の名前
+                st.session_state.p2_name = p2_data["user_name"]
                 st.session_state.is_composite = True
                 st.session_state.is_synastry = False
                 st.session_state.is_transit = False
@@ -581,7 +589,6 @@ if "chart_data" in st.session_state:
         bodies = data.get("bodies", [])
         aspects = data.get("aspects", [])
         
-        # 英語名から日本語への変換マップ
         sign_map = {
             "Aries": "牡羊座", "Taurus": "牡牛座", "Gemini": "双子座", "Cancer": "蟹座",
             "Leo": "獅子座", "Virgo": "乙女座", "Libra": "天秤座", "Scorpio": "蠍座",
@@ -594,7 +601,7 @@ if "chart_data" in st.session_state:
             "South Node": "ドラゴンテイル", "Chiron": "キロン"
         }
 
-        # タブを「天体位置」と「アスペクト」に変更
+        # 🌟 タブは天体位置とアスペクトのみにする
         tab1, tab2 = st.tabs(["🌟 コンポジット天体位置", "🔗 アスペクト"])
         
         with tab1:
@@ -605,7 +612,6 @@ if "chart_data" in st.session_state:
                     raw_sign = body.get('sign', '')
                     deg_val = body.get('degree', 0)
                     
-                    # 小数点の度数を 度・分 (例: 28°57') に変換
                     d = int(deg_val)
                     m = round((deg_val - d) * 60)
                     if m == 60:
@@ -623,7 +629,6 @@ if "chart_data" in st.session_state:
         with tab2:
             if aspects:
                 st.markdown("#### ■ コンポジット・アスペクト" if lang == "日本語" else "#### ■ Composite Aspects")
-                # アスペクトデータがリストや文字列の場合の処理
                 if isinstance(aspects, list):
                     for asp in aspects:
                         st.markdown(f"- {localize_text(convert_to_dms(str(asp)), lang)}")
@@ -631,7 +636,36 @@ if "chart_data" in st.session_state:
                     st.markdown(localize_text(convert_to_dms(str(aspects)), lang))
             else:
                 st.info("該当するアスペクトはありません。" if lang == "日本語" else "No aspects found.")
-        
+
+        st.divider()
+
+        # 📋 一括コピー（他のチャートと同様に結果画面の下側に配置）
+        with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
+            copy_lines = [f"【コンポジットチャート: {u_name} & {p2_name}】\n", "[コンポジット天体位置]"]
+            for body in bodies:
+                raw_name = body.get('key', '')
+                raw_sign = body.get('sign', '')
+                deg_val = body.get('degree', 0)
+                d = int(deg_val)
+                m = round((deg_val - d) * 60)
+                if m == 60:
+                    d += 1
+                    m = 0
+                deg_str = f"{d}°{m:02d}'"
+                
+                disp_name = body_map.get(raw_name, raw_name) if lang == "日本語" else raw_name
+                disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
+                copy_lines.append(f"- {disp_name} : {disp_sign} ({deg_str})")
+            
+            full_text = "\n".join(copy_lines)
+            st.code(full_text, language="text")
+            st.download_button(
+                label="💾 テキストファイルとしてダウンロード / Download as text",
+                data="\ufeff" + full_text,
+                file_name=f"composite_{u_name}_{p2_name}.txt",
+                mime="text/plain;charset=utf-8"
+            )
+
         # フッターのnote・質問箱リンク
         st.divider()
         st.markdown(f"""
