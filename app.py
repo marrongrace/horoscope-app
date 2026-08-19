@@ -581,7 +581,6 @@ if "chart_data" in st.session_state:
     # ☯️ コンポジットモードの場合の画面描画
     # ==========================================
     elif current_is_composite or data.get("type") == "composite":
-        st.write("🔍 デバッグ用 data の中身:", data)
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
             <h2 style="margin: 0; color: #B8860B;">☯️ {u_name} & {p2_name} のコンポジットチャート</h2>
@@ -643,10 +642,14 @@ if "chart_data" in st.session_state:
 
         with col2:
             st.markdown("#### ■ コンポジット・アスペクト" if lang == "日本語" else "#### ■ Composite Aspects")
-            if aspects and isinstance(aspects, list):
-                for asp in aspects:
-                    formatted_asp = format_aspect_item(asp)
-                    st.markdown(f"- {localize_text(convert_to_dms(formatted_asp), lang)}")
+            if aspects:
+                if isinstance(aspects, str):
+                    # 文字列としてそのまま出力
+                    st.markdown(localize_text(convert_to_dms(aspects), lang))
+                elif isinstance(aspects, list):
+                    for asp in aspects:
+                        formatted_asp = format_aspect_item(asp)
+                        st.markdown(f"- {localize_text(convert_to_dms(formatted_asp), lang)}")
             else:
                 st.info("該当するアスペクトはありません。" if lang == "日本語" else "No aspects found.")
 
@@ -672,11 +675,14 @@ if "chart_data" in st.session_state:
                         disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
                         copy_lines.append(f"- {disp_name} : {disp_sign} ({deg_str})")
             
-            if aspects and isinstance(aspects, list):
+            if aspects:
                 copy_lines.append("\n[コンポジット・アスペクト]")
-                for asp in aspects:
-                    formatted_asp = format_aspect_item(asp)
-                    copy_lines.append(f"- {formatted_asp}")
+                if isinstance(aspects, str):
+                    copy_lines.append(aspects)
+                elif isinstance(aspects, list):
+                    for asp in aspects:
+                        formatted_asp = format_aspect_item(asp)
+                        copy_lines.append(f"- {formatted_asp}")
             
             full_text = "\n".join(copy_lines)
             st.code(full_text, language="text")
