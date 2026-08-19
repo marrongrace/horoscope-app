@@ -579,31 +579,59 @@ if "chart_data" in st.session_state:
         """, unsafe_allow_html=True)
         
         bodies = data.get("bodies", [])
-        if bodies:
-            tab1, tab2 = st.tabs(["🌟 コンポジット天体位置", "📋 一括コピー"])
-            
-            with tab1:
+        aspects = data.get("aspects", [])
+        
+        # 英語名から日本語への変換マップ
+        sign_map = {
+            "Aries": "牡羊座", "Taurus": "牡牛座", "Gemini": "双子座", "Cancer": "蟹座",
+            "Leo": "獅子座", "Virgo": "乙女座", "Libra": "天秤座", "Scorpio": "蠍座",
+            "Sagittarius": "射手座", "Capricorn": "山羊座", "Aquarius": "水瓶座", "Pisces": "魚座"
+        }
+        body_map = {
+            "Sun": "太陽", "Moon": "月", "Mercury": "水星", "Venus": "金星",
+            "Mars": "火星", "Jupiter": "木星", "Saturn": "土星", "Uranus": "天王星",
+            "Neptune": "海王星", "Pluto": "冥王星", "North Node": "ドラゴンヘッド",
+            "South Node": "ドラゴンテイル", "Chiron": "キロン"
+        }
+
+        # タブを「天体位置」と「アスペクト」に変更
+        tab1, tab2 = st.tabs(["🌟 コンポジット天体位置", "🔗 アスペクト"])
+        
+        with tab1:
+            if bodies:
                 st.markdown("#### ■ コンポジット天体位置" if lang == "日本語" else "#### ■ Composite Bodies")
-                for p in bodies:
-                    st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
-            
-            with tab2:
-                copy_lines = [f"【コンポジットチャート: {u_name} & {p2_name}】\n"]
-                for p in bodies:
-                    clean_p = re.sub(r'<[^>]+>', '', str(p))
-                    copy_lines.append(f"- {localize_text(convert_to_dms(clean_p), lang)}")
-                
-                full_text = "\n".join(copy_lines)
-                st.code(full_text, language="text")
-                st.download_button(
-                    label="💾 テキストファイルとしてダウンロード / Download as text",
-                    data="\ufeff" + full_text,
-                    file_name=f"composite_{u_name}_{p2_name}.txt",
-                    mime="text/plain;charset=utf-8"
-                )
-        else:
-            st.info("表示するデータがありません。" if lang == "日本語" else "No data to display.")
-            
+                for body in bodies:
+                    raw_name = body.get('key', '')
+                    raw_sign = body.get('sign', '')
+                    deg_val = body.get('degree', 0)
+                    
+                    # 小数点の度数を 度・分 (例: 28°57') に変換
+                    d = int(deg_val)
+                    m = round((deg_val - d) * 60)
+                    if m == 60:
+                        d += 1
+                        m = 0
+                    deg_str = f"{d}°{m:02d}'"
+                    
+                    disp_name = body_map.get(raw_name, raw_name) if lang == "日本語" else raw_name
+                    disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
+                    
+                    st.markdown(f"- **{disp_name}** : {disp_sign} `{deg_str}`")
+            else:
+                st.info("表示するデータがありません。" if lang == "日本語" else "No data to display.")
+
+        with tab2:
+            if aspects:
+                st.markdown("#### ■ コンポジット・アスペクト" if lang == "日本語" else "#### ■ Composite Aspects")
+                # アスペクトデータがリストや文字列の場合の処理
+                if isinstance(aspects, list):
+                    for asp in aspects:
+                        st.markdown(f"- {localize_text(convert_to_dms(str(asp)), lang)}")
+                else:
+                    st.markdown(localize_text(convert_to_dms(str(aspects)), lang))
+            else:
+                st.info("該当するアスペクトはありません。" if lang == "日本語" else "No aspects found.")
+        
         # フッターのnote・質問箱リンク
         st.divider()
         st.markdown(f"""
@@ -619,7 +647,7 @@ if "chart_data" in st.session_state:
         """, unsafe_allow_html=True)
         st.write("")
         
-        st.stop() # コンポジットの処理が終わったらここでストップ
+        st.stop()
 
     if not current_is_synastry:
         display_loc_str = data['loc_str']
