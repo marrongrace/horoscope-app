@@ -797,21 +797,22 @@ if "chart_data" in st.session_state:
             converted_aspects = localize_text(convert_to_dms(data["aspects"]), lang)
             aspect_lines = [l.strip() for l in converted_aspects.strip().split("\n") if l.strip()]
             
-            # 🌟 現在「アスペクト別」が選ばれているかを判定
             current_view_raw = st.session_state.get("aspect_view_radio", "ペア別")
             is_by_aspect = current_view_raw in ["アスペクト別", "By Aspect"]
 
             if is_by_aspect:
-                # 🔗【アスペクト別】の場合：アスペクト名（セクスタイル等）を見出しにする
-                for line in aspect_lines:
+                # 🔗【アスペクト別】の場合
+                for i, line in enumerate(aspect_lines):
                     if line.startswith("■"):
-                        # 「■ セクスタイル (60°)」のような行をきれいな大見出しに変換
                         clean_heading = line.replace("■", "").strip()
-                        st.markdown(f"\n#### 🔗 {clean_heading}")
+                        # 2つ目以降の見出しの前に、余白（空行）を挟む
+                        if i > 0:
+                            st.markdown("") 
+                        st.markdown(f"#### 🔗 {clean_heading}")
                     else:
                         st.markdown(line)
             else:
-                # 🌟【ペア別】の場合：従来通り天体名を見出しにする
+                # 🌟【ペア別】の場合
                 current_planet = None
                 for line in aspect_lines:
                     if " & " in line:
