@@ -403,7 +403,11 @@ if submit_button:
                 from horoscope_calc import calculate_composite_bodies, calculate_aspects
                 comp_bodies = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
                 
-                # コンポジット天体からアスペクトを計算
+                # もし二重リストになっていたら綺麗に平文化する
+                if isinstance(comp_bodies, list) and len(comp_bodies) > 0 and isinstance(comp_bodies[0], list):
+                    comp_bodies = comp_bodies[0]
+                
+                # アスペクトの計算
                 try:
                     comp_aspects = calculate_aspects(comp_bodies)
                 except Exception:
@@ -588,11 +592,16 @@ if "chart_data" in st.session_state:
         </div>
         """, unsafe_allow_html=True)
         
-        bodies = data.get("bodies", [])
-        # 万が一ネスト（リストのリスト）していたら綺麗に平文化する安全策
-        if bodies and isinstance(bodies, list) and isinstance(bodies[0], list):
-            bodies = bodies[0]
-            
+        raw_bodies = data.get("bodies", [])
+        # 確実に1層のリスト（辞書のリスト）に変換する（二重リスト対策）
+        bodies = []
+        if isinstance(raw_bodies, list):
+            for item in raw_bodies:
+                if isinstance(item, list):
+                    bodies.extend(item)
+                else:
+                    bodies.append(item)
+                    
         aspects = data.get("aspects", [])
         
         sign_map = {
@@ -607,7 +616,7 @@ if "chart_data" in st.session_state:
             "South Node": "ドラゴンテイル", "Chiron": "キロン"
         }
 
-        # 🌟 タブを廃止し、左右2カラムで天体位置とアスペクトを並べる
+        # 左右2カラムで天体位置とアスペクトを並べる
         col1, col2 = st.columns(2)
         
         with col1:
@@ -631,7 +640,7 @@ if "chart_data" in st.session_state:
                         
                         st.markdown(f"- **{disp_name}** : {disp_sign} `{deg_str}`")
                     else:
-                        st.markdown(f"- {localize_text(convert_to_dms(str(body)), lang)}")
+                        st.markdown(f"- {str(body)}")
             else:
                 st.info("表示するデータがありません。" if lang == "日本語" else "No data to display.")
 
