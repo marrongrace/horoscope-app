@@ -67,6 +67,8 @@ ui_texts = {
         "natal_card_desc": "生まれた瞬間の星の配置から、あなたの本質、才能、人生のテーマを深く読み解きます。",
         "syn_card_title": "💕 シナストリー（相性）",
         "syn_card_desc": "2人分のホロスコープを重ね合わせ、お互いの相性や引き出し合う魅力を読み解きます。",
+        "comp_card_title": "☯️ コンポジット（合成図）",
+        "comp_card_desc": "2人の出生図を合成し、パートナーシップの絆や2人の間に生まれる関係性を読み解きます。",
         "tra_card_title": "🌌 トランジット（現在の運勢）",
         "tra_card_desc": "現在の星の動きから、あなたの人生にどんな影響を与えているかを読み解きます。"
     },
@@ -106,6 +108,8 @@ ui_texts = {
         "natal_card_desc": "Explores your core essence, talents, and life themes based on the planetary positions at birth.",
         "syn_card_title": "💕 Synastry (Compatibility)",
         "syn_card_desc": "Compares two charts to analyze relationship compatibility and the energy exchange between two people.",
+        "comp_card_title": "☯️ Composite",
+        "comp_card_desc": "Merges two birth charts to analyze the shared dynamic, bonds, and partnership theme.",
         "tra_card_title": "🌌 Transit Reading",
         "tra_card_desc": "Examines how current planetary movements interact with your natal chart to reveal present influences."
     }
