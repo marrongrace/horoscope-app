@@ -644,8 +644,9 @@ if "chart_data" in st.session_state:
             st.markdown("#### ■ コンポジット・アスペクト" if lang == "日本語" else "#### ■ Composite Aspects")
             if aspects:
                 if isinstance(aspects, str):
-                    # 文字列としてそのまま出力
-                    st.markdown(localize_text(convert_to_dms(aspects), lang))
+                    # **■ を消して、きれいなMarkdownの見出し（####）に変換する
+                    formatted_str = aspects.replace("**■ ", "\n#### ").replace("**", "")
+                    st.markdown(localize_text(convert_to_dms(formatted_str), lang))
                 elif isinstance(aspects, list):
                     for asp in aspects:
                         formatted_asp = format_aspect_item(asp)
@@ -678,7 +679,9 @@ if "chart_data" in st.session_state:
             if aspects:
                 copy_lines.append("\n[コンポジット・アスペクト]")
                 if isinstance(aspects, str):
-                    copy_lines.append(aspects)
+                    # コピー用テキストからは ** や ■ を完全に削除してスッキリさせる
+                    clean_copy_str = aspects.replace("**■ ", "").replace("**", "")
+                    copy_lines.append(clean_copy_str)
                 elif isinstance(aspects, list):
                     for asp in aspects:
                         formatted_asp = format_aspect_item(asp)
