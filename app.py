@@ -113,27 +113,6 @@ ui_texts = {
     }
 }
 
-# ==========================================
-# 🏠 まだ結果が計算されていない初期状態の画面
-# ==========================================
-if "chart_data" not in st.session_state:
-    st.markdown("---")
-    st.markdown(f"### {t['welcome_title']}")
-    st.write(t["welcome_desc"])
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f"#### {t['natal_card_title']}")
-        st.write(t["natal_card_desc"])
-    with col2:
-        st.markdown(f"#### {t['syn_card_title']}")
-        st.write(t["syn_card_desc"])
-    with col3:
-        st.markdown(f"#### {t['tra_card_title']}")
-        st.write(t["tra_card_desc"])
-    
-    st.markdown("---")
-
 # 3. 選択された言語に基づいて `t` を決定
 t = ui_texts[lang]
 
