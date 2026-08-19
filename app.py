@@ -482,6 +482,7 @@ if "chart_data" in st.session_state:
     current_is_synastry = st.session_state.get("is_synastry", False)
     current_is_transit = st.session_state.get("is_transit", False)
     p2_name = st.session_state.get("p2_name", "TestUser2")
+    current_is_composite = st.session_state.get("is_composite", False) or (data.get("type") == "composite")
 
     # ==========================================
     # 🌌 トランジットモードの場合の画面描画
