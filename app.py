@@ -140,6 +140,7 @@ if "chart_data" not in st.session_state:
     # スマホ向けのヒントを分かりやすく表示
     st.info(t["mobile_tip"])
     st.markdown("")
+    st.markdown("")
     
     # 縦に4つのモードを順番に配置する
     st.markdown(f"#### {t['natal_card_title']}")
