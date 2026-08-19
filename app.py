@@ -370,6 +370,8 @@ if submit_button:
                 st.session_state.user_name = p1_data["user_name"]
                 st.session_state.is_synastry = False
                 st.session_state.is_transit = True
+                
+                st.rerun()
 
             # ── 2. シングル（ネイタル）モードの場合 ──
             elif not is_synastry:
@@ -384,6 +386,8 @@ if submit_button:
                 st.session_state.user_name = p1_data["user_name"]
                 st.session_state.is_synastry = False
                 st.session_state.is_transit = False
+                
+                st.rerun()
 
             # ── 3. シナストリー（相性）モードの場合 ──
             else:
