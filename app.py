@@ -604,6 +604,16 @@ if "chart_data" in st.session_state:
             "South Node": "ドラゴンテイル", "Chiron": "キロン"
         }
 
+        # アスペクトを綺麗に整形するヘルパー関数
+        def format_aspect_item(asp):
+            if isinstance(asp, dict):
+                b1 = body_map.get(asp.get("b1", ""), asp.get("b1", "")) if lang == "日本語" else asp.get("b1", "")
+                b2 = body_map.get(asp.get("b2", ""), asp.get("b2", "")) if lang == "日本語" else asp.get("b2", "")
+                lbl = asp.get("label", "")
+                orb = asp.get("orb", 0.0)
+                return f"{b1} & {b2} : {lbl} (オーブ: {orb:.1f}°)"
+            return str(asp)
+
         # 左右2カラムで天体位置とアスペクトを並べる
         col1, col2 = st.columns(2)
         
@@ -634,7 +644,8 @@ if "chart_data" in st.session_state:
             st.markdown("#### ■ コンポジット・アスペクト" if lang == "日本語" else "#### ■ Composite Aspects")
             if aspects and isinstance(aspects, list):
                 for asp in aspects:
-                    st.markdown(f"- {localize_text(convert_to_dms(str(asp)), lang)}")
+                    formatted_asp = format_aspect_item(asp)
+                    st.markdown(f"- {localize_text(convert_to_dms(formatted_asp), lang)}")
             else:
                 st.info("該当するアスペクトはありません。" if lang == "日本語" else "No aspects found.")
 
@@ -663,7 +674,8 @@ if "chart_data" in st.session_state:
             if aspects and isinstance(aspects, list):
                 copy_lines.append("\n[コンポジット・アスペクト]")
                 for asp in aspects:
-                    copy_lines.append(f"- {str(asp)}")
+                    formatted_asp = format_aspect_item(asp)
+                    copy_lines.append(f"- {formatted_asp}")
             
             full_text = "\n".join(copy_lines)
             st.code(full_text, language="text")
