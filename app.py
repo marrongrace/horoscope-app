@@ -134,6 +134,8 @@ if "chart_data" not in st.session_state:
     st.markdown("---")
     st.write(t["welcome_desc"])  # 初期画面の案内文
     st.markdown("") # 少し余白を開ける
+    st.markdown("")
+    st.markdown("")
     
     # 縦に4つのモードを順番に配置する
     st.markdown(f"#### {t['natal_card_title']}")
