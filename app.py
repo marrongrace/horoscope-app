@@ -31,32 +31,85 @@ BASE_PREFECTURES = [
 st.sidebar.markdown("### 🌐 言語 / Language")
 # lang = st.sidebar.radio("言語選択", ["日本語", "English"], label_visibility="collapsed", key="lang_radio")
 
-"日本語": {
-        # ... (中略) ...
+ui_texts = {
+    "日本語": {
+        "page_title": "🔮 ホロスコープ作成システム",
+        "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
+        "sidebar_header": "📝 出生データ入力",
+        "mode_select": "🔮 鑑定モード",
+        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）", "コンポジット（合成図）", "トランジット（現在の運勢）"],
+        "transit_header": "🌌 トランジット設定",
+        "p1_header": "1人目",
+        "p2_header": "2人目",
+        "name_input": "お名前 / ニックネーム",
+        "birth_date": "生年月日",
+        "birth_time": "出生時間（日本時間）",
+        "pref_select": "都道府県",
+        "pref_default": "県名を選択してください",
+        "city_input": "市区町村・地名 (例: 古河市)",
+        "lat_input": "緯度",
+        "lng_input": "経度",
+        "settings_header": "⚙️ 表示設定（ネイタル）",
+        "aspect_view_label": "アスペクト表示形式:",
+        "aspect_view_options": ["ペア別", "アスペクト別"],
+        "unknown_time_checkbox": "出生時間が分からない（12:00仮定 / ハウス除外）",
+        "submit_btn": "✨ ホロスコープを作る",
+        "loading": "星々の配置を精密に計算中... 🌌✨",
+        "bodies_tab": "🌟 天体 ＋ 感受点",
+        "houses_tab": "🏠 12ハウス",
+        "aspects_tab": "🔗 アスペクト",
+        "patterns_tab": "💎 複合アスペクト",
+        "invalid_pref_error": "都道府県を選択してください",
+        "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）",
+        # 🌟 初期画面用の説明文（タイトル行は削除）
+        "welcome_desc": "左側のサイドバーから出生データと鑑定モードを選択し、「✨ ホロスコープを作る」ボタンを押してください。",
         "natal_card_title": "🔮 ネイタル（出生図）",
         "natal_card_desc": "生まれた瞬間の星の配置から、あなたの本質、才能、人生のテーマを深く読み解きます。",
         "syn_card_title": "💕 シナストリー（相性）",
         "syn_card_desc": "2人分のホロスコープを重ね合わせ、お互いの相性や引き出し合う魅力を読み解きます。",
-        # 👇 ここにコンポジットを追加
-        "comp_card_title": "☯️ コンポジット（合成図）",
-        "comp_card_desc": "2人の出生図を合成し、パートナーシップの絆や2人の間に生まれる関係性を読み解きます。",
-        # 👆
         "tra_card_title": "🌌 トランジット（現在の運勢）",
         "tra_card_desc": "現在の星の動きから、あなたの人生にどんな影響を与えているかを読み解きます。"
     },
     "English": {
-        # ... (中略) ...
+        "page_title": "🔮 Professional Horoscope Reading",
+        "disclaimer": "※ Minor discrepancies in house degrees may occur due to calculation libraries or coordinate settings.",
+        "sidebar_header": "📝 Birth Data Input",
+        "mode_select": "🔮 Reading Mode",
+        "mode_options": ["Single Horoscope", "Synastry (Compatibility)", "Composite", "Transit"],
+        "transit_header": "🌌 Transit Settings",
+        "p1_header": "p1",
+        "p2_header": "p2",
+        "name_input": "Name / Label",
+        "birth_date": "Birth Date",
+        "birth_time": "Birth Time",
+        "pref_select": "Prefecture",
+        "pref_default": "Please select a prefecture",
+        "city_input": "City / Location Name",
+        "lat_input": "Latitude",
+        "lng_input": "Longitude",
+        "lat_caption": "💡 Auto-fetched or from Google Maps",
+        "settings_header": "⚙️ Display Settings",
+        "aspect_view_label": "Aspect View:",
+        "aspect_view_options": ["By Pair", "By Aspect"],
+        "unknown_time_checkbox": "Unknown Birth Time (Assumed 12:00 / Exclude Houses)",
+        "submit_btn": "✨ Create Horoscope",
+        "loading": "Calculating planetary positions... 🌌✨",
+        "bodies_tab": "🌟 Celestial Bodies",
+        "houses_tab": "🏠 12 Houses",
+        "aspects_tab": "🔗 Aspects",
+        "patterns_tab": "💎 Complex Patterns",
+        "invalid_pref_error": "Please select a prefecture",
+        "invalid_loc_error": "Please enter a valid location within the prefecture.",
+        # 🌟 初期画面用の説明文（タイトル行は削除）
+        "welcome_desc": "Please input your birth data and select a reading mode from the sidebar, then click '✨ Create Horoscope'.",
         "natal_card_title": "🔮 Natal Horoscope",
         "natal_card_desc": "Explores your core essence, talents, and life themes based on the planetary positions at birth.",
         "syn_card_title": "💕 Synastry (Compatibility)",
         "syn_card_desc": "Compares two charts to analyze relationship compatibility and the energy exchange between two people.",
-        # 👇 ここにコンポジットを追加
-        "comp_card_title": "☯️ Composite",
-        "comp_card_desc": "Merges two birth charts to analyze the shared dynamic, bonds, and partnership theme.",
-        # 👆
         "tra_card_title": "🌌 Transit Reading",
         "tra_card_desc": "Examines how current planetary movements interact with your natal chart to reveal present influences."
     }
+}
 
 # ==========================================
 # 2. 言語の選択と変数 t の作成
