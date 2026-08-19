@@ -407,25 +407,15 @@ if submit_button:
                 st.session_state.chart_data = {
                     "type": "composite", 
                     "bodies": comp_bodies,
-                    "aspects": comp_aspects
+                    "aspects": comp_aspects # ここに計算済みの美しいアスペクト文字列が入る
                 }
                 
-                # アスペクトを安全に計算
-                try:
-                    comp_aspects = calculate_aspects(comp_bodies)
-                except Exception:
-                    comp_aspects = []
-                
-                st.session_state.chart_data = {
-                    "type": "composite", 
-                    "bodies": comp_bodies,
-                    "aspects": comp_aspects
-                }
                 st.session_state.user_name = p1_data["user_name"]
                 st.session_state.p2_name = p2_data["user_name"]
                 st.session_state.is_composite = True
                 st.session_state.is_synastry = False
                 st.session_state.is_transit = False
+                
                 st.rerun()
 
             # ── 3. シナストリー（相性）モードの場合 ──
