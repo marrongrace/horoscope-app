@@ -426,6 +426,8 @@ if submit_button:
                 st.session_state.p2_name = p2_data["user_name"]
                 st.session_state.is_synastry = True
                 st.session_state.is_transit = False
+                
+                st.rerun()
 
 # セッションにデータが存在する場合に表示
 if "chart_data" in st.session_state:
