@@ -62,7 +62,6 @@ ui_texts = {
         "invalid_pref_error": "都道府県を選択してください",
         "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）",
         # 🌟 初期画面用の説明文
-        "welcome_title": "🌟 ホロスコープ鑑定へようこそ",
         "welcome_desc": "左側のサイドバーから出生データと鑑定モードを選択し、「✨ ホロスコープを作る」ボタンを押してください。",
         "natal_card_title": "🔮 ネイタル（出生図）",
         "natal_card_desc": "生まれた瞬間の星の配置から、あなたの本質、才能、人生のテーマを深く読み解きます。",
@@ -118,7 +117,6 @@ lang = st.sidebar.selectbox("Language / 言語", ["日本語", "English"], key="
 t = ui_texts.get(lang, ui_texts["日本語"])
 
 # 4. メイン画面のタイトルと注釈を綺麗に表示する
-st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
 # ==========================================
