@@ -125,7 +125,7 @@ st.caption(t["disclaimer"])
 # ==========================================
 if "chart_data" not in st.session_state:
     st.markdown("---")
-    st.markdown(f"### {t['welcome_title']}")
+    st.markdown(f"# {t['page_title']}")
     st.write(t["welcome_desc"])
     
     col1, col2, col3 = st.columns(3)
