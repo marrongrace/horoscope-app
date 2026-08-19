@@ -3,6 +3,12 @@ import os
 import re
 import pytz
 import streamlit as st
+
+# 🌟 ここでモジュールごとインポートして、ファイルパスを画面に出してみる
+import horoscope_calc
+st.write("📂 今読み込んでいるファイル:", horoscope_calc.__file__)
+
+# 個別の関数はこれまで通り使えるようにインポート（あるいは horoscope_calc.関数名 として呼び出す）
 from horoscope_calc import validate_and_get_coords, get_chart_data, EPHE_PATH, get_cities_for_prefecture
 
 # get_synastry_data が horoscope_calc に無い場合の安全対策
