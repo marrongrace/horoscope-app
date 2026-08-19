@@ -636,11 +636,24 @@ def calculate_composite_bodies(bodies_p1, bodies_p2):
     for key in map1.keys():
         if key in map2:
             comp_pos = get_midpoint_pos(map1[key], map2[key])
-            # ※既存のネイタル計算ロジックに合わせた形式（辞書）を作成
+            
+            # --- サイン（星座）や度数を求める処理を追加 ---
+            # 例: 360度を30度ずつ各星座に振り分ける一般的な書き方
+            signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
+                     "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+            
+            sign_index = int(comp_pos // 30)
+            sign_deg = comp_pos % 30
+            sign_name = signs[sign_index]
+            
+            # ネイタル計算ロジックに合わせた形式（辞書）を作成
             composite_bodies.append({
                 "key": key,
                 "abs_pos": comp_pos,
-                # 必要に応じて、星座や度数の文字列を生成する既存のヘルパー関数を呼び出す
+                "sign": sign_name,           # 星座名
+                "degree": sign_deg,          # サイン内の度数
+                # もし既存のコードで文字列に変換する関数があれば、それもここで使えます
+                # "formatted": 既存の変換関数(comp_pos)
             })
             
     return composite_bodies
