@@ -347,7 +347,7 @@ if submit_button:
         p1_error = True
 
     p2_error = False
-    if is_synastry and p2_data:
+    if (is_synastry or is_composite) and p2_data:
         if p2_data["selected_pref"] == t["pref_default"]:
             st.error(f"2人目: {t['invalid_pref_error']}")
             p2_error = True
@@ -366,43 +366,24 @@ if submit_button:
                     "lat": p1_data["input_lat"], "lng": p1_data["input_lng"]
                 })
                 
-                # get_chart_data の中で transit_info を受け取って計算させる形にするか、
-                # あるいはご提示いただいたコードの通りに返すようにする
                 data = get_chart_data(
                     p1_data["user_name"],
                     p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
                     p1_data["birth_time"].hour, p1_data["birth_time"].minute,
                     p1_data["input_lat"], p1_data["input_lng"],
                     p1_data["input_city_name"], lang, toggle_view, unknown_checkbox,
-                    transit_info=transit_info # ← もし引数で渡せるようになっているならここへ！
+                    transit_info=transit_info
                 )
                 
                 st.session_state.chart_data = data
                 st.session_state.user_name = p1_data["user_name"]
                 st.session_state.is_synastry = False
+                st.session_state.is_composite = False
                 st.session_state.is_transit = True
-                
                 st.rerun()
 
-            # ── 2. シングル（ネイタル）モードの場合 ──
-            elif not is_synastry:
-                data = get_chart_data(
-                    p1_data["user_name"],
-                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
-                    p1_data["birth_time"].hour, p1_data["birth_time"].minute,
-                    p1_data["input_lat"], p1_data["input_lng"],
-                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
-                )
-                st.session_state.chart_data = data
-                st.session_state.user_name = p1_data["user_name"]
-                st.session_state.is_synastry = False
-                st.session_state.is_transit = False
-                
-                st.rerun()
-                
-            # ── 3. コンポジット（合成図）モードの場合 ──
+            # ── 2. コンポジット（合成図）モードの場合 ──
             elif is_composite:
-                # 2人分のデータを取得して合成計算
                 data1 = get_chart_data(
                     p1_data["user_name"],
                     p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
@@ -422,44 +403,31 @@ if submit_button:
                 from horoscope_calc import calculate_composite_bodies
                 comp_bodies = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
                 
-                # 🌟 ここでデータを保存
                 st.session_state.chart_data = {"type": "composite", "bodies": comp_bodies}
                 st.session_state.user_name = p1_data["user_name"]
-                st.session_state.p2_name = p2_data["user_name"]  # ← 2人目の名前を正しく保存！
+                st.session_state.p2_name = p2_data["user_name"]  # 2人目の名前
                 st.session_state.is_composite = True
                 st.session_state.is_synastry = False
                 st.session_state.is_transit = False
-                
-                st.rerun()        
+                st.rerun()
 
-            # ── 4. シナストリー（相性）モードの場合 ──
-            else:
+            # ── 3. シナストリー（相性）モードの場合 ──
+            elif is_synastry:
                 if get_synastry_data is not None:
                     p1_info = {
                         "name": p1_data["user_name"],
-                        "year": p1_data["birth_date"].year,
-                        "month": p1_data["birth_date"].month,
-                        "day": p1_data["birth_date"].day,
-                        "hour": p1_data["birth_time"].hour,
-                        "minute": p1_data["birth_time"].minute,
-                        "lat": p1_data["input_lat"],
-                        "lng": p1_data["input_lng"],
-                        "city": p1_data["input_city_name"],
-                        "is_unknown_time": unknown_checkbox
+                        "year": p1_data["birth_date"].year, "month": p1_data["birth_date"].month, "day": p1_data["birth_date"].day,
+                        "hour": p1_data["birth_time"].hour, "minute": p1_data["birth_time"].minute,
+                        "lat": p1_data["input_lat"], "lng": p1_data["input_lng"],
+                        "city": p1_data["input_city_name"], "is_unknown_time": unknown_checkbox
                     }
                     p2_info = {
                         "name": p2_data["user_name"],
-                        "year": p2_data["birth_date"].year,
-                        "month": p2_data["birth_date"].month,
-                        "day": p2_data["birth_date"].day,
-                        "hour": p2_data["birth_time"].hour,
-                        "minute": p2_data["birth_time"].minute,
-                        "lat": p2_data["input_lat"],
-                        "lng": p2_data["input_lng"],
-                        "city": p2_data["input_city_name"],
-                        "is_unknown_time": unknown_checkbox
+                        "year": p2_data["birth_date"].year, "month": p2_data["birth_date"].month, "day": p2_data["birth_date"].day,
+                        "hour": p2_data["birth_time"].hour, "minute": p2_data["birth_time"].minute,
+                        "lat": p2_data["input_lat"], "lng": p2_data["input_lng"],
+                        "city": p2_data["input_city_name"], "is_unknown_time": unknown_checkbox
                     }
-                    # 💡 ここに display_mode=toggle_view を追加します！
                     data = get_synastry_data(p1_info, p2_info, mode=lang, display_mode=toggle_view)
                 else:
                     data = get_chart_data(
@@ -472,8 +440,24 @@ if submit_button:
                 st.session_state.user_name = p1_data["user_name"]
                 st.session_state.p2_name = p2_data["user_name"]
                 st.session_state.is_synastry = True
+                st.session_state.is_composite = False
                 st.session_state.is_transit = False
-                
+                st.rerun()
+
+            # ── 4. シングル（ネイタル）モードの場合 ──
+            else:
+                data = get_chart_data(
+                    p1_data["user_name"],
+                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                    p1_data["birth_time"].hour, p1_data["birth_time"].minute,
+                    p1_data["input_lat"], p1_data["input_lng"],
+                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
+                )
+                st.session_state.chart_data = data
+                st.session_state.user_name = p1_data["user_name"]
+                st.session_state.is_synastry = False
+                st.session_state.is_composite = False
+                st.session_state.is_transit = False
                 st.rerun()
 
 # セッションにデータが存在する場合に表示
