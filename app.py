@@ -344,11 +344,17 @@ with st.sidebar:
     if is_synastry or is_composite:
         p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
 
-    st.markdown("---")
-    st.header(t["settings_header"])
-    toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"], key="aspect_view_radio")
-    toggle_view = "ペア別" if toggle_view_raw in ["ペア別", "By Pair"] else "アスペクト別"
-    unknown_checkbox = st.checkbox(t["unknown_time_checkbox"], key="unknown_time_chk")
+    # 🌟 ネイタル（単独）のときだけ「表示設定」を表示する
+    if not is_synastry and not is_composite and not is_transit:
+        st.markdown("---")
+        st.header(t["settings_header"])
+        toggle_view_raw = st.radio(t["aspect_view_label"], t["aspect_view_options"], key="aspect_view_radio")
+        toggle_view = "ペア別" if toggle_view_raw in ["ペア別", "By Pair"] else "アスペクト別"
+        unknown_checkbox = st.checkbox(t["unknown_time_checkbox"], key="unknown_time_chk")
+    else:
+        # ネイタル以外の場合は非表示にしつつ、エラー防止用のデフォルト値を設定
+        toggle_view = "ペア別"
+        unknown_checkbox = False
 
     submit_button = st.button(label=t["submit_btn"], type="primary", key="submit_btn_main")
     
