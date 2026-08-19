@@ -27,16 +27,6 @@ BASE_PREFECTURES = [
     "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県", "海外・その他"
 ]
 
-# 自分の名義
-st.sidebar.markdown(
-    """
-    <div style="font-size: 0.85em; color: gray; margin-bottom: 5px; text-align: left;">
-        Produced by まろんぐらっせ <br><span style="font-size: 1.0em;">(maronglace)</span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 # 1. 言語選択はサイドバーで1つにまとめる
 st.sidebar.markdown("### 🌐 言語 / Language")
 # lang = st.sidebar.radio("言語選択", ["日本語", "English"], label_visibility="collapsed", key="lang_radio")
@@ -334,6 +324,16 @@ with st.sidebar:
     unknown_checkbox = st.checkbox(t["unknown_time_checkbox"], key="unknown_time_chk")
 
     submit_button = st.button(label=t["submit_btn"], type="primary", key="submit_btn_main")
+    
+    # 自分の名義
+    st.sidebar.markdown(
+        """
+        <div style="font-size: 0.85em; color: gray; margin-bottom: 5px; text-align: left;">
+        by まろんぐらっせ <br><span style="font-size: 1.0em;">(maronglace)</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     
 if submit_button:
     # バリデーションチェック
