@@ -31,7 +31,6 @@ BASE_PREFECTURES = [
 st.sidebar.markdown("### 🌐 言語 / Language")
 lang = st.sidebar.radio("言語選択", ["日本語", "English"], label_visibility="collapsed", key="lang_radio")
 
-# 2. 辞書の定義
 ui_texts = {
     "日本語": {
         "page_title": "🔮 ホロスコープ作成システム",
@@ -39,6 +38,7 @@ ui_texts = {
         "sidebar_header": "📝 出生データ入力",
         "mode_select": "🔮 鑑定モード",
         "mode_options": ["ネイタル（出生図）", "シナストリー（相性）", "トランジット（現在の運勢）"],
+        "transit_header": "🌌 トランジット設定",
         "p1_header": "1人目",
         "p2_header": "2人目",
         "name_input": "お名前 / ニックネーム",
@@ -60,7 +60,16 @@ ui_texts = {
         "aspects_tab": "🔗 アスペクト",
         "patterns_tab": "💎 複合アスペクト",
         "invalid_pref_error": "都道府県を選択してください",
-        "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）"
+        "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）",
+        # 🌟 初期画面用の説明文
+        "welcome_title": "🌟 ホロスコープ鑑定へようこそ",
+        "welcome_desc": "左側のサイドバーから出生データと鑑定モードを選択し、「✨ ホロスコープを作る」ボタンを押してください。",
+        "natal_card_title": "🔮 ネイタル（出生図）",
+        "natal_card_desc": "生まれた瞬間の星の配置から、あなたの本質、才能、人生のテーマを深く読み解きます。",
+        "syn_card_title": "💕 シナストリー（相性）",
+        "syn_card_desc": "2人分のホロスコープを重ね合わせ、お互いの相性や引き出し合う魅力を読み解きます。",
+        "tra_card_title": "🌌 トランジット（現在の運勢）",
+        "tra_card_desc": "現在のリアルタイムな星の動きが、あなたの人生にどんな影響を与えているかを読み解きます。"
     },
     "English": {
         "page_title": "🔮 Professional Horoscope Reading",
@@ -68,6 +77,7 @@ ui_texts = {
         "sidebar_header": "📝 Birth Data Input",
         "mode_select": "🔮 Reading Mode",
         "mode_options": ["Single Horoscope", "Synastry (Compatibility)", "Transit"],
+        "transit_header": "🌌 Transit Settings",
         "p1_header": "p1",
         "p2_header": "p2",
         "name_input": "Name / Label",
@@ -90,9 +100,43 @@ ui_texts = {
         "aspects_tab": "🔗 Aspects",
         "patterns_tab": "💎 Complex Patterns",
         "invalid_pref_error": "Please select a prefecture",
-        "invalid_loc_error": "Please enter a valid location within the prefecture."
+        "invalid_loc_error": "Please enter a valid location within the prefecture.",
+        # 🌟 初期画面用の説明文
+        "welcome_title": "🌟 Welcome to Horoscope Reading",
+        "welcome_desc": "Please input your birth data and select a reading mode from the sidebar, then click '✨ Create Horoscope'.",
+        "natal_card_title": "🔮 Natal Horoscope",
+        "natal_card_desc": "Explores your core essence, talents, and life themes based on the planetary positions at birth.",
+        "syn_card_title": "💕 Synastry (Compatibility)",
+        "syn_card_desc": "Compares two charts to analyze relationship compatibility and the energy exchange between two people.",
+        "tra_card_title": "🌌 Transit Reading",
+        "tra_card_desc": "Examines how current planetary movements interact with your natal chart to reveal present influences."
     }
 }
+
+# 4. メイン画面のタイトルと注釈を綺麗に表示する
+st.markdown(f"# {t['page_title']}")
+st.caption(t["disclaimer"])
+
+# ==========================================
+# 🏠 まだ結果が計算されていない初期状態の画面
+# ==========================================
+if "chart_data" not in st.session_state:
+    st.markdown("---")
+    st.markdown(f"### {t['welcome_title']}")
+    st.write(t["welcome_desc"])
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"#### {t['natal_card_title']}")
+        st.write(t["natal_card_desc"])
+    with col2:
+        st.markdown(f"#### {t['syn_card_title']}")
+        st.write(t["syn_card_desc"])
+    with col3:
+        st.markdown(f"#### {t['tra_card_title']}")
+        st.write(t["tra_card_desc"])
+    
+    st.markdown("---")
 
 # 3. 選択された言語に基づいて `t` を決定
 t = ui_texts[lang]
