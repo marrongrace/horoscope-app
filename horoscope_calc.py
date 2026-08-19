@@ -619,6 +619,33 @@ def calculate_aspects(bodies, mode="日本語", view_type="ペア別"):
             
     return "\n".join(lines)
 
+def calculate_composite_bodies(bodies_p1, bodies_p2):
+    map1 = {b["key"]: b["abs_pos"] for b in bodies_p1}
+    map2 = {b["key"]: b["abs_pos"] for b in bodies_p2}
+    
+    composite_bodies = []
+    
+    # 既存のミッドポイント計算関数（角度の平均を出す処理）
+    def get_midpoint_pos(pos1, pos2):
+        diff = abs(pos1 - pos2)
+        if diff > 180:
+            mp = (pos1 + pos2 + 360) / 2
+        else:
+            mp = (pos1 + pos2) / 2
+        return mp % 360
+
+    for key in map1.keys():
+        if key in map2:
+            comp_pos = get_midpoint_pos(map1[key], map2[key])
+            # 必要に応じてサインや度数などの情報を持たせた辞書を作る
+            composite_bodies.append({
+                "key": key,
+                "abs_pos": comp_pos,
+                # 星座(sign)や度数(degree)の算出処理は既存のネイタル計算ロジックに合わせる
+            })
+            
+    return composite_bodies
+    
 def detect_patterns(bodies, mode="日本語"):
     patterns = []
     aspect_pairs = []
