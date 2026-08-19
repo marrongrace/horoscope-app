@@ -637,8 +637,6 @@ def calculate_composite_bodies(bodies_p1, bodies_p2):
         if key in map2:
             comp_pos = get_midpoint_pos(map1[key], map2[key])
             
-            # --- サイン（星座）や度数を求める処理を追加 ---
-            # 例: 360度を30度ずつ各星座に振り分ける一般的な書き方
             signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
                      "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
             
@@ -646,17 +644,19 @@ def calculate_composite_bodies(bodies_p1, bodies_p2):
             sign_deg = comp_pos % 30
             sign_name = signs[sign_index]
             
-            # ネイタル計算ロジックに合わせた形式（辞書）を作成
             composite_bodies.append({
                 "key": key,
                 "abs_pos": comp_pos,
-                "sign": sign_name,           # 星座名
-                "degree": sign_deg,          # サイン内の度数
-                # もし既存のコードで文字列に変換する関数があれば、それもここで使えます
-                # "formatted": 既存の変換関数(comp_pos)
+                "sign": sign_name,
+                "degree": sign_deg,
             })
             
-    return composite_bodies
+    # 🌟 【追加】コンポジット天体を使ってアスペクトを計算する処理
+    # ※ファイル内にある既存のアスペクト計算関数名（例: calculate_aspects など）に変更してください
+    composite_aspects = calculate_aspects(composite_bodies) # ← 既存の関数名をここに指定
+    
+    # 天体リストとアスペクトリストの両方を返すようにする
+    return composite_bodies, composite_aspects
     
 def detect_patterns(bodies, mode="日本語"):
     patterns = []
