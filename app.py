@@ -37,7 +37,7 @@ ui_texts = {
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
         "mode_select": "🔮 鑑定モード",
-        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）", "トランジット（現在の運勢）"],
+        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）", "コンポジット（合成図）", "トランジット（現在の運勢）"],
         "transit_header": "🌌 トランジット設定",
         "p1_header": "1人目",
         "p2_header": "2人目",
@@ -75,7 +75,7 @@ ui_texts = {
         "disclaimer": "※ Minor discrepancies in house degrees may occur due to calculation libraries or coordinate settings.",
         "sidebar_header": "📝 Birth Data Input",
         "mode_select": "🔮 Reading Mode",
-        "mode_options": ["Single Horoscope", "Synastry (Compatibility)", "Transit"],
+        "mode_options": ["Single Horoscope", "Synastry (Compatibility)", "Composit", "Transit"],
         "transit_header": "🌌 Transit Settings",
         "p1_header": "p1",
         "p2_header": "p2",
@@ -271,6 +271,7 @@ with st.sidebar:
     # 鑑定モードの選択
     chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select")
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
+    is_composite = chart_mode_raw in ["コンポジット（合成図）", "Composite Chart"]
     is_transit = chart_mode_raw in ["トランジット（現在の運勢）", "Transit"]
     st.markdown("---")
 
@@ -398,8 +399,39 @@ if submit_button:
                 st.session_state.is_transit = False
                 
                 st.rerun()
+                
+            # ── 3. コンポジット（合成図）モードの場合 ──
+            elif is_composite:
+                # 2人分のデータを取得して合成計算
+                
+                # 1人目のチャートデータを取得
+                data1 = get_chart_data(
+                    p1_data["user_name"],
+                    p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
+                    p1_data["birth_time"].hour, p1_data["birth_time"].minute,
+                    p1_data["input_lat"], p1_data["input_lng"],
+                    p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
+                )
+                
+                # 2人目のチャートデータを取得
+                data2 = get_chart_data(
+                    p2_data["user_name"],
+                    p2_data["birth_date"].year, p2_data["birth_date"].month, p2_data["birth_date"].day,
+                    p2_data["birth_time"].hour, p2_data["birth_time"].minute,
+                    p2_data["input_lat"], p2_data["input_lng"],
+                    p2_data["input_city_name"], lang, toggle_view, unknown_checkbox
+                )
+                
+                from horoscope_calc import calculate_composite_bodies
+                comp_bodies = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
+                
+                # data に comp_bodies を格納して表示用に渡す
+                st.session_state.chart_data = {"type": "composite", "bodies": comp_bodies}
+                st.session_state.is_composite = True
+                
+                st.rerun()             
 
-            # ── 3. シナストリー（相性）モードの場合 ──
+            # ── 4. シナストリー（相性）モードの場合 ──
             else:
                 if get_synastry_data is not None:
                     p1_info = {
@@ -548,6 +580,30 @@ if "chart_data" in st.session_state:
         st.write("")
         
         st.stop() # トランジットのときはここで通常の描画をストップする
+
+    # ==========================================
+    # ☯️ コンポジットモードの場合の画面描画  ★ここに追加！
+    # ==========================================
+    elif current_is_composite or data.get("type") == "composite":
+        st.markdown(f"""
+        <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; color: #B8860B;">☯️ {u_name} & {p2_name} のコンポジットチャート</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        bodies = data.get("bodies", [])
+        if bodies:
+            st.markdown("#### ■ コンポジット天体位置" if lang == "日本語" else "#### ■ Composite Bodies")
+            signs_en = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
+                        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+            
+            for body in bodies:
+                # すでに辞書型などでデータが整っている場合の描画例
+                st.markdown(f"- **{body.get('name', '')}** : {body.get('sign', '')} `({body.get('deg', '')})`")
+        else:
+            st.info("表示するデータがありません。" if lang == "日本語" else "No data to display.")
+            
+        st.stop() # コンポジットのときもここで通常のシングル描画をストップ
 
     if not current_is_synastry:
         display_loc_str = data['loc_str']
