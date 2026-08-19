@@ -64,6 +64,7 @@ ui_texts = {
         # 🌟 初期画面用の説明文（タイトル行は削除）
         "welcome_desc": "左側のサイドバーから出生データと鑑定モードを選択し、「✨ ホロスコープを作る」ボタンを押してください。",
         "mobile_tip": "スマホをご利用の方は、画面左上の `>>` をタップするとサイドバーを開くことができます。",
+        "chart_intro_heading": "📊 チャート紹介",
         "natal_card_title": "🔮 ネイタル（出生図）",
         "natal_card_desc": "生まれた瞬間の星の配置から、あなたの本質、才能、人生のテーマを深く読み解きます。",
         "syn_card_title": "💕 シナストリー（相性）",
@@ -106,6 +107,7 @@ ui_texts = {
         # 🌟 初期画面用の説明文（タイトル行は削除）
         "welcome_desc": "Please input your birth data and select a reading mode from the sidebar, then click '✨ Create Horoscope'.",
         "mobile_tip": "If you are using a smartphone, tap the `>>` at the top left to open the sidebar.",
+        "chart_intro_heading": "📊 Chart Overview",
         "natal_card_title": "🔮 Natal Horoscope",
         "natal_card_desc": "Explores your core essence, talents, and life themes based on the planetary positions at birth.",
         "syn_card_title": "💕 Synastry (Compatibility)",
@@ -141,6 +143,13 @@ if "chart_data" not in st.session_state:
     st.info(t["mobile_tip"])
     st.markdown("")
     st.markdown("")
+    st.markdown("")
+
+    # 稍微余白を開けて「チャート紹介」の見出しを入れる
+    st.markdown("")
+    st.markdown(f"### {t['chart_intro_heading']}")
+    st.markdown("")
+
     
     # 縦に4つのモードを順番に配置する
     st.markdown(f"#### {t['natal_card_title']}")
