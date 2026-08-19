@@ -30,7 +30,7 @@ BASE_PREFECTURES = [
 # 自分の名義
 st.sidebar.markdown(
     """
-    <div style="font-size: 0.85em; color: gray; margin-bottom: 5px; text-align: right;">
+    <div style="font-size: 0.85em; color: gray; margin-bottom: 5px; text-align: left;">
         Produced by まろんぐらっせ <br><span style="font-size: 0.9em;">(maronglace)</span>
     </div>
     """,
