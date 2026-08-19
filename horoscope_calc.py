@@ -950,5 +950,6 @@ def get_chart_data(name, year, month, day, hour, minute, lat, lng, city_display_
         "midpoints": midpoints,
         "transit": transit_results,  # ここで渡す
         "aspects": calculate_aspects(all_aspect_objs, mode, view_type),
-        "patterns": detect_patterns(all_aspect_objs, mode)
+        "patterns": detect_patterns(all_aspect_objs, mode),
+        "bodies_raw": all_aspect_objs
     }
