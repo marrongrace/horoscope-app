@@ -62,7 +62,6 @@ ui_texts = {
         "invalid_pref_error": "都道府県を選択してください",
         "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）",
         # 🌟 初期画面用の説明文（日本語版にも追加！）
-        "welcome_title": "🌟 ホロスコープ鑑定へようこそ",
         "welcome_desc": "左側のサイドバーから出生データと鑑定モードを選択し、「✨ ホロスコープを作る」ボタンを押してください。",
         "natal_card_title": "🔮 ネイタル（出生図）",
         "natal_card_desc": "生まれた瞬間の星の配置から、あなたの本質、才能、人生のテーマを深く読み解きます。",
@@ -102,7 +101,6 @@ ui_texts = {
         "invalid_pref_error": "Please select a prefecture",
         "invalid_loc_error": "Please enter a valid location within the prefecture.",
         # 🌟 初期画面用の説明文
-        "welcome_title": "🌟 Welcome to Horoscope Reading",
         "welcome_desc": "Please input your birth data and select a reading mode from the sidebar, then click '✨ Create Horoscope'.",
         "natal_card_title": "🔮 Natal Horoscope",
         "natal_card_desc": "Explores your core essence, talents, and life themes based on the planetary positions at birth.",
@@ -143,8 +141,6 @@ if "chart_data" not in st.session_state:
     with col3:
         st.markdown(f"#### {t['tra_card_title']}")
         st.write(t["tra_card_desc"])
-    
-    st.markdown("---")
 
 # 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
