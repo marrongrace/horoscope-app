@@ -114,7 +114,7 @@ ui_texts = {
 # ==========================================
 # 2. 言語の選択と変数 t の作成
 # ==========================================
-lang = st.sidebar.selectbox("Language / 言語", ["日本語", "English"], key="lang_select")
+lang = st.sidebar.selectbox("Language / 言語", ["日本語", "English"], label_visibility="collapsed", key="lang_select")
 t = ui_texts.get(lang, ui_texts["日本語"])
 
 # ==========================================
