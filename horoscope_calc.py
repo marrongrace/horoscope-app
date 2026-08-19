@@ -625,7 +625,6 @@ def calculate_composite_bodies(bodies_p1, bodies_p2):
     
     composite_bodies = []
     
-    # 既存のミッドポイント計算関数（角度の平均を出す処理）
     def get_midpoint_pos(pos1, pos2):
         diff = abs(pos1 - pos2)
         if diff > 180:
@@ -637,11 +636,11 @@ def calculate_composite_bodies(bodies_p1, bodies_p2):
     for key in map1.keys():
         if key in map2:
             comp_pos = get_midpoint_pos(map1[key], map2[key])
-            # 必要に応じてサインや度数などの情報を持たせた辞書を作る
+            # ※既存のネイタル計算ロジックに合わせた形式（辞書）を作成
             composite_bodies.append({
                 "key": key,
                 "abs_pos": comp_pos,
-                # 星座(sign)や度数(degree)の算出処理は既存のネイタル計算ロジックに合わせる
+                # 必要に応じて、星座や度数の文字列を生成する既存のヘルパー関数を呼び出す
             })
             
     return composite_bodies
