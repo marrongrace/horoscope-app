@@ -29,7 +29,7 @@ BASE_PREFECTURES = [
 
 # 1. 言語選択はサイドバーで1つにまとめる
 st.sidebar.markdown("### 🌐 言語 / Language")
-lang = st.sidebar.radio("言語選択", ["日本語", "English"], label_visibility="collapsed", key="lang_radio")
+# lang = st.sidebar.radio("言語選択", ["日本語", "English"], label_visibility="collapsed", key="lang_radio")
 
 ui_texts = {
     "日本語": {
