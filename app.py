@@ -126,7 +126,7 @@ st.caption(t["disclaimer"])
 # ==========================================
 # 4. まだ結果が計算されていない初期状態の画面
 # ==========================================
-if "chart_data" not in st.session_state:
+if "chart_data" not in st.session_state and not submit_button:
     st.markdown("---")
     st.write(t["welcome_desc"])  # タイトルを省いて直接説明文を表示
     
