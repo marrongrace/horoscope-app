@@ -37,7 +37,7 @@ ui_texts = {
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
         "mode_select": "🔮 鑑定モード",
-        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）", "トランジット（現在の運勢）"],
+        "mode_options": ["ネイタル（出生図）", "シナストリー（相性）", "トランジット（現在の運勢）", "コンポジット（合成図）"],
         "transit_header": "🌌 トランジット設定",
         "p1_header": "1人目",
         "p2_header": "2人目",
@@ -75,7 +75,7 @@ ui_texts = {
         "disclaimer": "※ Minor discrepancies in house degrees may occur due to calculation libraries or coordinate settings.",
         "sidebar_header": "📝 Birth Data Input",
         "mode_select": "🔮 Reading Mode",
-        "mode_options": ["Single Horoscope", "Synastry (Compatibility)", "Transit"],
+        "mode_options": ["Single Horoscope", "Synastry (Compatibility)", "Transit", "Composit"],
         "transit_header": "🌌 Transit Settings",
         "p1_header": "p1",
         "p2_header": "p2",
@@ -269,9 +269,10 @@ with st.sidebar:
     st.header(t["sidebar_header"])
     
     # 鑑定モードの選択
-    chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"], key="chart_mode_select")
+    chart_mode_raw = st.selectbox(t["mode_select"], t["mode_options"],t["mode_options_transit"], key="chart_mode_select")
     is_synastry = chart_mode_raw in ["シナストリー（相性）", "Synastry (Compatibility)"]
     is_transit = chart_mode_raw in ["トランジット（現在の運勢）", "Transit"]
+    is_composite = chart_mode_raw in ["コンポジット（合成図）", "Composit"]
     st.markdown("---")
 
     # 1人目の入力
