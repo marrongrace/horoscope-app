@@ -61,7 +61,8 @@ ui_texts = {
         "patterns_tab": "💎 複合アスペクト",
         "invalid_pref_error": "都道府県を選択してください",
         "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）",
-        # 🌟 初期画面用の説明文
+        # 🌟 初期画面用の説明文（日本語版にも追加！）
+        "welcome_title": "🌟 ホロスコープ鑑定へようこそ",
         "welcome_desc": "左側のサイドバーから出生データと鑑定モードを選択し、「✨ ホロスコープを作る」ボタンを押してください。",
         "natal_card_title": "🔮 ネイタル（出生図）",
         "natal_card_desc": "生まれた瞬間の星の配置から、あなたの本質、才能、人生のテーマを深く読み解きます。",
@@ -112,20 +113,24 @@ ui_texts = {
     }
 }
 
-# 2. 次に言語の選択肢を用意し、変数 t を作る
+# ==========================================
+# 2. 言語の選択と変数 t の作成（ここで1回だけ定義！）
+# ==========================================
 lang = st.sidebar.selectbox("Language / 言語", ["日本語", "English"], key="lang_select")
 t = ui_texts.get(lang, ui_texts["日本語"])
 
-# 4. メイン画面のタイトルと注釈を綺麗に表示する
+# ==========================================
+# 3. メイン画面のタイトルと注釈を表示
+# ==========================================
 st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
 # ==========================================
-# 🏠 まだ結果が計算されていない初期状態の画面
+# 4. まだ結果が計算されていない初期状態の画面
 # ==========================================
 if "chart_data" not in st.session_state:
     st.markdown("---")
-    st.markdown(f"# {t['page_title']}")
+    st.markdown(f"### {t['welcome_title']}")  # ここを `welcome_title` に修正
     st.write(t["welcome_desc"])
     
     col1, col2, col3 = st.columns(3)
@@ -140,13 +145,6 @@ if "chart_data" not in st.session_state:
         st.write(t["tra_card_desc"])
     
     st.markdown("---")
-
-# 3. 選択された言語に基づいて `t` を決定
-t = ui_texts[lang]
-
-# 4. メイン画面のタイトルと注釈を綺麗に表示する
-st.markdown(f"# {t['page_title']}")
-st.caption(t["disclaimer"])
 
 # 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
