@@ -656,6 +656,16 @@ def calculate_composite_bodies(bodies_p1, bodies_p2):
     composite_aspects = calculate_aspects(composite_bodies) # ← 既存の関数名をここに指定
     
     # 天体リストとアスペクトリストの両方を返すようにする
+
+    # 🔍 ここにデバッグ用のprintを追加してみる
+    print("--- デバッグ: コンポジット天体リスト ---")
+    print(composite_bodies)
+    
+    composite_aspects = calculate_aspects(composite_bodies)
+    
+    print("--- デバッグ: 計算されたアスペクト結果 ---")
+    print(composite_aspects)
+    
     return composite_bodies, composite_aspects
     
 def detect_patterns(bodies, mode="日本語"):
