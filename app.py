@@ -403,8 +403,6 @@ if submit_button:
             # ── 3. コンポジット（合成図）モードの場合 ──
             elif is_composite:
                 # 2人分のデータを取得して合成計算
-                
-                # 1人目のチャートデータを取得
                 data1 = get_chart_data(
                     p1_data["user_name"],
                     p1_data["birth_date"].year, p1_data["birth_date"].month, p1_data["birth_date"].day,
@@ -413,7 +411,6 @@ if submit_button:
                     p1_data["input_city_name"], lang, toggle_view, unknown_checkbox
                 )
                 
-                # 2人目のチャートデータを取得
                 data2 = get_chart_data(
                     p2_data["user_name"],
                     p2_data["birth_date"].year, p2_data["birth_date"].month, p2_data["birth_date"].day,
@@ -425,11 +422,15 @@ if submit_button:
                 from horoscope_calc import calculate_composite_bodies
                 comp_bodies = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
                 
-                # data に comp_bodies を格納して表示用に渡す
+                # 🌟 ここでデータを保存
                 st.session_state.chart_data = {"type": "composite", "bodies": comp_bodies}
+                st.session_state.user_name = p1_data["user_name"]
+                st.session_state.p2_name = p2_data["user_name"]  # ← 2人目の名前を正しく保存！
                 st.session_state.is_composite = True
+                st.session_state.is_synastry = False
+                st.session_state.is_transit = False
                 
-                st.rerun()             
+                st.rerun()        
 
             # ── 4. シナストリー（相性）モードの場合 ──
             else:
@@ -583,28 +584,58 @@ if "chart_data" in st.session_state:
         st.stop() # トランジットのときはここで通常の描画をストップする
 
     # ==========================================
-    # ☯️ コンポジットモードの場合の画面描画  ★ここに追加！
+    # ☯️ コンポジットモードの場合の画面描画
     # ==========================================
     elif current_is_composite or data.get("type") == "composite":
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
             <h2 style="margin: 0; color: #B8860B;">☯️ {u_name} & {p2_name} のコンポジットチャート</h2>
+            <p style="margin: 10px 0 0 0; font-size: 1.1em; color: #555;">2人の出生図を合成したパートナーシップの象徴</p>
         </div>
         """, unsafe_allow_html=True)
         
         bodies = data.get("bodies", [])
         if bodies:
-            st.markdown("#### ■ コンポジット天体位置" if lang == "日本語" else "#### ■ Composite Bodies")
-            signs_en = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+            tab1, tab2 = st.tabs(["🌟 コンポジット天体位置", "📋 一括コピー"])
             
-            for body in bodies:
-                # すでに辞書型などでデータが整っている場合の描画例
-                st.markdown(f"- **{body.get('name', '')}** : {body.get('sign', '')} `({body.get('deg', '')})`")
+            with tab1:
+                st.markdown("#### ■ コンポジット天体位置" if lang == "日本語" else "#### ■ Composite Bodies")
+                for p in bodies:
+                    st.markdown(f"- {localize_text(convert_to_dms(p), lang)}", unsafe_allow_html=True)
+            
+            with tab2:
+                copy_lines = [f"【コンポジットチャート: {u_name} & {p2_name}】\n"]
+                for p in bodies:
+                    clean_p = re.sub(r'<[^>]+>', '', str(p))
+                    copy_lines.append(f"- {localize_text(convert_to_dms(clean_p), lang)}")
+                
+                full_text = "\n".join(copy_lines)
+                st.code(full_text, language="text")
+                st.download_button(
+                    label="💾 テキストファイルとしてダウンロード / Download as text",
+                    data="\ufeff" + full_text,
+                    file_name=f"composite_{u_name}_{p2_name}.txt",
+                    mime="text/plain;charset=utf-8"
+                )
         else:
             st.info("表示するデータがありません。" if lang == "日本語" else "No data to display.")
             
-        st.stop() # コンポジットのときもここで通常のシングル描画をストップ
+        # フッターのnote・質問箱リンク
+        st.divider()
+        st.markdown(f"""
+        <div style="background-color: var(--secondary-background-color); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
+        <h3 style="margin-top: 0; color: var(--text-color);">❕ 何かお気づきの点がありましたら</h3>
+        <p style="color: var(--text-color);">今回のホロスコープのより詳しい解説は、noteの方で発信しています。</p>
+        <a href="https://note.com/marroscorps" target="_blank" style="text-decoration: none; display: inline-block; margin-top: 15px;">
+        <button style="background-color: #41d1a7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 290px;">
+        noteをチェックする / Visit Note
+        </button>
+        </a>
+        </div>
+        """, unsafe_allow_html=True)
+        st.write("")
+        
+        st.stop() # コンポジットの処理が終わったらここでストップ
 
     if not current_is_synastry:
         display_loc_str = data['loc_str']
