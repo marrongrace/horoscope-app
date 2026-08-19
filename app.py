@@ -601,28 +601,32 @@ if "chart_data" in st.session_state:
             "South Node": "ドラゴンテイル", "Chiron": "キロン"
         }
 
-        # 🌟 タブは天体位置とアスペクトのみにする
         tab1, tab2 = st.tabs(["🌟 コンポジット天体位置", "🔗 アスペクト"])
         
         with tab1:
             if bodies:
                 st.markdown("#### ■ コンポジット天体位置" if lang == "日本語" else "#### ■ Composite Bodies")
                 for body in bodies:
-                    raw_name = body.get('key', '')
-                    raw_sign = body.get('sign', '')
-                    deg_val = body.get('degree', 0)
-                    
-                    d = int(deg_val)
-                    m = round((deg_val - d) * 60)
-                    if m == 60:
-                        d += 1
-                        m = 0
-                    deg_str = f"{d}°{m:02d}'"
-                    
-                    disp_name = body_map.get(raw_name, raw_name) if lang == "日本語" else raw_name
-                    disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
-                    
-                    st.markdown(f"- **{disp_name}** : {disp_sign} `{deg_str}`")
+                    # 🌟 辞書型か文字列型かを判定して安全に処理する
+                    if isinstance(body, dict):
+                        raw_name = body.get('key', '')
+                        raw_sign = body.get('sign', '')
+                        deg_val = body.get('degree', 0)
+                        
+                        d = int(deg_val)
+                        m = round((deg_val - d) * 60)
+                        if m == 60:
+                            d += 1
+                            m = 0
+                        deg_str = f"{d}°{m:02d}'"
+                        
+                        disp_name = body_map.get(raw_name, raw_name) if lang == "日本語" else raw_name
+                        disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
+                        
+                        st.markdown(f"- **{disp_name}** : {disp_sign} `{deg_str}`")
+                    else:
+                        # すでに文字列になっている場合のフォールバック
+                        st.markdown(f"- {localize_text(convert_to_dms(str(body)), lang)}")
             else:
                 st.info("表示するデータがありません。" if lang == "日本語" else "No data to display.")
 
@@ -639,23 +643,26 @@ if "chart_data" in st.session_state:
 
         st.divider()
 
-        # 📋 一括コピー（他のチャートと同様に結果画面の下側に配置）
+        # 📋 一括コピー（結果画面の下側）
         with st.expander("📋 結果をテキストで一括コピー / Copy All Results"):
             copy_lines = [f"【コンポジットチャート: {u_name} & {p2_name}】\n", "[コンポジット天体位置]"]
             for body in bodies:
-                raw_name = body.get('key', '')
-                raw_sign = body.get('sign', '')
-                deg_val = body.get('degree', 0)
-                d = int(deg_val)
-                m = round((deg_val - d) * 60)
-                if m == 60:
-                    d += 1
-                    m = 0
-                deg_str = f"{d}°{m:02d}'"
-                
-                disp_name = body_map.get(raw_name, raw_name) if lang == "日本語" else raw_name
-                disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
-                copy_lines.append(f"- {disp_name} : {disp_sign} ({deg_str})")
+                if isinstance(body, dict):
+                    raw_name = body.get('key', '')
+                    raw_sign = body.get('sign', '')
+                    deg_val = body.get('degree', 0)
+                    d = int(deg_val)
+                    m = round((deg_val - d) * 60)
+                    if m == 60:
+                        d += 1
+                        m = 0
+                    deg_str = f"{d}°{m:02d}'"
+                    
+                    disp_name = body_map.get(raw_name, raw_name) if lang == "日本語" else raw_name
+                    disp_sign = sign_map.get(raw_sign, raw_sign) if lang == "日本語" else raw_sign
+                    copy_lines.append(f"- {disp_name} : {disp_sign} ({deg_str})")
+                else:
+                    copy_lines.append(f"- {str(body)}")
             
             full_text = "\n".join(copy_lines)
             st.code(full_text, language="text")
