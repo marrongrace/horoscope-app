@@ -63,6 +63,7 @@ ui_texts = {
         "invalid_loc_error": "有効な地名を入力してください（県内に存在しません）",
         # 🌟 初期画面用の説明文（タイトル行は削除）
         "welcome_desc": "左側のサイドバーから出生データと鑑定モードを選択し、「✨ ホロスコープを作る」ボタンを押してください。",
+        "mobile_tip": "スマホやタブレットをご利用の方は、画面左上の `>>` をタップするとサイドバーを開くことができます。",
         "natal_card_title": "🔮 ネイタル（出生図）",
         "natal_card_desc": "生まれた瞬間の星の配置から、あなたの本質、才能、人生のテーマを深く読み解きます。",
         "syn_card_title": "💕 シナストリー（相性）",
@@ -104,6 +105,7 @@ ui_texts = {
         "invalid_loc_error": "Please enter a valid location within the prefecture.",
         # 🌟 初期画面用の説明文（タイトル行は削除）
         "welcome_desc": "Please input your birth data and select a reading mode from the sidebar, then click '✨ Create Horoscope'.",
+        "mobile_tip": "If you are using a smartphone or tablet, tap the `>>` at the top left to open the sidebar.",
         "natal_card_title": "🔮 Natal Horoscope",
         "natal_card_desc": "Explores your core essence, talents, and life themes based on the planetary positions at birth.",
         "syn_card_title": "💕 Synastry (Compatibility)",
