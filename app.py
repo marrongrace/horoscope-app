@@ -143,11 +143,11 @@ if "chart_data" not in st.session_state:
     st.info(t["mobile_tip"])
     st.markdown("")
     st.markdown("")
-    st.markdown("")
 
     # 稍微余白を開けて「チャート紹介」の見出しを入れる
     st.markdown("")
     st.markdown(f"### {t['chart_intro_heading']}")
+    st.markdown("")
     st.markdown("")
 
     
