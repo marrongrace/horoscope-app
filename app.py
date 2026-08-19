@@ -281,7 +281,6 @@ with st.sidebar:
     if is_transit:
         st.markdown("---")
         st.subheader("🌌 トランジット設定" if lang == "日本語" else "🌌 Transit Settings")
-        st.caption("※ アスペクトはオーブ（誤差）が狭い順（影響が強い順）に並んでいます。")
         
         import datetime
         from zoneinfo import ZoneInfo
@@ -459,6 +458,7 @@ if "chart_data" in st.session_state:
         st.divider()
         st.subheader("🌌 トランジット分析結果" if lang == "日本語" else "🌌 Transit Reading")
         st.write(f"📅 対象日時: {data['transit'].get('transit_date', '')}")
+        st.caption("※ アスペクトはオーブ（誤差）が狭い順（影響が強い順）に並んでいます。")
         
         t_col1, t_col2 = st.columns(2)
         with t_col1:
