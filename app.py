@@ -31,7 +31,7 @@ BASE_PREFECTURES = [
 st.sidebar.markdown(
     """
     <div style="font-size: 0.85em; color: gray; margin-bottom: 5px; text-align: left;">
-        Produced by まろんぐらっせ <br><span style="font-size: 0.85em;">(maronglace)</span>
+        Produced by まろんぐらっせ <br><span style="font-size: 1.0em;">(maronglace)</span>
     </div>
     """,
     unsafe_allow_html=True
