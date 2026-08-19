@@ -581,7 +581,7 @@ if "chart_data" in st.session_state:
     # ☯️ コンポジットモードの場合の画面描画
     # ==========================================
     elif current_is_composite or data.get("type") == "composite":
-        st.error("ここを通っています！")
+        st.write("🔍 デバッグ用 data の中身:", data)
         st.markdown(f"""
         <div style="padding: 20px; border: 2px solid #D4AF37; border-radius: 12px; background: linear-gradient(135deg, rgba(212,175,55,0.05), rgba(75,0,130,0.05)); text-align: center; margin-bottom: 25px;">
             <h2 style="margin: 0; color: #B8860B;">☯️ {u_name} & {p2_name} のコンポジットチャート</h2>
