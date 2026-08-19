@@ -136,6 +136,9 @@ if "chart_data" not in st.session_state:
     st.markdown("---")
     st.write(t["welcome_desc"])  # 初期画面の案内文
     st.markdown("") # 少し余白を開ける
+    
+    # スマホ向けのヒントを分かりやすく表示
+    st.info(t["mobile_tip"])
     st.markdown("")
     
     # 縦に4つのモードを順番に配置する
