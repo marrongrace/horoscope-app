@@ -281,6 +281,7 @@ with st.sidebar:
     if is_transit:
         st.markdown("---")
         st.subheader("🌌 トランジット設定" if lang == "日本語" else "🌌 Transit Settings")
+        st.caption("※ アスペクトはオーブ（誤差）が狭い順（影響が強い順）に並んでいます。")
         
         import datetime
         from zoneinfo import ZoneInfo
