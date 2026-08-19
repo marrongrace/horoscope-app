@@ -404,6 +404,9 @@ if submit_button:
 
                 # 2つの変数で個別に受け取る
                 comp_bodies, comp_aspects = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
+                
+                st.write("👀 【デバッグ】comp_aspectsの中身:", repr(comp_aspects))
+                
                 st.session_state.chart_data = {
                     "type": "composite", 
                     "bodies": comp_bodies,
