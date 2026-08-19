@@ -132,26 +132,24 @@ st.caption(t["disclaimer"])
 # ==========================================
 if "chart_data" not in st.session_state:
     st.markdown("---")
-    st.write(t["welcome_desc"])  # 初期画面の説明文
+    st.write(t["welcome_desc"])  # 初期画面の案内文
+    st.markdown("") # 少し余白を開ける
     
-    # 4つのモードを綺麗に並べるために4カラムに変更
-    col1, col2, col3, col4 = st.columns(4)
+    # 縦に4つのモードを順番に配置する
+    st.markdown(f"#### {t['natal_card_title']}")
+    st.write(t["natal_card_desc"])
+    st.markdown("")
     
-    with col1:
-        st.markdown(f"#### {t['natal_card_title']}")
-        st.write(t["natal_card_desc"])
-        
-    with col2:
-        st.markdown(f"#### {t['syn_card_title']}")
-        st.write(t["syn_card_desc"])
-        
-    with col3:
-        st.markdown(f"#### {t['comp_card_title']}")
-        st.write(t["comp_card_desc"])
-        
-    with col4:
-        st.markdown(f"#### {t['tra_card_title']}")
-        st.write(t["tra_card_desc"])
+    st.markdown(f"#### {t['syn_card_title']}")
+    st.write(t["syn_card_desc"])
+    st.markdown("")
+    
+    st.markdown(f"#### {t['comp_card_title']}")
+    st.write(t["comp_card_desc"])
+    st.markdown("")
+    
+    st.markdown(f"#### {t['tra_card_title']}")
+    st.write(t["tra_card_desc"])
 
 # 先頭に初期選択肢を追加
 PREFECTURES = [t["pref_default"]] + BASE_PREFECTURES
