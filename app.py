@@ -75,7 +75,7 @@ ui_texts = {
         "disclaimer": "※ Minor discrepancies in house degrees may occur due to calculation libraries or coordinate settings.",
         "sidebar_header": "📝 Birth Data Input",
         "mode_select": "🔮 Reading Mode",
-        "mode_options": ["Single Horoscope", "Synastry (Compatibility)", "Composit", "Transit"],
+        "mode_options": ["Single Horoscope", "Synastry (Compatibility)", "Composite", "Transit"],
         "transit_header": "🌌 Transit Settings",
         "p1_header": "p1",
         "p2_header": "p2",
@@ -315,7 +315,7 @@ with st.sidebar:
         
     # 2人目の入力（シナストリー選択時のみ表示）
     p2_data = None
-    if is_synastry:
+    if is_synastry or is_composite:
         p2_data = render_user_input_form("p2", "TestUser2", show_header=True)
 
     st.markdown("---")
