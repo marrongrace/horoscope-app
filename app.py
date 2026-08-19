@@ -328,7 +328,7 @@ with st.sidebar:
     # 自分の名義
     st.sidebar.markdown(
         """
-        <div style="font-size: 0.85em; color: gray; margin-bottom: 5px; text-align: left;">
+        <div style="font-size: 0.85em; color: gray; margin-bottom: 40px; text-align: left;">
         Prodected by まろんぐらっせ <br><span style="font-size: 1.0em;">(maronglace)</span>
         </div>
         """,
