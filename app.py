@@ -401,8 +401,14 @@ if submit_button:
                 )
                 
                 from horoscope_calc import calculate_composite_bodies, calculate_aspects
-                # calculate_composite_bodies が返すのは天体リスト（1つの戻り値）を想定
-                comp_bodies = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
+                
+                # 2つの変数で個別に受け取る
+                comp_bodies, comp_aspects = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
+                st.session_state.chart_data = {
+                    "type": "composite", 
+                    "bodies": comp_bodies,
+                    "aspects": comp_aspects
+                }
                 
                 # アスペクトを安全に計算
                 try:
