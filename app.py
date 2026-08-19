@@ -3,6 +3,12 @@ import os
 import re
 import pytz
 import streamlit as st
+
+# 🌟 ここでモジュールごとインポートして、ファイルパスを画面に出してみる
+import horoscope_calc
+st.write("📂 今読み込んでいるファイル:", horoscope_calc.__file__)
+
+# 個別の関数はこれまで通り使えるようにインポート（あるいは horoscope_calc.関数名 として呼び出す）
 from horoscope_calc import validate_and_get_coords, get_chart_data, EPHE_PATH, get_cities_for_prefecture
 
 # get_synastry_data が horoscope_calc に無い場合の安全対策
@@ -401,9 +407,6 @@ if submit_button:
                 )
                 
                 from horoscope_calc import calculate_composite_bodies, calculate_aspects
-
-                # コンポジットを計算するボタンや処理のブロックの先頭あたり
-                st.write("🔥 ここを通っているはず！")
 
                 # 2つの変数で個別に受け取る
                 comp_bodies, comp_aspects = calculate_composite_bodies(data1["bodies_raw"], data2["bodies_raw"])
