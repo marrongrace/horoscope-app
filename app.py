@@ -117,6 +117,7 @@ lang = st.sidebar.selectbox("Language / 言語", ["日本語", "English"], key="
 t = ui_texts.get(lang, ui_texts["日本語"])
 
 # 4. メイン画面のタイトルと注釈を綺麗に表示する
+st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
 # ==========================================
