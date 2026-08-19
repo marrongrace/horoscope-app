@@ -213,7 +213,7 @@ def render_user_input_form(prefix, default_name, show_header=True):
     input_lng = st.number_input(t["lng_input"], value=st.session_state[f"{prefix}_input_lng_val"], format="%.4f", key=lng_key)
 
     st.caption("※1 緯度・経度は十進数表記です" if lang == "日本語" else "* Please enter coordinates in decimal degrees")
-    st.markdown("---")
+    # st.markdown("---")
 
     return {
         "user_name": user_name,
