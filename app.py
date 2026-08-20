@@ -939,41 +939,45 @@ if "chart_data" in st.session_state:
 
             # --- ★ ハウスルーラーを綺麗に整形する共通関数 ---
             def clean_and_format_ruler(r_line, current_lang):
-                formatted_line = clean_html(r_line).replace("->", "→").replace("➡️", "→").strip()
+                # HTMLの除去や前後の空白、余計なハイフンを綺麗に掃除する
+                cleaned = clean_html(r_line).replace("->", "→").replace("➡️", "→").strip()
+                cleaned = cleaned.lstrip("-").strip() # 先頭のハイフンがあれば取り除く
                 
-                if "：" in formatted_line:
-                    prefix, body = formatted_line.split("：", 1)
-                elif ":" in formatted_line:
-                    prefix, body = formatted_line.split(":", 1)
-                else:
-                    prefix, body = "", formatted_line
+                # 先頭の「第〇ハウス」を確実に抽出
+                prefix_match = re.search(r'(第\d+ハウス)', cleaned)
+                prefix = prefix_match.group(1) if prefix_match else "第1ハウス"
+                
+                separator = "：" if current_lang == "日本語" else ": "
 
-                mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', body)
-                has_loop_text = "ループ" in formatted_line or "サーキット" in formatted_line
-
+                # ミューチュアル・レセプションの判定
+                mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', cleaned)
+                
                 if mutual_match:
                     h1 = mutual_match.group(1)
                     h2 = mutual_match.group(2)
                     match_end = mutual_match.end()
-                    loop_part = body[:match_end]
+                    loop_part = cleaned[:match_end]
                     
                     n1 = int(re.search(r'\d+', h1).group())
                     n2 = int(re.search(r'\d+', h2).group())
                     min_n, max_n = min(n1, n2), max(n1, n2)
                     
                     if current_lang == "日本語":
-                        formatted_line = f"{prefix}：{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
+                        formatted_line = f"{prefix}{separator}{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
                     else:
                         formatted_line = f"{prefix}: {loop_part} (Mutual Reception between {min_n}th and {max_n}th Houses)"
-                        
-                elif has_loop_text:
-                    if " → " in formatted_line:
-                        separator = "：" if current_lang == "日本語" else ": "
-                        formatted_line = formatted_line.replace(" → ", separator, 1)
                 else:
-                    if " → " in formatted_line:
-                        separator = "：" if current_lang == "日本語" else ": "
-                        formatted_line = formatted_line.replace(" → ", separator, 1)
+                    # すでにコロンが含まれている場合（第9ハウスのドミサイルなど）
+                    if "：" in cleaned or ":" in cleaned:
+                        parts = re.split(r'[：:]', cleaned, 1)
+                        if len(parts) == 2:
+                            b_part = parts[1].strip()
+                            formatted_line = f"{prefix}{separator}{b_part}"
+                        else:
+                            formatted_line = f"{prefix}{separator}{cleaned}"
+                    else:
+                        # コロンがない通常ラインの場合
+                        formatted_line = f"{prefix}{separator}{cleaned}"
 
                 return localize_text(formatted_line, current_lang)
 
