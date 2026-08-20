@@ -937,6 +937,46 @@ if "chart_data" in st.session_state:
                 text = localize_text(text, lang)
                 return text
 
+            # --- ★ ハウスルーラーを綺麗に整形する共通関数 ---
+            def clean_and_format_ruler(r_line, current_lang):
+                formatted_line = clean_html(r_line).replace("->", "→").replace("➡️", "→").strip()
+                
+                if "：" in formatted_line:
+                    prefix, body = formatted_line.split("：", 1)
+                elif ":" in formatted_line:
+                    prefix, body = formatted_line.split(":", 1)
+                else:
+                    prefix, body = "", formatted_line
+
+                mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', body)
+                has_loop_text = "ループ" in formatted_line or "サーキット" in formatted_line
+
+                if mutual_match:
+                    h1 = mutual_match.group(1)
+                    h2 = mutual_match.group(2)
+                    match_end = mutual_match.end()
+                    loop_part = body[:match_end]
+                    
+                    n1 = int(re.search(r'\d+', h1).group())
+                    n2 = int(re.search(r'\d+', h2).group())
+                    min_n, max_n = min(n1, n2), max(n1, n2)
+                    
+                    if current_lang == "日本語":
+                        formatted_line = f"{prefix}：{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
+                    else:
+                        formatted_line = f"{prefix}: {loop_part} (Mutual Reception between {min_n}th and {max_n}th Houses)"
+                        
+                elif has_loop_text:
+                    if " → " in formatted_line:
+                        separator = "：" if current_lang == "日本語" else ": "
+                        formatted_line = formatted_line.replace(" → ", separator, 1)
+                else:
+                    if " → " in formatted_line:
+                        separator = "：" if current_lang == "日本語" else ": "
+                        formatted_line = formatted_line.replace(" → ", separator, 1)
+
+                return localize_text(formatted_line, current_lang)
+
             copy_lines = []
             if lang == "日本語":
                 copy_lines.append(f"【ホロスコープ鑑定データ: {u_name}】")
@@ -975,7 +1015,8 @@ if "chart_data" in st.session_state:
                     )
                     
                     for r_line in target_rulers_for_copy:
-                        formatted_r = clean_html(r_line).replace('➡️', '->')
+                        # ★ ここで共通関数を使って綺麗に整形する
+                        formatted_r = clean_and_format_ruler(r_line, "日本語")
                         copy_lines.append(f"- {formatted_r}")
 
                 copy_lines.append("\n[主要アスペクト]")
@@ -994,6 +1035,7 @@ if "chart_data" in st.session_state:
                         clean_m = clean_html(m_line).lstrip("- ").strip()
                         copy_lines.append(f"- {clean_m}")
             else:
+                # 英語モードの処理
                 copy_lines.append(f"[Horoscope Reading Data: {u_name}]")
                 
                 if not hide_dt_loc:
@@ -1020,10 +1062,7 @@ if "chart_data" in st.session_state:
 
                 if data.get("house_rulers"):
                     ruler_mode_raw = st.session_state.get("ruler_mode_radio", "Without 5-degree rule")
-                    if ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"]:
-                        ruler_mode_en = "Without 5-degree rule"
-                    else:
-                        ruler_mode_en = "With 5-degree rule"
+                    ruler_mode_en = "Without 5-degree rule" if ruler_mode_raw in ["5度前ルール適用なし", "Without 5-degree rule"] else "With 5-degree rule"
                     
                     copy_lines.append(f"\n[House Rulers ({ruler_mode_en})]")
                     
@@ -1035,7 +1074,8 @@ if "chart_data" in st.session_state:
                     )
                     
                     for r_line in target_rulers_for_copy:
-                        formatted_r = clean_html(r_line).replace('➡️', '->')
+                        # ★ 英語モード用の共通関数呼び出し
+                        formatted_r = clean_and_format_ruler(r_line, "英語")
                         copy_lines.append(f"- {formatted_r}")
 
                 copy_lines.append("\n[Main Aspects]")
