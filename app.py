@@ -859,20 +859,35 @@ if "chart_data" in st.session_state:
                 for r_line in target_rulers:
                     formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
                     
-                    # 1. 【2ハウス間の往復ループ】の判定（例: 11 → 12 → 11）
-                    mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', formatted_line)
+                    # プレフィックス（例: 「第12ハウス」）と本体（例: 「第12ハウス → 第11ハウス → ...」）に分解
+                    if "：" in formatted_line:
+                        prefix, body = formatted_line.split("：", 1)
+                    elif ":" in formatted_line:
+                        prefix, body = formatted_line.split(":", 1)
+                    else:
+                        prefix, body = "", formatted_line
+
+                    # 1. 【2ハウス間の往復ループ】の判定（例: 第12ハウス → 第11ハウス → 第12ハウス）
+                    mutual_match = re.search(r'((第\d+ハウス) → (第\d+ハウス) → \1)', body)
                     
-                    # 2. 【3つ以上のハウスを巡るループ / 末尾に「(以降...とのループ)」があるケース】の判定
+                    # 2. 【3つ以上のハウスを巡るループ】の判定
                     has_loop_text = "ループ" in formatted_line or "サーキット" in formatted_line
 
                     if mutual_match:
-                        # 2ハウス間のミューチュアル・レセプションとして綺麗に置換
-                        h1 = mutual_match.group(1)
-                        h2 = mutual_match.group(2)
+                        h1 = mutual_match.group(2)
+                        h2 = mutual_match.group(3) if len(mutual_match.groups()) >= 3 else mutual_match.group(1)
+                        match_end = mutual_match.end()
+                        loop_part = body[:match_end] # ループが完了した部分までの軌跡
+                        
+                        # ハウス番号を抽出して若い順に並べることで表記を綺麗に統一
+                        n1 = int(re.search(r'\d+', h1).group())
+                        n2 = int(re.search(r'\d+', h2).group())
+                        min_n, max_n = min(n1, n2), max(n1, n2)
+                        
                         if lang == "日本語":
-                            formatted_line = f"{h1}・{h2}でミューチュアル・レセプション"
+                            formatted_line = f"{prefix}：{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
                         else:
-                            formatted_line = f"Mutual Reception between {h1} and {h2}"
+                            formatted_line = f"{prefix}: {loop_part} (Mutual Reception between {min_n}th and {max_n}th Houses)"
                             
                     elif has_loop_text:
                         # 複数ハウスを巡るループの場合
