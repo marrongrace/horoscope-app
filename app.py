@@ -868,14 +868,15 @@ if "chart_data" in st.session_state:
                         prefix, body = "", formatted_line
 
                     # 1. 【2ハウス間の往復ループ】の判定（例: 第12ハウス → 第11ハウス → 第12ハウス）
-                    mutual_match = re.search(r'((第\d+ハウス) → (第\d+ハウス) → \1)', body)
+                    # ※外側のカッコを外し、\1 が最初のグループを正しく参照できるように修正
+                    mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', body)
                     
                     # 2. 【3つ以上のハウスを巡るループ】の判定
                     has_loop_text = "ループ" in formatted_line or "サーキット" in formatted_line
 
                     if mutual_match:
-                        h1 = mutual_match.group(2)
-                        h2 = mutual_match.group(3) if len(mutual_match.groups()) >= 3 else mutual_match.group(1)
+                        h1 = mutual_match.group(1)
+                        h2 = mutual_match.group(2)
                         match_end = mutual_match.end()
                         loop_part = body[:match_end] # ループが完了した部分までの軌跡
                         
