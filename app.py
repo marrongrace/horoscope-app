@@ -857,44 +857,36 @@ if "chart_data" in st.session_state:
                     )
 
                 for r_line in target_rulers:
-                formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
-                
-                # 1. 【2ハウス間の往復ループ】の判定（例: 11 → 12 → 11）
-                mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', formatted_line)
-                
-                # 2. 【3つ以上のハウスを巡るループ / 末尾に「(以降...とのループ)」があるケース】の判定
-                has_loop_text = "ループ" in formatted_line or "サーキット" in formatted_line
+                    formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
+                    
+                    # 1. 【2ハウス間の往復ループ】の判定（例: 11 → 12 → 11）
+                    mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', formatted_line)
+                    
+                    # 2. 【3つ以上のハウスを巡るループ / 末尾に「(以降...とのループ)」があるケース】の判定
+                    has_loop_text = "ループ" in formatted_line or "サーキット" in formatted_line
 
-                if mutual_match:
-                    # 2ハウス間のミューチュアル・レセプションとして綺麗に置換
-                    h1 = mutual_match.group(1)
-                    h2 = mutual_match.group(2)
-                    if lang == "日本語":
-                        formatted_line = f"{h1}・{h2}でミューチュアル・レセプション"
+                    if mutual_match:
+                        # 2ハウス間のミューチュアル・レセプションとして綺麗に置換
+                        h1 = mutual_match.group(1)
+                        h2 = mutual_match.group(2)
+                        if lang == "日本語":
+                            formatted_line = f"{h1}・{h2}でミューチュアル・レセプション"
+                        else:
+                            formatted_line = f"Mutual Reception between {h1} and {h2}"
+                            
+                    elif has_loop_text:
+                        # 複数ハウスを巡るループの場合
+                        if " → " in formatted_line:
+                            separator = "：" if lang == "日本語" else ": "
+                            formatted_line = formatted_line.replace(" → ", separator, 1)
                     else:
-                        formatted_line = f"Mutual Reception between {h1} and {h2}"
-                        
-                elif has_loop_text:
-                    # 複数ハウスを巡るループの場合
-                    # 例: 「第2ハウス：第2ハウス → 第6ハウス → 第3ハウス → 第5ハウス → 第8ハウス → 第5ハウス (以降 第5ハウスとのループ)」
-                    # ここはお好みでそのまま表示するか、少しデザインを整える
-                    if lang == "日本語":
-                        # 必要に応じて文字を整えたり、そのまま通したりできます
-                        pass
-                    else:
-                        pass
-                    # そのまま（または整形して）通す
-                    if " → " in formatted_line:
-                        separator = "：" if lang == "日本語" else ": "
-                        formatted_line = formatted_line.replace(" → ", separator, 1)
-                else:
-                    # 通常のハウス連鎖（ドミサイルや直通パターン）
-                    if " → " in formatted_line:
-                        separator = "：" if lang == "日本語" else ": "
-                        formatted_line = formatted_line.replace(" → ", separator, 1)
+                        # 通常のハウス連鎖（ドミサイルや直通パターン）
+                        if " → " in formatted_line:
+                            separator = "：" if lang == "日本語" else ": "
+                            formatted_line = formatted_line.replace(" → ", separator, 1)
 
-                formatted_line = localize_text(formatted_line, lang)
-                st.markdown(f"- {formatted_line}")
+                    formatted_line = localize_text(formatted_line, lang)
+                    st.markdown(f"- {formatted_line}")
             else:
                 st.info("*(出生時間不明のためハウスルーラー除外)*" if lang == "日本語" else "*(House rulers excluded due to unknown birth time)*")
                 
