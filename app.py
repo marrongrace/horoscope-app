@@ -149,7 +149,7 @@ col1, col2 = st.columns([0.5, 6])
 
 with col1:
     # 画像の幅も少し調整
-    st.markdown('<div style="margin-top: 1px;">', unsafe_allow_html=True)
+    st.markdown('<div style="margin-top: 0px;">', unsafe_allow_html=True)
     st.image("Horo_logo.png", width=60) 
 
 with col2:
