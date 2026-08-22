@@ -434,7 +434,7 @@ with st.sidebar:
     
     # --- SNSシェアボタンの生成 ---
     share_text = urllib.parse.quote("「HoroNote」-ホロスコープ情報書き出しアプリ- #HoroNote")
-    app_url = urllib.parse.quote("https://horonote.streamlit.app/#horo-note") # ←公開用URLに変更
+    app_url = urllib.parse.quote("https://horonote.streamlit.app/#horo-note") # ←公開用URL
 
     # 各SNS・サービスのシェア用URL
     x_share_url = f"https://twitter.com/intent/tweet?text={share_text}&url={app_url}"
@@ -446,24 +446,26 @@ with st.sidebar:
 
     st.markdown(f"""
         <style>
-            .share-buttons-container {{
-                display: flex;
-                gap: 5px;
+            .share-buttons-grid {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr); /* 均等な幅で3列に配置 */
+                gap: 6px; /* ボタン同士の隙間 */
                 margin-top: 1.2rem;
                 margin-bottom: 0.8rem;
-                flex-wrap: wrap;
             }}
             .share-btn {{
-                display: inline-flex;
+                display: flex;
                 align-items: center;
                 justify-content: center;
-                padding: 4px 6px;
+                padding: 6px 2px;
                 border-radius: 4px;
-                font-size: 0.7rem;
+                font-size: 0.65rem; /* 長い名称も綺麗に収まるよう文字サイズを調整 */
                 font-weight: 600;
                 color: #ffffff !important;
                 text-decoration: none !important;
                 transition: opacity 0.2s;
+                text-align: center;
+                white-space: nowrap; /* 文字が勝手に改行されないようにする */
             }}
             .share-btn:hover {{
                 opacity: 0.85;
@@ -477,13 +479,13 @@ with st.sidebar:
         </style>
 
         <div style="font-size: 0.8em; color: gray; margin-top: 25px;">＼ 成果をシェアする ／</div>
-        <div class="share-buttons-container">
-            <a href="{x_share_url}" target="_blank" class="share-btn btn-x">𝕏</a>
+        <div class="share-buttons-grid">
+            <a href="{x_share_url}" target="_blank" class="share-btn btn-x">𝕏 シェア</a>
             <a href="{line_share_url}" target="_blank" class="share-btn btn-line">LINE</a>
-            <a href="{fb_share_url}" target="_blank" class="share-btn btn-fb">FB</a>
+            <a href="{fb_share_url}" target="_blank" class="share-btn btn-fb">Facebook</a>
             <a href="{bsky_share_url}" target="_blank" class="share-btn btn-bsky">Bluesky</a>
             <a href="{threads_share_url}" target="_blank" class="share-btn btn-threads">Threads</a>
-            <a href="{pinterest_share_url}" target="_blank" class="share-btn btn-pinterest">Pin</a>
+            <a href="{pinterest_share_url}" target="_blank" class="share-btn btn-pinterest">Pinterest</a>
         </div>
     """, unsafe_allow_html=True)
     # -----------------------------
