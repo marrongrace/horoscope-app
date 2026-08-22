@@ -162,7 +162,7 @@ with col2:
                 align-items: baseline;
                 flex-wrap: wrap;
                 margin-bottom: 0.5rem;
-                margin-left: -15px; /* ここでタイトル全体をロゴ側に寄せる */
+                margin-left: -12px; /* ここでタイトル全体をロゴ側に寄せる */
             }}
             .sub-title {{
                 font-size: 1.1rem;
