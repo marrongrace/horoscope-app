@@ -149,7 +149,7 @@ col1, col2 = st.columns([1, 6]) # 比率はロゴの大きさ次第で調整し�
 
 with col1:
     # ここに画像URLを指定してください
-    st.image(https://github.com/marrongrace/horoscope-app/blob/main/Horo_logo.png, width=70) 
+    st.image(Horo_logo.png, width=70) 
 
 with col2:
     st.markdown(f"""
