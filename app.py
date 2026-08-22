@@ -19,6 +19,11 @@ st.set_page_config(
     layout="centered",
 )
 
+# スマホのホーム画面用アイコン設定をHTMLインジェクションで追加
+st.markdown(f"""
+    <link rel="apple-touch-icon" href="{icon_url}">
+""", unsafe_allow_html=True)
+
 BASE_PREFECTURES = [
     "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
     "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
