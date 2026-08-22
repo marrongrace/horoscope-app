@@ -14,7 +14,7 @@ except ImportError:
 icon_url = "https://github.com/marrongrace/horoscope-app/blob/main/Horo_logo.png" # 取得した画像URLに差し替えてください
 
 st.set_page_config(
-    page_title="🔮 HoroNote -ホロスコープ情報書き出しアプリ- / Horoscope Information Export System",
+    page_title="HoroNote -ホロスコープ情報書き出しアプリ- / Horoscope Information Export System",
     page_icon=icon_url, # ここをURLに指定
     layout="centered",
 )
@@ -42,7 +42,7 @@ ui_texts = {
     "日本語": {
         "app_name": "HoroNote",
         "app_subtitle": "- ホロスコープ情報書き出しアプリ -",
-        "page_title": "🔮 HoroNote",
+        "page_title": "HoroNote",
         "page_subtitle": "- ホロスコープ情報書き出しアプリ -",
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
@@ -122,7 +122,7 @@ ui_texts = {
         "welcome_desc": "Please input your birth data and select a reading mode from the sidebar, then click '✨ Create Horoscope'.",
         "mobile_tip": "If you are using a smartphone, tap the `>>` at the top left to open the sidebar.",
         "chart_intro_heading": "📊 Chart Overview",
-        "natal_card_title": "🔮 Natal Horoscope",
+        "natal_card_title": "HoroNote",
         "natal_card_desc": "Explores your core essence, talents, and life themes based on the planetary positions at birth.",
         "syn_card_title": "💕 Synastry (Compatibility)",
         "syn_card_desc": "Compares two charts to analyze relationship compatibility and the energy exchange between two people.",
@@ -159,7 +159,7 @@ st.markdown(f"""
             font-size: 1.1rem;
             color: #888888;
             font-weight: 600;
-            margin-left: 6px;
+            margin-left: 10px;
         }}
 
         /* スマホやタブレットなど（横幅が768px以下の画面） */
