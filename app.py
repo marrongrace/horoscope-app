@@ -144,16 +144,16 @@ t = ui_texts.get(lang, ui_texts["日本語"])
 # 3. メイン画面のタイトルと注釈を表示
 # ==========================================
 
-# 1. カラムを作成（左にロゴ、右にテキスト）
-col1, col2 = st.columns([1, 6]) # 比率はロゴの大きさ次第で調整してください
+# 1. カラムを作成（比率を [0.5, 6] にしてロゴの幅を詰める）
+col1, col2 = st.columns([0.5, 6]) 
 
 with col1:
-    # ここに画像URLを指定してください
-    st.image("Horo_logo.png", width=70) 
+    # 画像の幅も少し調整
+    st.image("Horo_logo.png", width=60) 
 
 with col2:
+    # CSSに margin-left: -20px を追加して強制的に左へ寄せる
     st.markdown(f"""
-        <!-- Google FontsからMontserratを読み込む -->
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
         
         <style>
@@ -162,7 +162,7 @@ with col2:
                 align-items: baseline;
                 flex-wrap: wrap;
                 margin-bottom: 0.5rem;
-                margin-right: 10px;
+                margin-left: -20px; /* ここでタイトル全体をロゴ側に寄せる */
             }}
             .sub-title {{
                 font-size: 1.1rem;
@@ -171,10 +171,10 @@ with col2:
                 margin-left: 6px;
             }}
 
-            /* スマホ対応 */
             @media (max-width: 768px) {{
                 .title-container {{
                     display: block;
+                    margin-left: 0px; /* スマホでは元に戻す */
                 }}
                 .sub-title {{
                     display: block;
