@@ -137,11 +137,17 @@ t = ui_texts.get(lang, ui_texts["日本語"])
 # 3. メイン画面のタイトルと注釈を表示
 # ==========================================
 st.markdown(f"""
-    <div style="display: flex; align-items: baseline; gap: 0px; margin-bottom: 0.5rem;">
+    <style>
+        /* Streamlitのデフォルトのタイトルリンクを非表示にする */
+        h1 a.anchor-link {{
+            display: none !important;
+        }}
+    </style>
+    <div style="display: flex; align-items: baseline; margin-bottom: 0.5rem;">
         <h1 style="font-size: 2.2rem; font-weight: 700; margin: 0; padding: 0;">
             {t['page_title']}
         </h1>
-        <span style="font-size: 1.1rem; color: #888888; font-weight: 600; margin-right: 24px;">
+        <span style="font-size: 1.1rem; color: #888888; font-weight: 500; margin-left: 8px;">
             {t['page_subtitle']}
         </span>
     </div>
