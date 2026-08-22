@@ -12,7 +12,7 @@ except ImportError:
     get_synastry_data = None
 
 st.set_page_config(
-    page_title="🔮 ホロスコープ鑑定書 / Horoscope Reading",
+    page_title="🔮 HoroNote -ホロスコープ情報書き出しアプリ- / Horoscope Reading",
     page_icon="🔮",
     layout="centered",
 )
@@ -34,8 +34,8 @@ st.sidebar.markdown("### 🌐 言語 / Language")
 ui_texts = {
     "日本語": {
         "app_name": "HoroNote",
-        "app_subtitle": "- ホロスコープ情報書き出しシステム -",
-        "page_title": "🔮 HoroNote - ホロスコープ情報書き出しシステム",
+        "app_subtitle": "- ホロスコープ情報書き出しアプリ -",
+        "page_title": "🔮 HoroNote - ホロスコープ情報書き出しアプリ",
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
         "mode_select": "🔮 鑑定モード",
