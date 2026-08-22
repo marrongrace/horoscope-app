@@ -120,7 +120,7 @@ ui_texts = {
         "comp_card_title": "☯️ Composite",
         "comp_card_desc": "Merges two birth charts to analyze the shared dynamic, bonds, and partnership theme.",
         "tra_card_title": "🌌 Transit Reading",
-        "tra_card_desc": "Examines how current planetary movements interact with your natal chart to reveal present influences."
+        "tra_card_desc": "Examines how current planetary movements interact with your natal chart to reveal present influences.",
         "guide_link_text":"For detailed instructions on how to use this app, [click here](https://note.com/marroscorps/n/ncfc7216cd870)"
     }
 }
