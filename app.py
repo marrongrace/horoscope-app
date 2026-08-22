@@ -141,7 +141,7 @@ st.markdown(f"""
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     
     <div style="display: flex; align-items: baseline; margin-bottom: 0.5rem;">
-        <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; margin: 0; padding: 0;">
+        <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; font-family: 'Montserrat', sans-serif;">
             {t['page_title']}
         </span>
         <span style="font-size: 1.1rem; color: #888888; font-weight: 600; margin-left: 6px;">
