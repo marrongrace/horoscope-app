@@ -140,11 +140,39 @@ st.markdown(f"""
     <!-- Google FontsからMontserratを読み込む -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     
-    <div style="display: flex; align-items: baseline; margin-bottom: 0.5rem;">
+    <style>
+        /* デフォルト（PCなどの広い画面）：横並び */
+        .title-container {{
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }}
+        .sub-title {{
+            font-size: 1.1rem;
+            color: #888888;
+            font-weight: 600;
+            margin-left: 6px;
+        }}
+
+        /* スマホやタブレットなど（横幅が768px以下の画面）：自動で改行させる */
+        @media (max-width: 768px) {{
+            .title-container {{
+                display: block;
+            }}
+            .sub-title {{
+                display: block;
+                margin-left: 0px;
+                margin-top: 4px;
+            }}
+        }}
+    </style>
+
+    <div class="title-container">
         <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; font-family: 'Montserrat', sans-serif;">
             {t['page_title']}
         </span>
-        <span style="font-size: 1.1rem; color: #888888; font-weight: 600; margin-left: 6px;">
+        <span class="sub-title">
             {t['page_subtitle']}
         </span>
     </div>
