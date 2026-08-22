@@ -143,7 +143,7 @@ with col1:
 
 with col2:
     # 位置のバランスを合わせたい場合は、HTMLのスタイルで上下の位置を微調整できます
-    st.markdown(f"<div style='margin-top: 15px;'>### {t['page_subtitle']}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='margin-top: 15px;'>{t['page_subtitle']}</div>", unsafe_allow_html=True)
 
 st.caption(t["disclaimer"])
 
