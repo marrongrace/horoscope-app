@@ -137,11 +137,11 @@ t = ui_texts.get(lang, ui_texts["日本語"])
 # 3. メイン画面のタイトルと注釈を表示
 # ==========================================
 st.markdown(f"""
-    <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.5rem;">
-        <h1 style="font-size: 2.2rem; font-weight: 700; margin: 0; padding: 0; display: inline-flex; align-items: center; gap: 8px;">
+    <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 0.5rem;">
+        <h1 style="font-size: 2.2rem; font-weight: 700; margin: 0; padding: 0;">
             {t['page_title']}
         </h1>
-        <span style="font-size: 1.0rem; color: #888888; font-weight: normal; margin-left: 4px;">
+        <span style="font-size: 1.1rem; color: #888888; font-weight: 500;">
             {t['page_subtitle']}
         </span>
     </div>
