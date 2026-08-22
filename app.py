@@ -432,7 +432,7 @@ with st.sidebar:
 
     submit_button = st.button(label=t["submit_btn"], type="primary", key="submit_btn_main")
     
-　　# --- SNSシェアボタンの生成 ---
+    # --- SNSシェアボタンの生成 ---
     share_text = urllib.parse.quote("「HoroNote」-ホロスコープ情報書き出しアプリ- #HoroNote")
     app_url = urllib.parse.quote("https://horonote.streamlit.app/#horo-note") # ←公開用URLに変更
 
