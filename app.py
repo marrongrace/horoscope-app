@@ -147,6 +147,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
+st.markdown("")
 st.caption(t["disclaimer"])
 
 # ==========================================
