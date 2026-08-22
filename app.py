@@ -435,7 +435,7 @@ with st.sidebar:
     st.sidebar.markdown(
         """
         <div style="font-size: 0.85em; color: gray; margin-top: 40px; text-align: left;">
-        Prodected by まろんぐらっせ <br><span style="font-size: 1.0em;">(maronglace)</span>
+        Producted by まろんぐらっせ <br><span style="font-size: 1.0em;">(maronglace)</span>
         </div>
         """,
         unsafe_allow_html=True
