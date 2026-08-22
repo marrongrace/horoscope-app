@@ -143,60 +143,68 @@ t = ui_texts.get(lang, ui_texts["日本語"])
 # ==========================================
 # 3. メイン画面のタイトルと注釈を表示
 # ==========================================
+st.markdown(f"""
+    <!-- Google FontsからMontserratを読み込む -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 全体を綺麗に横並びにして中央揃えにするコンテナ */
+        .header-box {{
+            display: flex;
+            align-items: center; /* 垂直方向の中央揃え */
+            gap: 12px; /* ロゴとタイトルの間の隙間（ここで間隔を調整できます） */
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }}
+        /* ロゴ画像のサイズを「H」の高さ（約2.2remのフォントサイズ）に合わせる */
+        .header-logo {{
+            height: 2.3rem; /* 文字の高さと連動させます */
+            width: auto;   /* 縦横比を維持して変形を防ぐ */
+            border-radius: 6px;
+        }}
+        .title-group {{
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }}
+        .sub-title {{
+            font-size: 1.1rem;
+            color: #888888;
+            font-weight: 600;
+            margin-left: 6px;
+        }}
 
-# 1. カラムを作成（比率を [0.7, 6] にしてロゴの幅を詰める）
-col1, col2 = st.columns([0.7, 6]) 
-
-with col1:
-    # 画像の幅も少し調整
-    # st.markdown('<div style="margin-top: 0.05px;">', unsafe_allow_html=True)
-    st.image("Horo_logo.png", width=60) 
-
-with col2:
-    # CSSに margin-left: -20px を追加して強制的に左へ寄せる
-    st.markdown(f"""
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-        
-        <style>
-            .title-container {{
-                display: flex;
-                align-items: baseline;
-                flex-wrap: wrap;
-                margin-bottom: 0.5rem;
-                margin-left: -12px; /* ここでタイトル全体をロゴ側に寄せる */
+        /* スマホ対応 */
+        @media (max-width: 768px) {{
+            .title-group {{
+                display: block;
             }}
             .sub-title {{
-                font-size: 1.1rem;
-                color: #888888;
-                font-weight: 600;
-                margin-left: 6px;
+                display: block;
+                margin-left: 0px;
+                margin-top: 4px;
+                margin-bottom: 1.2rem; 
             }}
+        }}
+    </style>
 
-            @media (max-width: 768px) {{
-                .title-container {{
-                    display: block;
-                    margin-left: 0px; /* スマホでは元に戻す */
-                }}
-                .sub-title {{
-                    display: block;
-                    margin-left: 0px;
-                    margin-top: 4px;
-                    margin-bottom: 1.2rem; 
-                }}
-            }}
-        </style>
-
-        <div class="title-container">
-            <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; font-family: 'Montserrat', sans-serif;">
+    <div class="header-box">
+        <!-- ロゴ画像 -->
+        <img src="app/static/Horo_logo.png" class="header-logo" alt="Logo">
+        
+        <!-- タイトルとサブタイトル -->
+        <div class="title-group">
+            <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; font-family: 'Montserrat', sans-serif; line-height: 1;">
                 {t['page_title']}
             </span>
             <span class="sub-title">
                 {t['page_subtitle']}
             </span>
         </div>
-    """, unsafe_allow_html=True)
+    </div>
+""", unsafe_allow_html=True)
 
-# 2. 注釈を表示
+# 注釈を表示
 st.caption(t["disclaimer"])
 
 # ==========================================
