@@ -431,19 +431,24 @@ with st.sidebar:
         unknown_checkbox = False
 
     submit_button = st.button(label=t["submit_btn"], type="primary", key="submit_btn_main")
-
+    
+　　# --- SNSシェアボタンの生成 ---
     share_text = urllib.parse.quote("「HoroNote」-ホロスコープ情報書き出しアプリ- #HoroNote")
     app_url = urllib.parse.quote("https://horonote.streamlit.app/#horo-note") # ←公開用URLに変更
 
+    # 各SNS・サービスのシェア用URL
     x_share_url = f"https://twitter.com/intent/tweet?text={share_text}&url={app_url}"
     line_share_url = f"https://social-plugins.line.me/lineit/share?url={app_url}"
     fb_share_url = f"https://www.facebook.com/sharer/sharer.php?u={app_url}"
+    bsky_share_url = f"https://bsky.app/intent/compose?text={share_text}%20{app_url}"
+    threads_share_url = f"https://threads.net/intent/post?text={share_text}%20{app_url}"
+    pinterest_share_url = f"https://pinterest.com/pin/create/button/?url={app_url}&description={share_text}"
 
     st.markdown(f"""
         <style>
             .share-buttons-container {{
                 display: flex;
-                gap: 8px;
+                gap: 5px;
                 margin-top: 1.2rem;
                 margin-bottom: 0.8rem;
                 flex-wrap: wrap;
@@ -452,9 +457,9 @@ with st.sidebar:
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                padding: 5px 10px;
+                padding: 4px 6px;
                 border-radius: 4px;
-                font-size: 0.8rem;
+                font-size: 0.7rem;
                 font-weight: 600;
                 color: #ffffff !important;
                 text-decoration: none !important;
@@ -466,15 +471,22 @@ with st.sidebar:
             .btn-x {{ background-color: #000000; border: 1px solid #333; }}
             .btn-line {{ background-color: #06c755; }}
             .btn-fb {{ background-color: #1877f2; }}
+            .btn-bsky {{ background-color: #0585ee; }}
+            .btn-threads {{ background-color: #101010; border: 1px solid #444; }}
+            .btn-pinterest {{ background-color: #e60023; }}
         </style>
 
         <div style="font-size: 0.8em; color: gray; margin-top: 25px;">＼ 成果をシェアする ／</div>
         <div class="share-buttons-container">
-            <a href="{x_share_url}" target="_blank" class="share-btn btn-x">𝕏 シェア</a>
+            <a href="{x_share_url}" target="_blank" class="share-btn btn-x">𝕏</a>
             <a href="{line_share_url}" target="_blank" class="share-btn btn-line">LINE</a>
-            <a href="{fb_share_url}" target="_blank" class="share-btn btn-fb">Facebook</a>
+            <a href="{fb_share_url}" target="_blank" class="share-btn btn-fb">FB</a>
+            <a href="{bsky_share_url}" target="_blank" class="share-btn btn-bsky">Bluesky</a>
+            <a href="{threads_share_url}" target="_blank" class="share-btn btn-threads">Threads</a>
+            <a href="{pinterest_share_url}" target="_blank" class="share-btn btn-pinterest">Pin</a>
         </div>
     """, unsafe_allow_html=True)
+    # -----------------------------
     
     # 自分の名義
     st.sidebar.markdown(
