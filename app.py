@@ -149,8 +149,7 @@ col1, col2 = st.columns([0.7, 6])
 
 with col1:
     # 画像の幅も少し調整
-    # st.markdown('<div style="margin-top: 0.05px;">', unsafe_allow_html=True)
-    st.image("Horo_logo.png", width=60) 
+    st.image("Horo_logo.png", width=50) 
 
 with col2:
     # CSSに margin-left: -20px を追加して強制的に左へ寄せる
