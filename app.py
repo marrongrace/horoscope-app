@@ -136,14 +136,16 @@ t = ui_texts.get(lang, ui_texts["日本語"])
 # ==========================================
 # 3. メイン画面のタイトルと注釈を表示
 # ==========================================
-col1, col2 = st.columns([1.2, 2.0])
-
-with col1:
-    st.markdown(f"# {t['page_title']}")
-
-with col2:
-    # 位置のバランスを合わせたい場合は、HTMLのスタイルで上下の位置を微調整できます
-    st.markdown(f"<div style='margin-top: 15px;'>{t['page_subtitle']}</div>", unsafe_allow_html=True)
+st.markdown(f"""
+    <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 0.5rem;">
+        <h1 style="font-size: 2.2rem; font-weight: 700; margin: 0; padding: 0;">
+            {t['page_title']}
+        </h1>
+        <span style="font-size: 1.1rem; color: #888888; font-weight: 500;">
+            {t['page_subtitle']}
+        </span>
+    </div>
+""", unsafe_allow_html=True)
 
 st.caption(t["disclaimer"])
 
