@@ -130,13 +130,33 @@ lang = st.sidebar.selectbox("Language / 言語", ["日本語", "English"], label
 t = ui_texts.get(lang, ui_texts["日本語"])
 
 # ==========================================
-# 3. メイン画面のタイトルと注釈を表示
+# 3. ページタイトルの設定と画面への描画
+# ==========================================
+# ブラウザのタブ名に反映
+st.set_page_config(page_title=t["page_title"], layout="wide")
+
+# メイン画面のヘッダー表示（圧迫感を抑えたすっきりデザイン）
+st.markdown(f"""
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 0.1rem;">
+            🔮 {t['app_name']}
+        </h1>
+        <p style="font-size: 1.1rem; color: #888888; font-weight: 500;">
+            {t['app_subtitle']}
+        </p>
+    </div>
+""", unsafe_allow_html=True)
+
+# 免責事項などの表示（必要に応じて）
+st.caption(t["disclaimer"])
+# ==========================================
+# 4. メイン画面のタイトルと注釈を表示
 # ==========================================
 st.markdown(f"# {t['page_title']}")
 st.caption(t["disclaimer"])
 
 # ==========================================
-# 4. まだ結果が計算されていない初期状態の画面
+# 5. まだ結果が計算されていない初期状態の画面
 # ==========================================
 if "chart_data" not in st.session_state:
     st.markdown("---")
