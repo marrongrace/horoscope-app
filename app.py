@@ -141,7 +141,7 @@ st.markdown(f"""
         <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; margin: 0; padding: 0;">
             {t['page_title']}
         </span>
-        <span style="font-size: 1.1rem; color: #888888; font-weight: 550; margin-left: 12px;">
+        <span style="font-size: 1.1rem; color: #888888; font-weight: 600; margin-left: 8px;">
             {t['page_subtitle']}
         </span>
     </div>
