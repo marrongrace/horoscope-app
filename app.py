@@ -174,6 +174,8 @@ if "chart_data" not in st.session_state:
     st.write(t["tra_card_desc"])
     st.markdown("")
     st.markdown("")
+    st.markdown("")
+    st.markdown("")
     
     st.markdown(t["guide_link_text"], unsafe_allow_html=True)
 
