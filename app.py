@@ -187,7 +187,7 @@ with col2:
         </style>
 
         <div class="title-container">
-            <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; font-family: 'Montserrat', sans-serif;">
+            <span style="font-size: 2.2rem; font-weight: 700; color: #d8c292; font-family: 'Montserrat', sans-serif;">
                 {t['page_title']}
             </span>
             <span class="sub-title">
