@@ -155,7 +155,7 @@ st.markdown(f"""
             margin-left: 6px;
         }}
 
-        /* スマホやタブレットなど（横幅が768px以下の画面）：自動で改行させる */
+        /* スマホやタブレットなど（横幅が768px以下の画面） */
         @media (max-width: 768px) {{
             .title-container {{
                 display: block;
@@ -164,6 +164,8 @@ st.markdown(f"""
                 display: block;
                 margin-left: 0px;
                 margin-top: 4px;
+                /* スマホのときだけ、下の注釈との間に隙間（1行分くらい）を空ける */
+                margin-bottom: 1.2rem; 
             }}
         }}
     </style>
