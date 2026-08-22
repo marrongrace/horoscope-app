@@ -88,7 +88,7 @@ ui_texts = {
     "English": {
         "app_name": "HoroNote",
         "app_subtitle": "- Horoscope Information Export System -",
-        "page_title": "🔮 HoroNote - Horoscope Information Export System",
+        "page_title": "HoroNote - Horoscope Information Export System",
         "page_subtitle": "- Horoscope Information Export System -",
         "disclaimer": "※ Minor discrepancies in house degrees may occur due to calculation libraries or coordinate settings.",
         "sidebar_header": "📝 Birth Data Input",
@@ -154,12 +154,13 @@ st.markdown(f"""
             align-items: baseline;
             flex-wrap: wrap;
             margin-bottom: 0.5rem;
+            margin-right: 4px;
         }}
         .sub-title {{
             font-size: 1.1rem;
             color: #888888;
             font-weight: 600;
-            margin-left: 10px;
+            margin-left: 6px;
         }}
 
         /* スマホやタブレットなど（横幅が768px以下の画面） */
