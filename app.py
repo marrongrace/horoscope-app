@@ -74,8 +74,8 @@ ui_texts = {
         "comp_card_title": "☯️ コンポジット（合成図）",
         "comp_card_desc": "2人の出生図を合成し、パートナーシップの絆や2人の間に生まれる関係性を読み解きます。",
         "tra_card_title": "🌌 トランジット（現在の運勢）",
-        "tra_card_desc": "現在の星の動きから、あなたの人生にどんな影響を与えているかを読み解きます。"
-        "guide_link_text": "このアプリの詳しい使い方は[こちら](https://note.com/marroscorps/n/ncfc7216cd870)",
+        "tra_card_desc": "現在の星の動きから、あなたの人生にどんな影響を与えているかを読み解きます。",
+        "guide_link_text": "このアプリの詳しい使い方は[こちら](https://note.com/marroscorps/n/ncfc7216cd870)"
     },
     "English": {
         "app_name": "HoroNote",
@@ -121,7 +121,7 @@ ui_texts = {
         "comp_card_desc": "Merges two birth charts to analyze the shared dynamic, bonds, and partnership theme.",
         "tra_card_title": "🌌 Transit Reading",
         "tra_card_desc": "Examines how current planetary movements interact with your natal chart to reveal present influences.",
-        "guide_link_text":"For detailed instructions on how to use this app, [click here](https://note.com/marroscorps/n/ncfc7216cd870)",
+        "guide_link_text":"For detailed instructions on how to use this app, [click here](https://note.com/marroscorps/n/ncfc7216cd870)"
     }
 }
 
