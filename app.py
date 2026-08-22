@@ -162,6 +162,7 @@ with col2:
                 align-items: baseline;
                 flex-wrap: wrap;
                 margin-bottom: 0.5rem;
+                margin-right: 10px;
             }}
             .sub-title {{
                 font-size: 1.1rem;
