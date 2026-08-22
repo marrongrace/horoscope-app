@@ -137,6 +137,9 @@ t = ui_texts.get(lang, ui_texts["日本語"])
 # 3. メイン画面のタイトルと注釈を表示
 # ==========================================
 st.markdown(f"""
+    <!-- Google FontsからMontserratを読み込む -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    
     <div style="display: flex; align-items: baseline; margin-bottom: 0.5rem;">
         <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; margin: 0; padding: 0;">
             {t['page_title']}
