@@ -11,9 +11,11 @@ try:
 except ImportError:
     get_synastry_data = None
 
+icon_url = "https://github.com/marrongrace/horoscope-app/blob/main/Horo_logo.png" # 取得した画像URLに差し替えてください
+
 st.set_page_config(
     page_title="🔮 HoroNote -ホロスコープ情報書き出しアプリ- / Horoscope Information Export System",
-    page_icon="🔮",
+    page_icon=icon_url, # ここをURLに指定
     layout="centered",
 )
 
