@@ -36,7 +36,6 @@ ui_texts = {
         "app_name": "HoroNote",
         "app_subtitle": "- ホロスコープ情報書き出しアプリ -",
         "page_title": "🔮 HoroNote",
-        "page_subtitle": "- ホロスコープ情報書き出しアプリ -"
         "disclaimer": "※ 計算ライブラリや基準点の設定により、ハウス等の数値にわずかな誤差が生じる場合があります。",
         "sidebar_header": "📝 出生データ入力",
         "mode_select": "🔮 鑑定モード",
@@ -81,7 +80,6 @@ ui_texts = {
         "app_name": "HoroNote",
         "app_subtitle": "- Horoscope Information Export System -",
         "page_title": "🔮 HoroNote - Horoscope Information Export System",
-        "page_subtitle": "- Horoscope Information Export System -"
         "disclaimer": "※ Minor discrepancies in house degrees may occur due to calculation libraries or coordinate settings.",
         "sidebar_header": "📝 Birth Data Input",
         "mode_select": "🔮 Reading Mode",
@@ -130,7 +128,6 @@ ui_texts = {
 # ==========================================
 lang = st.sidebar.selectbox("Language / 言語", ["日本語", "English"], label_visibility="collapsed", key="lang_select")
 t = ui_texts.get(lang, ui_texts["日本語"])
-p[{'page_subtitle'}]
 
 # ==========================================
 # 3. メイン画面のタイトルと注釈を表示
