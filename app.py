@@ -143,52 +143,58 @@ t = ui_texts.get(lang, ui_texts["日本語"])
 # ==========================================
 # 3. メイン画面のタイトルと注釈を表示
 # ==========================================
-st.markdown(f"""
-    <!-- Google FontsからMontserratを読み込む -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* デフォルト（PCなどの広い画面）：横並び */
-        .title-container {{
-            display: flex;
-            align-items: baseline;
-            flex-wrap: wrap;
-            margin-bottom: 0.5rem;
-            margin-right: 10px;
-        }}
-        .sub-title {{
-            font-size: 1.1rem;
-            color: #888888;
-            font-weight: 600;
-            margin-left: 6px;
-        }}
 
-        /* スマホやタブレットなど（横幅が768px以下の画面） */
-        @media (max-width: 768px) {{
+# 1. カラムを作成（左にロゴ、右にテキスト）
+col1, col2 = st.columns([1, 6]) # 比率はロゴの大きさ次第で調整してください
+
+with col1:
+    # ここに画像URLを指定してください
+    st.image(https://github.com/marrongrace/horoscope-app/blob/main/Horo_logo.png, width=70) 
+
+with col2:
+    st.markdown(f"""
+        <!-- Google FontsからMontserratを読み込む -->
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+        
+        <style>
             .title-container {{
-                display: block;
+                display: flex;
+                align-items: baseline;
+                flex-wrap: wrap;
+                margin-bottom: 0.5rem;
             }}
             .sub-title {{
-                display: block;
-                margin-left: 0px;
-                margin-top: 4px;
-                /* スマホのときだけ、下の注釈との間に隙間（1行分くらい）を空ける */
-                margin-bottom: 1.2rem; 
+                font-size: 1.1rem;
+                color: #888888;
+                font-weight: 600;
+                margin-left: 6px;
             }}
-        }}
-    </style>
 
-    <div class="title-container">
-        <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; font-family: 'Montserrat', sans-serif;">
-            {t['page_title']}
-        </span>
-        <span class="sub-title">
-            {t['page_subtitle']}
-        </span>
-    </div>
-""", unsafe_allow_html=True)
+            /* スマホ対応 */
+            @media (max-width: 768px) {{
+                .title-container {{
+                    display: block;
+                }}
+                .sub-title {{
+                    display: block;
+                    margin-left: 0px;
+                    margin-top: 4px;
+                    margin-bottom: 1.2rem; 
+                }}
+            }}
+        </style>
 
-st.markdown("")
+        <div class="title-container">
+            <span style="font-size: 2.2rem; font-weight: 700; color: #ffffff; font-family: 'Montserrat', sans-serif;">
+                {t['page_title']}
+            </span>
+            <span class="sub-title">
+                {t['page_subtitle']}
+            </span>
+        </div>
+    """, unsafe_allow_html=True)
+
+# 2. 注釈を表示
 st.caption(t["disclaimer"])
 
 # ==========================================
