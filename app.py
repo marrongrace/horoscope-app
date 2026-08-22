@@ -15,7 +15,7 @@ icon_url = "https://github.com/marrongrace/horoscope-app/blob/main/Horo_logo.png
 
 st.set_page_config(
     page_title="HoroNote -ホロスコープ情報書き出しアプリ- / Horoscope Information Export System",
-    page_icon=icon_url, # ここをURLに指定
+    page_icon="Horo_logo.png", # ここをURLに指定
     layout="centered",
 )
 
