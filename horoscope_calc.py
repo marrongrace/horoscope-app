@@ -300,20 +300,25 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
             if not unique_path or unique_path[-1] != h:
                 unique_path.append(h)
         
-        # 🔽 【変更ポイント】最初をコロン「：」にして、残りを「 → 」で繋ぐ
-        if len(unique_path) > 1:
-            start_part = f"**第{unique_path[0]}ハウス**："
-            rest_part = " → ".join([f"第{h}ハウス" for h in unique_path[1:]])
-            path_str = f"{start_part} {rest_part}"
+        # 🔽 【修正】常にスタート地点を含めた全体のパス文字列を作る
+        # 例：[1, 11] なら "第1ハウス → 第11ハウス"
+        # 例：[7] なら "第7ハウス"
+        path_str = " → ".join([f"第{h}ハウス" for h in unique_path])
+        
+        # 最初の「第Xハウス」の後ろだけをコロン「：」にする
+        if " → " in path_str:
+            parts = path_str.split(" → ", 1)
+            formatted_path = f"**{parts[0]}**： {parts[1]}"
         else:
-            path_str = f"**第{start_h}ハウス**"
+            formatted_path = f"**{path_str}**"
 
+        # 状態（ドミサイルやループ）を後ろに付与する
         if status == "domicile":
-            display_text = f"{path_str} (ドミサイル)"
+            display_text = f"{formatted_path} (ドミサイル)"
         elif status == "loop":
-            display_text = f"{path_str} (以降 第{loop_target}ハウスとのループ)"
+            display_text = f"{formatted_path} (以降 第{loop_target}ハウスとのループ)"
         else:
-            display_text = path_str
+            display_text = formatted_path
             
         chain_results.append(display_text)
         
