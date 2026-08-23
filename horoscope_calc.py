@@ -272,54 +272,70 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
 
     chain_results = []
     for start_h in range(1, 13):
+        # 最初から「出発地のハウス」をパスに含めておく
         path = [start_h]
         visited = set([start_h])
         current = start_h
         status = "end"
         loop_target = None
         
-        while current in house_links:
-            next_house = house_links[current]
-            if next_house == current:
-                status = "domicile"
-                break
-            if next_house in visited:
-                path.append(next_house)
-                status = "loop"
-                loop_target = next_house
-                break
-            visited.add(next_house)
-            path.append(next_house)
-            current = next_house
-            if len(path) > 15:
-                break
+        # 最初のハウスのサインのルーラーがどのハウスにあるかを調べる
+        # （※ここの house_links[start_h] からスタートするのがポイントです）
+        h_sign_i = houses_list[start_h - 1].get('sign', 'Aries') if isinstance(houses_list[start_h - 1], dict) else getattr(houses_list[start_h - 1], 'sign', 'Aries')
+        norm_sign_i = SIGN_NORM_MAP.get(str(h_sign_i), "Aries")
+        ruler_key_i = SIGN_RULERS.get(norm_sign_i, "Sun")
+        first_target = body_house_map.get(ruler_key_i, start_h)
         
-        # 連続する重複を排除
+        # もし最初から自分のハウスにルーラーがいる（ドミサイル）場合
+        if first_target == start_h:
+            status = "domisyuru" # あるいは domicile
+            # path は [start_h] のまま
+        else:
+            path.append(first_target)
+            visited.add(first_target)
+            current = first_target
+            
+            # そこからさらにルーラーを辿る
+            while current in house_links:
+                next_house = house_links[current]
+                if next_house == current:
+                    status = "domicile"
+                    break
+                if next_house in visited:
+                    path.append(next_house)
+                    status = "loop"
+                    loop_target = next_house
+                    break
+                visited.add(next_house)
+                path.append(next_house)
+                current = next_house
+                if len(path) > 15:
+                    break
+        
+        # 連続する重複を綺麗に整理
         unique_path = []
         for h in path:
             if not unique_path or unique_path[-1] != h:
                 unique_path.append(h)
         
-        # 🔽 【完全修正】必ず「第start_hハウス」から始まるようにパスを構築する
-        # もし unique_path の先頭が start_h で始まっていない場合の保険としても機能します
+        # 確実に先頭が start_h から始まるようにする
         if unique_path[0] != start_h:
             unique_path.insert(0, start_h)
             
-        # 先頭と残りの部分を分ける（例：「第1ハウス」と「第11ハウス」など）
+        # 文字列の組み立て
         start_str = f"**第{start_h}ハウス**"
-        
-        # start_h を除いた残りの移動先を作成
         rest_nodes = unique_path[1:]
         
         if rest_nodes:
             rest_str = " → ".join([f"第{h}ハウス" for h in rest_nodes])
-            path_str = f"{start_str}： {rest_str}"
+            path_str = f"{start_str}： {start_str} → {rest_str}"  # 「第2ハウス：第2ハウス → 第9ハウス...」の形にする
         else:
-            # ドミサイルなどで移動先がない（自分自身で完結する）場合も「第7ハウス：第7ハウス」の形にする
+            # 移動先がない（最初からドミサイル等）場合
             path_str = f"{start_str}： {start_str}"
 
-        # 状態（ドミサイルやループ）を後ろに付与する
-        if status == "domicile":
+        # ステータスの付与
+        if status == "domicile" or (len(unique_path) == 1 and unique_path[0] == first_target and first_target == start_h):
+            # 自分自身に戻ってきた場合や最初からドミサイルの場合
             display_text = f"{path_str} (ドミサイル)"
         elif status == "loop":
             display_text = f"{path_str} (以降 第{loop_target}ハウスとのループ)"
