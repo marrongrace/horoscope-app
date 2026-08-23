@@ -300,25 +300,31 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
             if not unique_path or unique_path[-1] != h:
                 unique_path.append(h)
         
-        # 🔽 【修正】常にスタート地点を含めた全体のパス文字列を作る
-        # 例：[1, 11] なら "第1ハウス → 第11ハウス"
-        # 例：[7] なら "第7ハウス"
-        path_str = " → ".join([f"第{h}ハウス" for h in unique_path])
+        # 🔽 【完全修正】必ず「第start_hハウス」から始まるようにパスを構築する
+        # もし unique_path の先頭が start_h で始まっていない場合の保険としても機能します
+        if unique_path[0] != start_h:
+            unique_path.insert(0, start_h)
+            
+        # 先頭と残りの部分を分ける（例：「第1ハウス」と「第11ハウス」など）
+        start_str = f"**第{start_h}ハウス**"
         
-        # 最初の「第Xハウス」の後ろだけをコロン「：」にする
-        if " → " in path_str:
-            parts = path_str.split(" → ", 1)
-            formatted_path = f"**{parts[0]}**： {parts[1]}"
+        # start_h を除いた残りの移動先を作成
+        rest_nodes = unique_path[1:]
+        
+        if rest_nodes:
+            rest_str = " → ".join([f"第{h}ハウス" for h in rest_nodes])
+            path_str = f"{start_str}： {rest_str}"
         else:
-            formatted_path = f"**{path_str}**"
+            # ドミサイルなどで移動先がない（自分自身で完結する）場合も「第7ハウス：第7ハウス」の形にする
+            path_str = f"{start_str}： {start_str}"
 
         # 状態（ドミサイルやループ）を後ろに付与する
         if status == "domicile":
-            display_text = f"{formatted_path} (ドミサイル)"
+            display_text = f"{path_str} (ドミサイル)"
         elif status == "loop":
-            display_text = f"{formatted_path} (以降 第{loop_target}ハウスとのループ)"
+            display_text = f"{path_str} (以降 第{loop_target}ハウスとのループ)"
         else:
-            display_text = formatted_path
+            display_text = path_str
             
         chain_results.append(display_text)
         
