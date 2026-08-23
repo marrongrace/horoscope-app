@@ -989,44 +989,26 @@ if "chart_data" in st.session_state:
                     )
 
                 for r_line in target_rulers:
+                    # 計算側で綺麗になっているため、矢印の統一とローカライズのみでOK
                     formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
                     
-                    # 🔽 連続する同じハウス名の重複（例: 「第1ハウス：第1ハウス → 第1ハウス」など）をまとめてスッキリさせる
-                    # 例: 「第1ハウス：第1ハウス → 第1ハウス → 第11ハウス」→「第1ハウス：第11ハウス」にする
+                    # 2ハウス間のミューチュアル・レセプションの判定だけ残す
+                    mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', formatted_line)
                     
-                    # コロン（：または:）の前後で連続しているものを綺麗に削る
-                    formatted_line = re.sub(r'(第\d+ハウス)[：:]\s*\1(?:\s*→\s*\1)+', r'\1：', formatted_line)
-                    formatted_line = re.sub(r'(第\d+ハウス)[：:]\s*\1', r'\1：', formatted_line)
-                    
-                    # その後のボディ部分の連続する重複も削除
-                    # 「第1ハウス → 第1ハウス → 第11ハウス」のような部分を「第1ハウス → 第11ハウス」にする
-                    parts = formatted_line.split("：") if "：" in formatted_line else formatted_line.split(":")
-                    if len(parts) == 2:
-                        prefix, body = parts[0], parts[1]
-                        # body内の連続する重複を削除
-                        body = re.sub(r'(第\d+ハウス)(?:\s*→\s*\1)+', r'\1', body)
+                    if mutual_match:
+                        h1 = mutual_match.group(1)
+                        h2 = mutual_match.group(2)
+                        match_end = mutual_match.end()
+                        loop_part = formatted_line[:match_end]
                         
-                        # 2ハウス間のミューチュアル・レセプションの判定
-                        mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', body)
-                        has_loop_text = "ループ" in formatted_line or "サーキット" in formatted_line
-
-                        if mutual_match:
-                            h1 = mutual_match.group(1)
-                            h2 = mutual_match.group(2)
-                            match_end = mutual_match.end()
-                            loop_part = body[:match_end]
-                            
-                            n1 = int(re.search(r'\d+', h1).group())
-                            n2 = int(re.search(r'\d+', h2).group())
-                            min_n, max_n = min(n1, n2), max(n1, n2)
-                            
-                            if lang == "日本語":
-                                formatted_line = f"{prefix}：{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
-                            else:
-                                formatted_line = f"{prefix}: {loop_part} (Mutual Reception between {min_n}th and {max_n}th Houses)"
+                        n1 = int(re.search(r'\d+', h1).group())
+                        n2 = int(re.search(r'\d+', h2).group())
+                        min_n, max_n = min(n1, n2), max(n1, n2)
+                        
+                        if lang == "日本語":
+                            formatted_line = f"{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
                         else:
-                            separator = "：" if lang == "日本語" else ": "
-                            formatted_line = f"{prefix}{separator}{body.strip()}"
+                            formatted_line = f"{loop_part} (Mutual Reception between {min_n}th and {max_n}th Houses)"
 
                     formatted_line = localize_text(formatted_line, lang)
                     st.markdown(f"- {formatted_line}")
@@ -1066,9 +1048,8 @@ if "chart_data" in st.session_state:
 
             # --- ★ ハウスルーラーを綺麗に整形する共通関数 ---
             def clean_and_format_ruler(r_line, current_lang):
-                # HTMLの除去や前後の空白、余計なハイフンを綺麗に掃除する
                 cleaned = clean_html(r_line).replace("->", "→").replace("➡️", "→").strip()
-                cleaned = cleaned.lstrip("-").strip() # 先頭のハイフンがあれば取り除く
+                cleaned = cleaned.lstrip("-").strip()
                 
                 # 先頭の「第〇ハウス」を確実に抽出
                 prefix_match = re.search(r'(第\d+ハウス)', cleaned)
@@ -1106,7 +1087,7 @@ if "chart_data" in st.session_state:
                         # コロンがない通常ラインの場合
                         formatted_line = f"{prefix}{separator}{cleaned}"
 
-                return localize_text(formatted_line, current_lang)
+                return localize_text(cleaned, current_lang)
 
             copy_lines = []
             if lang == "日本語":
