@@ -991,51 +991,42 @@ if "chart_data" in st.session_state:
                 for r_line in target_rulers:
                     formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
                     
-                    # プレフィックスと本体に分解
-                    if "：" in formatted_line:
-                        prefix, body = formatted_line.split("：", 1)
-                    elif ":" in formatted_line:
-                        prefix, body = formatted_line.split(":", 1)
-                    else:
-                        prefix, body = "", formatted_line
-
-                    # 🔽 【追加】連続して重複しているハウス名（例: 第1ハウス → 第1ハウス）を1つにまとめる
-                    body = re.sub(r'(第\d+ハウス)(?:\s*→\s*\1)+', r'\1', body)
-
-                    # 1. 【2ハウス間の往復ループ】の判定（例: 第12ハウス → 第11ハウス → 第12ハウス）
-                    mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', body)
+                    # 🔽 連続する同じハウス名の重複（例: 「第1ハウス：第1ハウス → 第1ハウス」など）をまとめてスッキリさせる
+                    # 例: 「第1ハウス：第1ハウス → 第1ハウス → 第11ハウス」→「第1ハウス：第11ハウス」にする
                     
-                    # 2. 【3つ以上のハウスを巡るループ】の判定
-                    has_loop_text = "ループ" in formatted_line or "サーキット" in formatted_line
+                    # コロン（：または:）の前後で連続しているものを綺麗に削る
+                    formatted_line = re.sub(r'(第\d+ハウス)[：:]\s*\1(?:\s*→\s*\1)+', r'\1：', formatted_line)
+                    formatted_line = re.sub(r'(第\d+ハウス)[：:]\s*\1', r'\1：', formatted_line)
+                    
+                    # その後のボディ部分の連続する重複も削除
+                    # 「第1ハウス → 第1ハウス → 第11ハウス」のような部分を「第1ハウス → 第11ハウス」にする
+                    parts = formatted_line.split("：") if "：" in formatted_line else formatted_line.split(":")
+                    if len(parts) == 2:
+                        prefix, body = parts[0], parts[1]
+                        # body内の連続する重複を削除
+                        body = re.sub(r'(第\d+ハウス)(?:\s*→\s*\1)+', r'\1', body)
+                        
+                        # 2ハウス間のミューチュアル・レセプションの判定
+                        mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', body)
+                        has_loop_text = "ループ" in formatted_line or "サーキット" in formatted_line
 
-                    if mutual_match:
-                        h1 = mutual_match.group(1)
-                        h2 = mutual_match.group(2)
-                        match_end = mutual_match.end()
-                        loop_part = body[:match_end] # ループが完了した部分までの軌跡
-                        
-                        # ハウス番号を抽出して若い順に並べることで表記を綺麗に統一
-                        n1 = int(re.search(r'\d+', h1).group())
-                        n2 = int(re.search(r'\d+', h2).group())
-                        min_n, max_n = min(n1, n2), max(n1, n2)
-                        
-                        if lang == "日本語":
-                            formatted_line = f"{prefix}：{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
-                        else:
-                            formatted_line = f"{prefix}: {loop_part} (Mutual Reception between {min_n}th and {max_n}th Houses)"
+                        if mutual_match:
+                            h1 = mutual_match.group(1)
+                            h2 = mutual_match.group(2)
+                            match_end = mutual_match.end()
+                            loop_part = body[:match_end]
                             
-                    elif has_loop_text:
-                        # 複数ハウスを巡るループの場合
-                        if " → " in body: # ※元コードの formatted_line を body に直すと安全です
+                            n1 = int(re.search(r'\d+', h1).group())
+                            n2 = int(re.search(r'\d+', h2).group())
+                            min_n, max_n = min(n1, n2), max(n1, n2)
+                            
+                            if lang == "日本語":
+                                formatted_line = f"{prefix}：{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
+                            else:
+                                formatted_line = f"{prefix}: {loop_part} (Mutual Reception between {min_n}th and {max_n}th Houses)"
+                        else:
                             separator = "：" if lang == "日本語" else ": "
-                            body = body.replace(" → ", separator, 1)
-                        formatted_line = f"{prefix}：{body}" if prefix else body
-                    else:
-                        # 通常のハウス連鎖（ドミサイルや直通パターン）
-                        if " → " in body:
-                            separator = "：" if lang == "日本語" else ": "
-                            body = body.replace(" → ", separator, 1)
-                        formatted_line = f"{prefix}：{body}" if prefix else body
+                            formatted_line = f"{prefix}{separator}{body.strip()}"
 
                     formatted_line = localize_text(formatted_line, lang)
                     st.markdown(f"- {formatted_line}")
