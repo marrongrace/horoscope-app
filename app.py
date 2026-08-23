@@ -989,10 +989,10 @@ if "chart_data" in st.session_state:
                     )
 
                 for r_line in target_rulers:
-                    # 計算側で綺麗になっているため、矢印の統一とローカライズのみでOK
+                    # 計算側で作成された文字列をそのまま活かす
                     formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
                     
-                    # 2ハウス間のミューチュアル・レセプションの判定だけ残す
+                    # 2ハウス間のミューチュアル・レセプションの判定と表示用の置換
                     mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', formatted_line)
                     
                     if mutual_match:
@@ -1057,7 +1057,7 @@ if "chart_data" in st.session_state:
                 
                 separator = "：" if current_lang == "日本語" else ": "
 
-                # ミューチュアル・レセプションの判定
+                # ミューチュアル・レセプションの判定（コピー用）
                 mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', cleaned)
                 
                 if mutual_match:
@@ -1071,9 +1071,10 @@ if "chart_data" in st.session_state:
                     min_n, max_n = min(n1, n2), max(n1, n2)
                     
                     if current_lang == "日本語":
-                        formatted_line = f"{prefix}{separator}{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
+                        cleaned = f"{loop_part} (第{min_n}ハウス・第{max_n}ハウスのミューチュアル・レセプション)"
                     else:
-                        formatted_line = f"{prefix}: {loop_part} (Mutual Reception between {min_n}th and {max_n}th Houses)"
+                        # 英語化が必要な場合の調整
+                        cleaned = f"{loop_part} (Mutual Reception between {min_n}th and {max_n}th Houses)"
                 else:
                     # すでにコロンが含まれている場合（第9ハウスのドミサイルなど）
                     if "：" in cleaned or ":" in cleaned:
