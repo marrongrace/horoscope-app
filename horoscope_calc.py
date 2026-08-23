@@ -6,7 +6,83 @@ import urllib.parse
 import warnings
 import swisseph as swefw
 from kerykeion import AstrologicalSubject
+def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_rule=False, house_cusp_abs=None):
+    """
+    各ハウスのカスプのルーラーをたどる連鎖（チェーン）を計算する
+    use_5_deg_rule=True の場合は、5度前ルール適用後の天体ハウス位置を採用する
+    """
+    body_house_map = {}
+    major_bodies = {"Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
 
+    for key, p in bodies_meta:
+        h_raw = p.get('house', 'First_House') if isinstance(p, dict) else getattr(p, 'house', 'First_House')
+        h_num = house_name_map.get(str(h_raw), 1)
+        
+        # 5度前ルールが有効、かつ主要天体で条件を満たす場合は次のハウスにスライド
+        if use_5_deg_rule and key in major_bodies and house_cusp_abs:
+            sign = p.get('sign', 'Aries') if isinstance(p, dict) else getattr(p, 'sign', 'Aries')
+            pos = p.get('position', 0.0) if isinstance(p, dict) else getattr(p, 'position', 0.0)
+            norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
+            s_idx = list(SIGN_DATA.keys()).index(norm_sign) if norm_sign in SIGN_DATA else 0
+            abs_p_pos = s_idx * 30 + pos
+            
+            next_idx = (h_num % 12)
+            cusp_next = house_cusp_abs[next_idx]
+            dist = (cusp_next - abs_p_pos) % 360
+            if 0.0 <= dist <= 5.0:
+                h_num = next_idx + 1
+
+        body_house_map[key] = h_num
+
+    house_links = {}
+    for i, h in enumerate(houses_list, 1):
+        sign = h.get('sign', 'Aries') if isinstance(h, dict) else getattr(h, 'sign', 'Aries')
+        norm_sign = SIGN_NORM_MAP.get(str(sign), "Aries")
+        ruler_key = SIGN_RULERS.get(norm_sign, "Sun")
+        target_house = body_house_map.get(ruler_key, i)
+        house_links[i] = target_house
+
+    chain_results = []
+    for start_h in range(1, 13):
+        path = [start_h]
+        visited = set([start_h])
+        current = start_h
+        status = "end"
+        loop_target = None
+        
+        while current in house_links:
+            next_house = house_links[current]
+            if next_house == current:
+                status = "domicile"
+                break
+            if next_house in visited:
+                path.append(next_house)
+                status = "loop"
+                loop_target = next_house
+                break
+            visited.add(next_house)
+            path.append(next_house)
+            current = next_house
+            if len(path) > 15:
+                break
+        
+        # 🔽 【修正ポイント】連続する同じハウス番号を排除してユニークにする
+        unique_path = []
+        for h in path:
+            if not unique_path or unique_path[-1] != h:
+                unique_path.append(h)
+        
+        path_str = " → ".join([f"第{h}ハウス" for h in unique_path])
+        
+        if status == "domicile":
+            display_text = f"**第{start_h}ハウス** ➡️ {path_str} (ドミサイル)"
+        elif status == "loop":
+            display_text = f"**第{start_h}ハウス** ➡️ {path_str} (以降 第{loop_target}ハウスとのループ)"
+        else:
+            display_text = f"**第{start_h}ハウス** ➡️ {path_str}"
+        chain_results.append(display_text)
+        
+    return chain_results
 EPHE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "ephe"))
 if not EPHE_PATH.endswith(os.path.sep):
     EPHE_PATH += os.path.sep
@@ -218,7 +294,14 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
             if len(path) > 15:
                 break
         
-        path_str = " → ".join([f"第{h}ハウス" for h in path])
+        # 🔽 【修正ポイント】連続する同じハウス番号を排除してユニークにする
+        unique_path = []
+        for h in path:
+            if not unique_path or unique_path[-1] != h:
+                unique_path.append(h)
+        
+        path_str = " → ".join([f"第{h}ハウス" for h in unique_path])
+        
         if status == "domicile":
             display_text = f"**第{start_h}ハウス** ➡️ {path_str} (ドミサイル)"
         elif status == "loop":
