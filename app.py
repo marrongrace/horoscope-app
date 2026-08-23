@@ -30,13 +30,13 @@ st.markdown(f"""
     <head>
         <meta property="og:title" content="HoroNote - ホロスコープ情報書き出しアプリ">
         <meta property="og:description" content="ホロスコープの天体・ハウス・アスペクトなどの情報を分かりやすく書き出すためのアプリです。">
-        <meta property="og:image" content="{https://raw.githubusercontent.com/marrongrace/horoscope-app/main/Horo_logo_1920.png}">
+        <meta property="og:image" content="https://raw.githubusercontent.com/marrongrace/horoscope-app/main/Horo_logo_1920.png">
         <meta property="og:type" content="website">
         
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="HoroNote - ホロスコープ情報書き出しアプリ">
         <meta name="twitter:description" content="ホロスコープの天体・ハウス・アスペクトなどの情報を分かりやすく書き出すためのアプリです。">
-        <meta name="twitter:image" content="{https://raw.githubusercontent.com/marrongrace/horoscope-app/main/Horo_logo_1920.png}">
+        <meta name="twitter:image" content="https://raw.githubusercontent.com/marrongrace/horoscope-app/main/Horo_logo_1920.png">
     </head>
 """, unsafe_allow_html=True)
 
