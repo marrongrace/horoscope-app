@@ -25,21 +25,6 @@ st.markdown(f"""
     <link rel="apple-touch-icon" href="{icon_url}">
 """, unsafe_allow_html=True)
 
-# noteやSNSでシェアしたときのプレビュー表示（OGP）設定
-st.markdown(f"""
-    <head>
-        <meta property="og:title" content="HoroNote - ホロスコープ情報書き出しアプリ">
-        <meta property="og:description" content="ホロスコープの天体・ハウス・アスペクトなどの情報を分かりやすく書き出すためのアプリです。">
-        <meta property="og:image" content="https://raw.githubusercontent.com/marrongrace/horoscope-app/main/Horo_logo_1920.png">
-        <meta property="og:type" content="website">
-        
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="HoroNote - ホロスコープ情報書き出しアプリ">
-        <meta name="twitter:description" content="ホロスコープの天体・ハウス・アスペクトなどの情報を分かりやすく書き出すためのアプリです。">
-        <meta name="twitter:image" content="https://raw.githubusercontent.com/marrongrace/horoscope-app/main/Horo_logo_1920.png">
-    </head>
-""", unsafe_allow_html=True)
-
 BASE_PREFECTURES = [
     "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
     "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
