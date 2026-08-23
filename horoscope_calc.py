@@ -278,7 +278,6 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
         status = "end"
         loop_target = None
         
-        # 最初のハウスのルーラーがどこにあるかを確認し、連鎖をたどる
         while current in house_links:
             next_house = house_links[current]
             if next_house == current:
@@ -295,28 +294,29 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
             if len(path) > 15:
                 break
         
-        # 連続する重複を排除しつつ、必ず先頭が start_h から始まるようにする
+        # 連続する重複を排除
         unique_path = []
         for h in path:
             if not unique_path or unique_path[-1] != h:
                 unique_path.append(h)
         
+        # 🔽 【完全修正】必ず「第start_hハウス」から始まるようにパスを構築する
+        # もし unique_path の先頭が start_h で始まっていない場合の保険としても機能します
         if unique_path[0] != start_h:
             unique_path.insert(0, start_h)
             
-        # 文字列の組み立て
-        # 例：「第1ハウス：第1ハウス → 第11ハウス」の形にするため、unique_pathをそのまま繋げる
-        path_str = " → ".join([f"第{h}ハウス" for h in unique_path])
-        start_str = f"**第{start_h}ハウス**" # 必要に応じて最初の強調を残す場合
+        # 先頭と残りの部分を分ける（例：「第1ハウス」と「第11ハウス」など）
+        start_str = f"**第{start_h}ハウス**"
         
-        # もし unique_path の先頭を太字にしたい場合は以下のように調整
+        # start_h を除いた残りの移動先を作成
         rest_nodes = unique_path[1:]
+        
         if rest_nodes:
             rest_str = " → ".join([f"第{h}ハウス" for h in rest_nodes])
-            path_str = f"**第{start_h}ハウス**： {rest_str}"
+            path_str = f"{start_str}： {rest_str}"
         else:
-            # 7ハウスのように最初からドミサイルで移動先がない場合
-            path_str = f"**{start_h}ハウス**： **第{start_h}ハウス**"
+            # ドミサイルなどで移動先がない（自分自身で完結する）場合も「第7ハウス：第7ハウス」の形にする
+            path_str = f"{start_str}： {start_str}"
 
         # 状態（ドミサイルやループ）を後ろに付与する
         if status == "domicile":
@@ -329,7 +329,7 @@ def get_house_ruler_chains(houses_list, bodies_meta, house_name_map, use_5_deg_r
         chain_results.append(display_text)
         
     return chain_results
-    
+
 def get_synastry_data(p1_info, p2_info, mode="日本語", display_mode="ペア別"):
     def get_bodies_for_aspects(info):
         calc_h, calc_m = (12, 0) if info["is_unknown_time"] else (info["hour"], info["minute"])
