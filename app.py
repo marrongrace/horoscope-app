@@ -993,7 +993,7 @@ if "chart_data" in st.session_state:
                     formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
                     
                     # 2ハウス間のミューチュアル・レセプションの判定だけ残す
-                    mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', formatted_line)
+                    # mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', formatted_line)
                     
                     if mutual_match:
                         h1 = mutual_match.group(1)
