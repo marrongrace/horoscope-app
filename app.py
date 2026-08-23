@@ -991,7 +991,7 @@ if "chart_data" in st.session_state:
                 for r_line in target_rulers:
                     formatted_line = r_line.replace("->", "→").replace("➡️", "→").strip()
                     
-                    # プレフィックス（例: 「第12ハウス」）と本体（例: 「第12ハウス → 第11ハウス → ...」）に分解
+                    # プレフィックスと本体に分解
                     if "：" in formatted_line:
                         prefix, body = formatted_line.split("：", 1)
                     elif ":" in formatted_line:
@@ -999,8 +999,10 @@ if "chart_data" in st.session_state:
                     else:
                         prefix, body = "", formatted_line
 
+                    # 🔽 【追加】連続して重複しているハウス名（例: 第1ハウス → 第1ハウス）を1つにまとめる
+                    body = re.sub(r'(第\d+ハウス)(?:\s*→\s*\1)+', r'\1', body)
+
                     # 1. 【2ハウス間の往復ループ】の判定（例: 第12ハウス → 第11ハウス → 第12ハウス）
-                    # ※外側のカッコを外し、\1 が最初のグループを正しく参照できるように修正
                     mutual_match = re.search(r'(第\d+ハウス) → (第\d+ハウス) → \1', body)
                     
                     # 2. 【3つ以上のハウスを巡るループ】の判定
@@ -1024,14 +1026,16 @@ if "chart_data" in st.session_state:
                             
                     elif has_loop_text:
                         # 複数ハウスを巡るループの場合
-                        if " → " in formatted_line:
+                        if " → " in body: # ※元コードの formatted_line を body に直すと安全です
                             separator = "：" if lang == "日本語" else ": "
-                            formatted_line = formatted_line.replace(" → ", separator, 1)
+                            body = body.replace(" → ", separator, 1)
+                        formatted_line = f"{prefix}：{body}" if prefix else body
                     else:
                         # 通常のハウス連鎖（ドミサイルや直通パターン）
-                        if " → " in formatted_line:
+                        if " → " in body:
                             separator = "：" if lang == "日本語" else ": "
-                            formatted_line = formatted_line.replace(" → ", separator, 1)
+                            body = body.replace(" → ", separator, 1)
+                        formatted_line = f"{prefix}：{body}" if prefix else body
 
                     formatted_line = localize_text(formatted_line, lang)
                     st.markdown(f"- {formatted_line}")
