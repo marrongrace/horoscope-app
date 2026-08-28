@@ -478,7 +478,7 @@ with st.sidebar:
             .btn-pinterest {{ background-color: #e60023; }}
         </style>
 
-        <div style="font-size: 0.8em; color: gray; margin-top: 25px;">↓↓↓ 成果をシェアする ↓↓↓</div>
+        <div style="font-size: 0.8em; color: gray; margin-top: 25px;">↓↓↓  成果をシェアする  ↓↓↓</div>
         <div class="share-buttons-grid">
             <a href="{x_share_url}" target="_blank" class="share-btn btn-x">𝕏 シェア</a>
             <a href="{line_share_url}" target="_blank" class="share-btn btn-line">LINE</a>
