@@ -3,5 +3,5 @@ geopy
 timezonefinder
 kerykeion
 --no-binary swisseph
-swisseph
+pyswisseph
 pytz
