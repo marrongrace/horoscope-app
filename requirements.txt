@@ -1,6 +1,6 @@
 streamlit
 geopy
 timezonefinder
-kerykeion
+kerykeion<6.0.0
 --no-binary swisseph
 swisseph
